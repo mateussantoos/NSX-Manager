@@ -20,7 +20,7 @@ FAIL=0
 
 # --- 1. no includes crossing the boundary, in either direction --------------
 if [ -d src ] || [ -d apps/forwarder ]; then
-    hits="$(grep -rnE '#include.*(rcm-payload|bdk/|hekate)' src apps/forwarder 2>/dev/null || true)"
+    hits="$(grep -rnE --include='*.c' --include='*.h' --include='*.cpp' --include='*.hpp'                 '#include.*(rcm-payload|bdk/|hekate)' src apps/forwarder 2>/dev/null || true)"
     if [ -n "$hits" ]; then
         echo "FORBIDDEN: application code includes from the GPL-2.0-only payload:" >&2
         echo "$hits" >&2
@@ -29,7 +29,9 @@ if [ -d src ] || [ -d apps/forwarder ]; then
 fi
 
 if [ -d apps/rcm-payload ]; then
-    hits="$(grep -rnE '#include.*"nsx/' apps/rcm-payload 2>/dev/null || true)"
+    # Source files only. ISOLATION.md documents this rule by quoting the
+    # forbidden include, and scanning prose would make the doc trip its own check.
+    hits="$(grep -rnE --include='*.c' --include='*.h' --include='*.cpp' --include='*.hpp'                 --include='*.S' --include='*.s'                 '#include.*"nsx/' apps/rcm-payload 2>/dev/null || true)"
     if [ -n "$hits" ]; then
         echo "FORBIDDEN: the GPL-2.0-only payload includes GPL-3.0 application code:" >&2
         echo "$hits" >&2

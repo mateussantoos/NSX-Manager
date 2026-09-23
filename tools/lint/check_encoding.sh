@@ -24,8 +24,18 @@ for f in $(git ls-files); do
         printf 'ENCODING: %s is not valid UTF-8\n' "$f" >&2
         FAIL=1
     fi
-    if grep -qU $'\r' "$f" 2>/dev/null; then
-        printf 'LINE ENDINGS: %s contains CRLF\n' "$f" >&2
+    # Detect CR by removing it and seeing whether the file changed.
+    #
+    # NOT by a regex. This script is #!/bin/sh, which is dash on Debian, and
+    # two obvious spellings both fail there:
+    #   $'\r'          dash has no $'...' quoting; the pattern became "$r",
+    #                  so any file containing $ref or $row "had CRLF".
+    #   "$(printf '\r')"  command substitution strips the trailing CR, leaving an
+    #                  empty pattern that matches everything.
+    # Both were present in this file at different times. Comparison has no
+    # quoting or shell-dialect hazard at all.
+    if ! LC_ALL=C tr -d '\r' < "$f" | cmp -s - "$f"; then
+        printf 'LINE ENDINGS: %s contains CR\n' "$f" >&2
         FAIL=1
     fi
     # A UTF-8 BOM breaks shell scripts and some C++ compilers.
