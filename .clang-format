@@ -10,7 +10,9 @@ BasedOnStyle:    Google
 ColumnLimit:     100
 IndentWidth:     4
 AccessModifierOffset: -4
-NamespaceIndentation: All
+# None, not All: with `namespace nsx::core` the All setting indents every
+# file entirely by one level, spending the 100-column budget on nothing.
+NamespaceIndentation: None
 DerivePointerAlignment: false
 PointerAlignment: Left
 ReferenceAlignment: Left
