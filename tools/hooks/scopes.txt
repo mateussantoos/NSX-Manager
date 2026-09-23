@@ -1,0 +1,79 @@
+# Commit scope vocabulary - the single source of truth.
+#
+# Read by BOTH enforcers: tools/hooks/commit-msg (local, POSIX sh) and
+# commitlint.config.js (CI, Node). One list, two readers - they cannot disagree.
+#
+# Scopes mirror the source tree (docs/architecture/source-tree.md). Adding a
+# scope is a normal commit; keep this list honest rather than letting people
+# invent scopes in commit messages.
+#
+# Lines starting with '#' and blank lines are ignored.
+
+# --- layer: core (pure, host-testable) ---
+core
+result
+semver
+version
+manifest
+policy
+handoff
+paths
+text
+json
+hash
+log
+
+# --- layer: platform (libnx wrappers) ---
+platform
+fs
+power
+system
+network
+romfs
+launch
+
+# --- layer: infra (external adapters) ---
+infra
+http
+tls
+github
+archive
+storage
+mega
+
+# --- layer: domain (use-cases) ---
+domain
+update
+cfw
+firmware
+catalog
+motd
+
+# --- layer: ui (borealis views) ---
+ui
+shell
+tabs
+pages
+widgets
+theme
+sound
+i18n
+
+# --- binaries ---
+app
+forwarder
+rcm
+
+# --- non-code ---
+assets
+build
+cmake
+deps
+ci
+release
+tools
+docs
+adr
+tests
+repo
+security
