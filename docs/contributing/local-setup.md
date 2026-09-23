@@ -40,7 +40,11 @@ cmake --build --preset host-debug
 ctest --preset host-debug --output-on-failure
 ```
 
-This is where most work on `core/` happens. Add `--preset host-asan` to run under ASan and UBSan.
+This is where most work on `core/` happens.
+
+`--preset host-asan` adds ASan and UBSan, **on Linux and macOS only** - clang's ASan is
+incompatible with the MSVC debug CRT, so on Windows it aborts during CRT startup before any test
+runs. CI runs the sanitized build for you on Linux.
 
 ## Building for the Switch
 

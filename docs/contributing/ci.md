@@ -42,6 +42,12 @@ job says so.
 
 `cmake --preset host-debug` then `ctest`. No Docker, no cross-toolchain, seconds.
 
+### `sanitizers`
+
+`host-asan` under ASan and UBSan on Linux. This job exists on Linux specifically because clang's
+ASan cannot run against the MSVC debug CRT, so the preset is unusable on the maintainer's own
+Windows machine - the check would otherwise silently never run.
+
 ### `build-switch` and `build-rcm`
 
 `devkitpro/devkita64` and `devkitpro/devkitarm` respectively. **Two separate jobs with two
@@ -59,7 +65,7 @@ no output.
 
 ## Required checks
 
-`main` will not accept a merge without: `lint`, `manifest`, `host-tests`, `build-switch`, `docs`
+`main` will not accept a merge without: `lint`, `manifest`, `host-tests`, `sanitizers`, `build-switch`, `docs`
 and `commits`.
 
 `build-rcm` is not required until the payload is ported.

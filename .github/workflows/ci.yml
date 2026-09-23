@@ -85,6 +85,28 @@ jobs:
       - name: Test
         run: ctest --preset host-debug
 
+  sanitizers:
+    name: Host tests (ASan + UBSan)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Install toolchain
+        run: sudo apt-get update && sudo apt-get install -y cmake ninja-build clang
+      # Sanitizers run HERE and not on a developer's machine: clang's ASan does
+      # not support Windows' dynamic debug CRT, so the host-asan preset aborts
+      # inside ucrtbased before main() on that platform. Linux is where this
+      # check is meaningful. See docs/contributing/testing.md.
+      - name: Configure
+        run: cmake --preset host-asan
+        env: { CC: clang, CXX: clang++ }
+      - name: Build
+        run: cmake --build --preset host-asan
+      - name: Test
+        run: ctest --preset host-asan
+        env:
+          ASAN_OPTIONS: detect_leaks=1:abort_on_error=1
+          UBSAN_OPTIONS: print_stacktrace=1:halt_on_error=1
+
   build-switch:
     name: Build (devkitA64)
     runs-on: ubuntu-latest

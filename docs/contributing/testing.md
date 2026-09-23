@@ -22,6 +22,15 @@ Sanitizers:
 cmake --preset host-asan && ctest --preset host-asan --output-on-failure
 ```
 
+> **The `host-asan` preset does not work on Windows.** clang's AddressSanitizer
+> does not support the MSVC dynamic debug CRT, so the binary aborts inside
+> `ucrtbased.dll` during CRT startup - before `main()`, with no frames in our
+> code. It is a toolchain incompatibility, not a finding.
+>
+> Sanitizers therefore run in CI on Linux (the `sanitizers` job), which is where
+> the check is meaningful. On Windows, use `host-debug` locally and let CI do the
+> sanitized run.
+
 ## What is host-tested
 
 Everything in `core/`. One test binary per module.
