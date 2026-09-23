@@ -1,0 +1,86 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": { "major": 3, "minor": 24, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "_switch-base",
+      "hidden": true,
+      "generator": "Ninja",
+      "toolchainFile": "$env{DEVKITPRO}/cmake/Switch.cmake",
+      "cacheVariables": {
+        "NSX_BUILD_APP": "ON",
+        "NSX_BUILD_RCM": "ON",
+        "NSX_BUILD_TESTS": "OFF",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "switch-debug",
+      "displayName": "Switch - Debug",
+      "description": "On-device build with assertions and debug symbols",
+      "inherits": "_switch-base",
+      "binaryDir": "${sourceDir}/build/switch-debug",
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug", "NSX_WERROR": "ON" }
+    },
+    {
+      "name": "switch-release",
+      "displayName": "Switch - Release",
+      "description": "The configuration releases are built from",
+      "inherits": "_switch-base",
+      "binaryDir": "${sourceDir}/build/switch-release",
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "Release", "NSX_WERROR": "ON" }
+    },
+    {
+      "name": "_host-base",
+      "hidden": true,
+      "generator": "Ninja",
+      "cacheVariables": {
+        "NSX_BUILD_APP": "OFF",
+        "NSX_BUILD_RCM": "OFF",
+        "NSX_BUILD_TESTS": "ON",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "host-debug",
+      "displayName": "Host - Debug + tests",
+      "description": "Builds nsx_core with the host compiler. No Switch toolchain, no hardware.",
+      "inherits": "_host-base",
+      "binaryDir": "${sourceDir}/build/host-debug",
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug", "NSX_WERROR": "ON" }
+    },
+    {
+      "name": "host-asan",
+      "displayName": "Host - ASan + UBSan",
+      "description": "Same as host-debug with address and undefined-behaviour sanitizers",
+      "inherits": "_host-base",
+      "binaryDir": "${sourceDir}/build/host-asan",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "NSX_WERROR": "ON",
+        "CMAKE_CXX_FLAGS": "-fsanitize=address,undefined -fno-omit-frame-pointer -g",
+        "CMAKE_EXE_LINKER_FLAGS": "-fsanitize=address,undefined"
+      }
+    }
+  ],
+  "buildPresets": [
+    { "name": "switch-debug",   "configurePreset": "switch-debug"   },
+    { "name": "switch-release", "configurePreset": "switch-release" },
+    { "name": "host-debug",     "configurePreset": "host-debug"     },
+    { "name": "host-asan",      "configurePreset": "host-asan"      }
+  ],
+  "testPresets": [
+    {
+      "name": "host-debug",
+      "configurePreset": "host-debug",
+      "output": { "outputOnFailure": true },
+      "execution": { "noTestsAction": "ignore", "stopOnFailure": false }
+    },
+    {
+      "name": "host-asan",
+      "configurePreset": "host-asan",
+      "output": { "outputOnFailure": true },
+      "execution": { "noTestsAction": "ignore", "stopOnFailure": false }
+    }
+  ]
+}
