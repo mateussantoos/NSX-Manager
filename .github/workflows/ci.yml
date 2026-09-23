@@ -1,0 +1,147 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with: { submodules: false }
+
+      - name: Install clang-format
+        run: sudo apt-get update && sudo apt-get install -y clang-format-18
+      - run: echo "CLANG_FORMAT=clang-format-18" >> "$GITHUB_ENV"
+
+      - name: Encoding and line endings
+        run: tools/lint/check_encoding.sh
+      - name: Formatting
+        run: tools/lint/check_format.sh
+      - name: Layering (ADR-0003)
+        run: tools/lint/check_layering.sh
+      - name: No hardcoded version strings
+        run: tools/lint/forbid_hardcoded_version.sh
+      - name: No insecure curl options (ADR-0006)
+        run: tools/lint/forbid_insecure_curl.sh
+      - name: Licence isolation (ADR-0011)
+        run: tools/lint/check_license_isolation.sh
+      - name: ADR index is in sync
+        run: tools/lint/check_adr_index.sh
+      - name: i18n key and placeholder parity (ADR-0012)
+        run: python3 tools/lint/check_i18n.py
+      - name: Dependency pins (ADR-0009)
+        run: tools/deps/verify_pins.sh
+        continue-on-error: true  # submodules are not checked out in this job
+
+  manifest:
+    name: Update manifest contract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
+        with: { python-version: '3.12' }
+      - run: pip install jsonschema
+      # The fixtures ARE the specification. If a fixture stops behaving the way
+      # tests/fixtures/manifests/README.md documents, the parser contract moved
+      # and nobody noticed.
+      - name: Golden fixtures behave as documented
+        run: python3 tools/release/validate_manifest.py --check-fixtures
+      - name: Generated manifest validates against its own schema
+        run: |
+          mkdir -p dist
+          head -c 4096 /dev/urandom > dist/nsx-manager-0.0.0-ci.nro
+          head -c 1024 /dev/urandom > dist/nsx-forwarder-0.0.0-ci.nro
+          python3 tools/release/gen_manifest.py \
+            --tag v0.0.0-ci --dist dist --out dist/update.json
+          python3 tools/release/validate_manifest.py dist/update.json
+
+  host-tests:
+    name: Host unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Install toolchain
+        run: sudo apt-get update && sudo apt-get install -y cmake ninja-build g++-13
+      # nsx_core is pure C++20 with no libnx, no curl and no Borealis, so it
+      # compiles with the host compiler from the SAME source list the Switch
+      # build uses. That is why unit tests need no console. (ADR-0014)
+      - name: Configure
+        run: cmake --preset host-debug
+        env: { CXX: g++-13 }
+      - name: Build
+        run: cmake --build --preset host-debug
+      - name: Test
+        run: ctest --preset host-debug
+
+  build-switch:
+    name: Build (devkitA64)
+    runs-on: ubuntu-latest
+    container: devkitpro/devkita64:latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with: { submodules: recursive }
+      - name: Verify dependency pins
+        run: tools/deps/verify_pins.sh
+      - name: Fetch and verify the CA bundle
+        run: tools/cacert/fetch.sh
+        continue-on-error: true  # not pinned until the first real release
+      - name: Configure
+        run: cmake --preset switch-release
+      - name: Build
+        run: cmake --build --preset switch-release
+      - name: Upload artefacts
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        with:
+          name: nsx-manager-nro
+          path: build/switch-release/**/*.nro
+          if-no-files-found: ignore
+
+  build-rcm:
+    name: Build RCM payload (devkitARM)
+    runs-on: ubuntu-latest
+    container: devkitpro/devkitarm:latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      # Built by its OWN Makefile with a DIFFERENT toolchain, in a separate job,
+      # because it is GPL-2.0-only and must never be linked with the GPL-3.0
+      # application. See ADR-0011.
+      - name: Build
+        run: |
+          if [ -f apps/rcm-payload/Makefile ]; then
+            make -C apps/rcm-payload
+          else
+            echo "apps/rcm-payload not ported yet - skipping"
+          fi
+
+  docs:
+    name: Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Install doxygen
+        run: sudo apt-get update && sudo apt-get install -y doxygen graphviz
+      # EXTRACT_ALL = NO plus WARN_AS_ERROR means an undocumented public entity
+      # fails the build. The predecessor has a commit claiming "comprehensive
+      # Doxygen documentation across all headers" that produced no Doxyfile, no
+      # build and no output - nothing was ever verified.
+      - name: Build API docs
+        run: |
+          mkdir -p build/docs
+          cd docs && doxygen Doxyfile
+      - name: Check internal links
+        uses: lycheeverse/lychee-action@2b973e86fc7b1f6b36a93795fe2c9c6ae1118621 # v1.10.0
+        with:
+          args: --offline --no-progress --include-fragments './**/*.md'
+          fail: true

@@ -1,0 +1,46 @@
+name: Dependencies
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'   # Mondays 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  bump:
+    name: Propose dependency updates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with: { submodules: recursive }
+
+      - name: Update submodules to their upstream default branch
+        run: |
+          git submodule update --remote --recursive || true
+          git submodule status
+
+      - name: Refresh the CA bundle
+        run: tools/cacert/fetch.sh --update || true
+
+      # Opened as a pull request, never merged automatically. A dependency bump
+      # in a project that writes executables to an SD card always gets a human
+      # and the on-device smoke checklist first.
+      - name: Open a pull request
+        uses: peter-evans/create-pull-request@5e914681df9dc83aa4e4905692ca88beb2f9e91f # v7.0.5
+        with:
+          branch: chore/deps-weekly-bump
+          delete-branch: true
+          title: 'build(deps): weekly submodule and CA bundle bump'
+          commit-message: 'build(deps): weekly submodule and CA bundle bump'
+          body: |
+            Automated weekly dependency refresh.
+
+            **Do not merge without:**
+            - [ ] recording the new SHAs in `third_party/PINS.md`
+            - [ ] a successful `cmake --build --preset switch-release`
+            - [ ] the on-device smoke checklist in `docs/contributing/testing.md`
+            - [ ] reviewing the CA bundle diff if `cacert.pem.sha256` changed
+          labels: dependencies

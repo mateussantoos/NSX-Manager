@@ -1,0 +1,19 @@
+version: 2
+updates:
+  # Actions are pinned by commit SHA (a tag can be moved; a SHA cannot).
+  # Dependabot is what keeps those pins from going stale.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly, day: monday }
+    commit-message:
+      prefix: ci
+      include: scope
+    labels: [dependencies, ci]
+
+  - package-ecosystem: gitsubmodule
+    directory: /
+    schedule: { interval: weekly, day: monday }
+    commit-message:
+      prefix: build
+      include: scope
+    labels: [dependencies]

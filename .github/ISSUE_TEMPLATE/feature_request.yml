@@ -1,0 +1,32 @@
+name: Feature request
+description: Suggest something NSX Manager should do
+labels: [enhancement, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please read [the project scope](../blob/main/docs/PROJECT_SCOPE.md) first - particularly
+        the non-goals. Requests that fall outside scope are closed with a pointer to that section,
+        not because they are bad ideas.
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What are you trying to do that you currently cannot?
+    validations: { required: true }
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+    validations: { required: true }
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - label: I have read the non-goals in docs/PROJECT_SCOPE.md and this is not one of them
+          required: true

@@ -1,0 +1,57 @@
+name: Bug report
+description: Something does not work as documented
+labels: [bug, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not report security problems here - see [SECURITY.md](../blob/main/SECURITY.md).
+  - type: input
+    id: version
+    attributes:
+      label: NSX Manager version
+      description: Shown on the About screen. Please do not write "latest".
+      placeholder: 0.1.0
+    validations: { required: true }
+  - type: dropdown
+    id: model
+    attributes:
+      label: Console model
+      options: [Erista (unpatched V1), Mariko (V2 / OLED / Lite), Not sure]
+    validations: { required: true }
+  - type: input
+    id: firmware
+    attributes:
+      label: Firmware and CFW
+      placeholder: FW 22.1.0, Atmosphere 1.9.1, hekate 6.3.2
+    validations: { required: true }
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you expected, and what happened instead.
+    validations: { required: true }
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open ...
+        2. Select ...
+        3. ...
+    validations: { required: true }
+  - type: textarea
+    id: log
+    attributes:
+      label: Log
+      description: Contents of /config/nsx-manager/log.txt, if it exists.
+      render: text
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues
+          required: true
+        - label: I am on the latest release
+          required: true

@@ -1,0 +1,44 @@
+name: Commits
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  commits:
+    name: Conventional Commits
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with: { fetch-depth: 0 }
+
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with: { node-version: '20' }
+
+      - run: npm install --no-save @commitlint/cli @commitlint/config-conventional
+
+      # Every commit on the branch. The local sh hook already checked these, but
+      # --no-verify exists, so CI is the enforcer that actually counts.
+      - name: Lint commit messages
+        run: npx commitlint --from "${{ github.event.pull_request.base.sha }}" --to HEAD --verbose
+
+      # We squash-merge, so the PR TITLE becomes the commit on main. If the
+      # title is not a valid Conventional Commit, main's history breaks and
+      # git-cliff cannot generate a changelog from it. (ADR-0013)
+      - name: Lint pull request title
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: printf '%s' "$PR_TITLE" | npx commitlint --verbose
+
+      # The same rules, enforced by the script contributors run locally. If
+      # these two ever disagree, that is a bug in one of them.
+      - name: Cross-check with the local hook
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          printf '%s\n' "$PR_TITLE" > /tmp/msg
+          tools/hooks/commit-msg /tmp/msg
