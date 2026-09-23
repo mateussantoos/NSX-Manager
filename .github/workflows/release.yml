@@ -1,0 +1,161 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*.*.*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release (e.g. v0.1.0)'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  guard:
+    name: Guard
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.resolve.outputs.tag }}
+      version: ${{ steps.resolve.outputs.version }}
+      prerelease: ${{ steps.resolve.outputs.prerelease }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with: { fetch-depth: 0 }
+
+      - id: resolve
+        run: |
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          echo "tag=$TAG"              >> "$GITHUB_OUTPUT"
+          echo "version=${TAG#v}"      >> "$GITHUB_OUTPUT"
+          if printf '%s' "$TAG" | grep -q -- '-'; then
+            echo "prerelease=true"  >> "$GITHUB_OUTPUT"
+          else
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Nothing is built until the tag and /VERSION agree. This is what makes
+      # "the tag is the version" an invariant rather than a convention.
+      - name: Tag matches VERSION
+        run: tools/release/check_version.sh "${{ steps.resolve.outputs.tag }}"
+
+      - name: Tag is on main
+        run: |
+          git branch -r --contains "${{ steps.resolve.outputs.tag }}" | grep -q 'origin/main' \
+            || { echo "::error::tag is not an ancestor of main - releases are cut from main"; exit 1; }
+
+  build:
+    name: Build release artefacts
+    needs: guard
+    runs-on: ubuntu-latest
+    container: devkitpro/devkita64:latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with: { submodules: recursive }
+
+      - name: Verify dependency pins
+        run: tools/deps/verify_pins.sh
+      - name: Fetch and verify the CA bundle
+        run: tools/cacert/fetch.sh
+
+      - name: Build
+        run: |
+          cmake --preset switch-release
+          cmake --build --preset switch-release
+
+      # Asset naming is a contract: gen_manifest.py maps these exact patterns to
+      # the manifest `kind` the client selects by. See docs/reference/update-manifest.md.
+      - name: Package
+        env:
+          V: ${{ needs.guard.outputs.version }}
+        run: |
+          set -eux
+          mkdir -p dist staging/switch/nsx-manager
+
+          cp build/switch-release/nsx-manager.nro   "dist/nsx-manager-${V}.nro"
+          cp build/switch-release/nsx-forwarder.nro "dist/nsx-forwarder-${V}.nro"
+
+          # The zip is for FIRST INSTALL only and contains exactly one path, so
+          # extracting it at the SD root can never clobber user configuration.
+          # In-app updates download the bare .nro instead - no archive, no
+          # zip-slip, one hash-verified file. (ADR-0008)
+          cp "dist/nsx-manager-${V}.nro" staging/switch/nsx-manager/nsx-manager.nro
+          (cd staging && zip -r "../dist/nsx-manager-${V}.zip" switch)
+
+      - name: Generate release notes
+        uses: orhun/git-cliff-action@4a4a951bc43fafe41cd2348d181853f52356bee7 # v4.4.2
+        with:
+          args: --latest --strip header
+        env:
+          OUTPUT: dist/RELEASE_NOTES.md
+
+      - name: Generate update.json
+        env:
+          TAG: ${{ needs.guard.outputs.tag }}
+        run: |
+          python3 tools/release/gen_manifest.py \
+            --tag "$TAG" --dist dist --out dist/update.json \
+            --channel ${{ needs.guard.outputs.prerelease == 'true' && 'beta' || 'stable' }}
+
+      # You cannot ship a manifest the app refuses to read.
+      - name: Validate the manifest the client will actually fetch
+        run: |
+          pip install jsonschema
+          python3 tools/release/validate_manifest.py dist/update.json
+
+      - name: Checksums
+        run: cd dist && sha256sum ./*.nro ./*.zip > SHA256SUMS && cat SHA256SUMS
+
+      - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        with: { name: release-dist, path: dist/ }
+
+  publish:
+    name: Publish release
+    needs: [guard, build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        with: { name: release-dist, path: dist }
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@c062e08bd532815e2082a85e87e3ef29c3e6d191 # v2.0.8
+        with:
+          tag_name: ${{ needs.guard.outputs.tag }}
+          name: NSX Manager ${{ needs.guard.outputs.version }}
+          body_path: dist/RELEASE_NOTES.md
+          prerelease: ${{ needs.guard.outputs.prerelease }}
+          fail_on_unmatched_files: true
+          files: |
+            dist/nsx-manager-*.nro
+            dist/nsx-forwarder-*.nro
+            dist/nsx-manager-*.zip
+            dist/update.json
+            dist/SHA256SUMS
+            dist/RELEASE_NOTES.md
+
+  metadata-mirror:
+    name: Mirror manifest to release-metadata
+    needs: [guard, publish]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        with: { name: release-dist, path: dist }
+
+      # A fallback the client uses only when github.com itself is unreachable.
+      # Still not api.github.com, so it does not touch the 60/hour REST budget.
+      - name: Push update.json to the release-metadata orphan branch
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin release-metadata:release-metadata 2>/dev/null \
+            && git switch release-metadata \
+            || git switch --orphan release-metadata
+          find . -maxdepth 1 ! -name . ! -name .git ! -name dist -exec rm -rf {} +
+          cp dist/update.json .
+          echo "Machine-readable release metadata. Generated by release.yml - do not edit." > README.md
+          git add update.json README.md
+          git commit -m "chore(release): publish manifest for ${{ needs.guard.outputs.tag }}" || exit 0
+          git push origin release-metadata
