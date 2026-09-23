@@ -10,6 +10,11 @@ cd "$(git rev-parse --show-toplevel)"
 FAIL=0
 
 for f in $(git ls-files); do
+    # Vendored code is not ours to restyle. Excluding it keeps a dependency
+    # bump from being blocked by a rule its upstream never agreed to.
+    case "$f" in
+        third_party/*) continue ;;
+    esac
     case "$f" in
         *.png|*.jpg|*.jpeg|*.wav|*.nro|*.bin|*.zip|*.ttf) continue ;;
     esac
