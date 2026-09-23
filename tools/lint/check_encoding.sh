@@ -11,7 +11,7 @@ FAIL=0
 
 for f in $(git ls-files); do
     case "$f" in
-        *.png|*.jpg|*.jpeg|*.wav|*.nro|*.bin|*.zip|*.ttf|LICENSE) continue ;;
+        *.png|*.jpg|*.jpeg|*.wav|*.nro|*.bin|*.zip|*.ttf) continue ;;
     esac
     [ -f "$f" ] || continue
 
