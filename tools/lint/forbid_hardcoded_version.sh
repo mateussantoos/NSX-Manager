@@ -19,7 +19,7 @@ cd "$(git rev-parse --show-toplevel)"
 
 HITS="$(grep -rnE '"v?[0-9]+\.[0-9]+\.[0-9]+' src apps/forwarder 2>/dev/null \
         | grep -v 'version\.hpp\.in' \
-        | grep -v '^\s*//' \
+        | grep -vE ':[0-9]+:[[:space:]]*(//|[*]|/[*])' \
         | grep -viE 'min_atmosphere|schema|example|e\.g\.' \
         || true)"
 

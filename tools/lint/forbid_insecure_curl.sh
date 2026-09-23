@@ -22,7 +22,7 @@ for d in src apps/forwarder; do [ -d "$d" ] && SEARCH_DIRS="$SEARCH_DIRS $d"; do
 
 check() {
     pattern="$1"; message="$2"
-    hits="$(grep -rnE "$pattern" $SEARCH_DIRS 2>/dev/null | grep -v '^\s*//' || true)"
+    hits="$(grep -rnE "$pattern" $SEARCH_DIRS 2>/dev/null | grep -vE ':[0-9]+:[[:space:]]*(//|[*]|/[*])' || true)"
     if [ -n "$hits" ]; then
         printf 'FORBIDDEN: %s\n' "$message" >&2
         printf '%s\n\n' "$hits" >&2
