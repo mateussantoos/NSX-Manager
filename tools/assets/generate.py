@@ -197,7 +197,10 @@ def main() -> int:
         print("  wrote  {:<28} {}x{} {:<4} {:>7} bytes   {}".format(
             rel, spec["size"][0], spec["size"][1], spec["format"], len(data), spec["why"]))
 
-    LOCK.write_text(json.dumps(lock, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    # Explicit LF: Path.write_text uses the platform newline, which on Windows
+    # produces CRLF and trips tools/lint/check_encoding.sh.
+    with io.open(LOCK, "w", encoding="utf-8", newline="\n") as fh:
+        fh.write(json.dumps(lock, indent=2, sort_keys=True) + "\n")
     print("  wrote  {:<28} record of what was generated".format(
         str(LOCK.relative_to(ROOT)).replace("\\", "/")))
     return 0
