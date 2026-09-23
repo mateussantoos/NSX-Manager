@@ -12,8 +12,10 @@ FAIL=0
 for f in $(git ls-files); do
     # Vendored code is not ours to restyle. Excluding it keeps a dependency
     # bump from being blocked by a rule its upstream never agreed to.
+    # apps/rcm-payload is vendored for the same reason (ISOLATION.md rule 4);
+    # git normalises it to LF on commit regardless of the working copy.
     case "$f" in
-        third_party/*) continue ;;
+        third_party/*|apps/rcm-payload/*) continue ;;
     esac
     case "$f" in
         *.png|*.jpg|*.jpeg|*.wav|*.nro|*.bin|*.zip|*.ttf) continue ;;
