@@ -12,14 +12,10 @@ if(NOT TARGET nsx_core)
     return()
 endif()
 
-add_library(nsx_doctest INTERFACE)
-target_include_directories(nsx_doctest SYSTEM INTERFACE
-    "${CMAKE_SOURCE_DIR}/third_party/doctest")
-
 # One binary per module keeps a failure's blast radius small and lets ctest
 # parallelise. Uncomment as each module lands.
 set(NSX_TEST_MODULES
-    # semver
+    semver
     # update_policy
     # manifest
     # handoff
@@ -33,7 +29,7 @@ set(NSX_TEST_MODULES
 
 foreach(mod IN LISTS NSX_TEST_MODULES)
     add_executable(test_${mod} "unit/${mod}_test.cpp")
-    target_link_libraries(test_${mod} PRIVATE nsx::core nsx_doctest)
+    target_link_libraries(test_${mod} PRIVATE nsx::core nsx::doctest)
     target_compile_definitions(test_${mod} PRIVATE
         DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
         NSX_FIXTURE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/fixtures")
