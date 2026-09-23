@@ -52,4 +52,8 @@ add_custom_command(
     COMMENT "Embedding CA bundle -> nsx/infra/http/ca_bundle.hpp"
     VERBATIM)
 
-add_custom_target(nsx_ca_bundle DEPENDS "${NSX_CA_HEADER}")
+# ALL, because the header is a build input for the infra layer and generating it
+# unconditionally means `cmake --build` always leaves a complete, inspectable
+# tree - rather than the header only appearing once some other target happens to
+# depend on it.
+add_custom_target(nsx_ca_bundle ALL DEPENDS "${NSX_CA_HEADER}")

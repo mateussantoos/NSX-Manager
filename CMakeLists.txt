@@ -70,6 +70,7 @@ add_subdirectory(src/nsx/core)
 nsx_add_layer(core SOURCES ${NSX_CORE_SOURCES})
 
 if(NSX_BUILD_APP)
+    include(NsxPortlibs)
     include(NsxCaBundle)
 
     add_subdirectory(src/nsx/platform)
@@ -77,7 +78,7 @@ if(NSX_BUILD_APP)
 
     add_subdirectory(src/nsx/infra)
     nsx_add_layer(infra    SOURCES ${NSX_INFRA_SOURCES}
-                           DEPENDS nsx_core nsx_platform curl z mbedtls nsx::zipper)
+                           DEPENDS nsx_core nsx_platform nsx::portlibs curl z mbedtls nsx::zipper)
 
     add_subdirectory(src/nsx/domain)
     nsx_add_layer(domain   SOURCES ${NSX_DOMAIN_SOURCES} DEPENDS nsx_core nsx_infra)

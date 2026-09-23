@@ -61,11 +61,24 @@ file(GLOB ZIPPER_SRC CONFIGURE_DEPENDS
     "${ZIPPER_DIR}/source/*.c"
     "${ZIPPER_DIR}/source/*.cpp")
 
+# devkitPro now ships GCC 15, which PROMOTED -Wincompatible-pointer-types from
+# a warning to an error. minizip's ioapi predates that and assigns a
+# `const char*` callback to a `const void*` slot. `-w` does not help: it silences
+# warnings, and this is an error.
+#
+# The predecessor hit exactly this and carried the same workaround
+# (its Makefile:44: -Wno-error=incompatible-pointer-types). We scope it to the
+# vendored C targets rather than applying it globally, so first-party code still
+# gets the diagnostic at full strength.
+set(NSX_VENDORED_C_RELAXATIONS
+    $<$<COMPILE_LANGUAGE:C>:-Wno-error=incompatible-pointer-types>
+    $<$<COMPILE_LANGUAGE:C>:-Wno-incompatible-pointer-types>)
+
 add_library(nsx_zipper STATIC ${ZIPPER_SRC})
 add_library(nsx::zipper ALIAS nsx_zipper)
 target_include_directories(nsx_zipper SYSTEM PUBLIC "${ZIPPER_DIR}/include")
-target_link_libraries(nsx_zipper PUBLIC z)
-target_compile_options(nsx_zipper PRIVATE -w)   # vendored: we do not own its style
+target_link_libraries(nsx_zipper PUBLIC nsx::portlibs z)
+target_compile_options(nsx_zipper PRIVATE -w ${NSX_VENDORED_C_RELAXATIONS})
 
 # --------------------------------------------------------------------------
 # Borealis - the UI framework (ADR-0010)
@@ -121,7 +134,7 @@ target_compile_definitions(nsx_borealis PUBLIC BOREALIS_RESOURCES="romfs:/")
 
 # glad, glfw3, EGL, glapi and drm_nouveau come from devkitPro portlibs - they
 # are NOT vendored in the Borealis tree.
-target_link_libraries(nsx_borealis PUBLIC glfw3 EGL glad glapi drm_nouveau m)
+target_link_libraries(nsx_borealis PUBLIC nsx::portlibs glfw3 EGL glad glapi drm_nouveau m)
 
 target_compile_features(nsx_borealis PUBLIC cxx_std_20)
-target_compile_options(nsx_borealis PRIVATE -w)   # vendored: we do not own its style
+target_compile_options(nsx_borealis PRIVATE -w ${NSX_VENDORED_C_RELAXATIONS})

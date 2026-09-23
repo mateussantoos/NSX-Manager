@@ -9,11 +9,15 @@
 set(NSX_ROMFS_DEPS "")
 
 # --- static assets ---------------------------------------------------------
+# Staged through a script rather than `cmake -E copy_directory` so the .gitkeep
+# placeholders that hold empty directories in git do not end up inside the NRO.
 foreach(dir images sounds data i18n)
     if(EXISTS "${CMAKE_SOURCE_DIR}/assets/${dir}")
         list(APPEND NSX_ROMFS_COPY_CMDS
-            COMMAND "${CMAKE_COMMAND}" -E copy_directory
-                    "${CMAKE_SOURCE_DIR}/assets/${dir}" "${NSX_ROMFS_DIR}/${dir}")
+            COMMAND "${CMAKE_COMMAND}"
+                    -DSRC=${CMAKE_SOURCE_DIR}/assets/${dir}
+                    -DDST=${NSX_ROMFS_DIR}/${dir}
+                    -P "${CMAKE_SOURCE_DIR}/cmake/NsxStageAssets.cmake")
     endif()
 endforeach()
 
