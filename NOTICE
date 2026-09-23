@@ -1,0 +1,69 @@
+NSX Manager
+Copyright (C) 2026 M.S. | Designer & Developer
+
+This product is licensed under the GNU General Public License v3.0 only.
+See the LICENSE file for the full text.
+
+================================================================================
+THIRD-PARTY COMPONENTS
+================================================================================
+
+This distribution aggregates the following independent works. Each retains its
+own copyright and licence. "Aggregation" is used here in the sense of GPLv2
+section 2 and GPLv3 section 5: the RCM payload is a separate program that is
+never linked into, nor shares source with, the NSX Manager application.
+
+--------------------------------------------------------------------------------
+Borealis                                          GPL-3.0
+  https://github.com/natinusala/borealis
+  Fork used: https://github.com/HamletDuFromage/borealis
+  Copyright (C) 2019-2021 natinusala and contributors
+  Linked into nsx-manager.nro. Pinned in third_party/PINS.md.
+  Bundles: nanovg (zlib), libretro-common (MIT), fmt (MIT), stb (public domain).
+
+--------------------------------------------------------------------------------
+zipper                                            MIT
+  https://github.com/HamletDuFromage/zipper
+  A minizip wrapper. Linked into nsx-manager.nro. Pinned in third_party/PINS.md.
+
+--------------------------------------------------------------------------------
+nlohmann/json                                     MIT
+  https://github.com/nlohmann/json
+  Copyright (C) 2013-2025 Niels Lohmann
+  Vendored as a single header at third_party/nlohmann/json.hpp.
+
+--------------------------------------------------------------------------------
+doctest                                           MIT
+  https://github.com/doctest/doctest
+  Copyright (C) 2016-2023 Viktor Kirilov
+  Vendored as a single header. Host unit tests only; never shipped on device.
+
+--------------------------------------------------------------------------------
+Mozilla CA Certificate Store                      MPL-2.0
+  https://curl.se/docs/caextract.html
+  Embedded as a compile-time blob and used for TLS peer verification.
+  See docs/architecture/threat-model.md and ADR-0006.
+
+--------------------------------------------------------------------------------
+hekate / BDK                                      GPL-2.0-only  *** SEE BELOW ***
+  https://github.com/CTCaer/hekate
+  Copyright (C) 2018 naehrwert
+  Copyright (C) 2018-2025 CTCaer
+
+  Located at apps/rcm-payload/. Licensed GPL-2.0 WITHOUT the "or any later
+  version" clause, which makes it incompatible with the GPL-3.0 application.
+
+  It is therefore kept as a SEPARATE PROGRAM:
+    * built by devkitARM, not devkitA64, from its own Makefile;
+    * freestanding ARM7 code with its own load address;
+    * never included, linked, or textually shared with anything under src/ or
+      apps/forwarder/ - the application treats the built payload purely as
+      opaque data.
+
+  This isolation is enforced in CI by tools/lint/check_license_isolation.sh.
+  The full argument is in docs/architecture/licensing.md and ADR-0011.
+
+--------------------------------------------------------------------------------
+devkitPro / libnx                                 ISC / zlib
+  https://github.com/devkitPro/libnx
+  Toolchain and platform library. Not redistributed by this repository.

@@ -1,0 +1,51 @@
+# ---- build output -------------------------------------------------------
+build/
+build*/
+out/
+cmake-build-*/
+CMakeUserPresets.json
+compile_commands.json
+.cache/
+.ccache/
+
+# ---- devkitPro / Switch artefacts ---------------------------------------
+*.nro
+*.nacp
+*.elf
+*.nso
+*.npdm
+*.nsp
+*.bin
+*.map
+*.lst
+apps/rcm-payload/output/
+apps/rcm-payload/build/
+
+# ---- generated ----------------------------------------------------------
+docs/reference/api/
+!docs/reference/api/.gitkeep
+docs/html/
+docs/latex/
+assets/data/changelog.md
+third_party/cacert/cacert.pem
+
+# ---- tooling ------------------------------------------------------------
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+
+# ---- editors / OS -------------------------------------------------------
+.vscode/*
+!.vscode/c_cpp_properties.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# ---- scratch ------------------------------------------------------------
+scratch/
+*.bak
+*.psd
