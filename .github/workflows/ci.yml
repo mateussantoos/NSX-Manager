@@ -13,157 +13,104 @@ concurrency:
 permissions:
   contents: read
 
+# Every job runs inside the SAME image a developer uses locally
+# (`docker compose run --rm nsx <task>`), so "passes on my machine" and "passes
+# CI" are the same statement rather than two hopeful approximations.
+#
+# The image is built once and shared through the GitHub Actions cache. It pins
+# the clang version, which matters: clang-format output differs between major
+# releases, so an unpinned toolchain would make the formatting lint give
+# different answers in different places - and a lint that disagrees with itself
+# is one people learn to ignore.
+
 jobs:
-  lint:
-    name: Lint
+  image:
+    name: Build toolchain image
     runs-on: ubuntu-latest
+    outputs:
+      digest: ${{ steps.build.outputs.digest }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with: { submodules: false }
+      - uses: docker/setup-buildx-action@c47758b77c9736f4b2ef4073d4d51994fabfe349 # v3.7.1
+      - id: build
+        uses: docker/build-push-action@4f58ea79222b3b9dc2c8bbdd6debcef730109a75 # v6.9.0
+        with:
+          context: .
+          load: true
+          tags: nsx-manager-build:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          outputs: type=docker,dest=/tmp/nsx-image.tar
+      - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        with:
+          name: toolchain-image
+          path: /tmp/nsx-image.tar
+          retention-days: 1
 
-      - name: Install clang-format
-        run: sudo apt-get update && sudo apt-get install -y clang-format-18
-      - run: echo "CLANG_FORMAT=clang-format-18" >> "$GITHUB_ENV"
-
-      - name: Encoding and line endings
-        run: tools/lint/check_encoding.sh
-      - name: Formatting
-        run: tools/lint/check_format.sh
-      - name: Layering (ADR-0003)
-        run: tools/lint/check_layering.sh
-      - name: No hardcoded version strings
-        run: tools/lint/forbid_hardcoded_version.sh
-      - name: No insecure curl options (ADR-0006)
-        run: tools/lint/forbid_insecure_curl.sh
-      - name: Licence isolation (ADR-0011)
-        run: tools/lint/check_license_isolation.sh
-      - name: ADR index is in sync
-        run: tools/lint/check_adr_index.sh
-      - name: i18n key and placeholder parity (ADR-0012)
-        run: python3 tools/lint/check_i18n.py
-      - name: Dependency pins (ADR-0009)
-        run: tools/deps/verify_pins.sh
-        continue-on-error: true  # submodules are not checked out in this job
-
-  manifest:
-    name: Update manifest contract
+  checks:
+    name: ${{ matrix.task }}
+    needs: image
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
-        with: { python-version: '3.12' }
-      - run: pip install jsonschema
-      # The fixtures ARE the specification. If a fixture stops behaving the way
-      # tests/fixtures/manifests/README.md documents, the parser contract moved
-      # and nobody noticed.
-      - name: Golden fixtures behave as documented
-        run: python3 tools/release/validate_manifest.py --check-fixtures
-      - name: Generated manifest validates against its own schema
-        run: |
-          mkdir -p dist
-          head -c 4096 /dev/urandom > dist/nsx-manager-0.0.0-ci.nro
-          head -c 1024 /dev/urandom > dist/nsx-forwarder-0.0.0-ci.nro
-          python3 tools/release/gen_manifest.py \
-            --tag v0.0.0-ci --dist dist --out dist/update.json
-          python3 tools/release/validate_manifest.py dist/update.json
-
-  host-tests:
-    name: Host unit tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - name: Install toolchain
-        run: sudo apt-get update && sudo apt-get install -y cmake ninja-build g++-13
-      # nsx_core is pure C++20 with no libnx, no curl and no Borealis, so it
-      # compiles with the host compiler from the SAME source list the Switch
-      # build uses. That is why unit tests need no console. (ADR-0014)
-      - name: Configure
-        run: cmake --preset host-debug
-        env: { CXX: g++-13 }
-      - name: Build
-        run: cmake --build --preset host-debug
-      - name: Test
-        run: ctest --preset host-debug
-
-  sanitizers:
-    name: Host tests (ASan + UBSan)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - name: Install toolchain
-        run: sudo apt-get update && sudo apt-get install -y cmake ninja-build clang
-      # Sanitizers run HERE and not on a developer's machine: clang's ASan does
-      # not support Windows' dynamic debug CRT, so the host-asan preset aborts
-      # inside ucrtbased before main() on that platform. Linux is where this
-      # check is meaningful. See docs/contributing/testing.md.
-      - name: Configure
-        run: cmake --preset host-asan
-        env: { CC: clang, CXX: clang++ }
-      - name: Build
-        run: cmake --build --preset host-asan
-      - name: Test
-        run: ctest --preset host-asan
-        env:
-          ASAN_OPTIONS: detect_leaks=1:abort_on_error=1
-          UBSAN_OPTIONS: print_stacktrace=1:halt_on_error=1
-
-  build-switch:
-    name: Build (devkitA64)
-    runs-on: ubuntu-latest
-    container: devkitpro/devkita64:latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Each entry is a task in docker/entrypoint.sh - the same command a
+        # developer runs locally.
+        task: [lint, test, asan, manifest, docs, switch, tidy]
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with: { submodules: recursive }
-      - name: Verify dependency pins
-        run: tools/deps/verify_pins.sh
-      - name: Fetch and verify the CA bundle
-        run: tools/cacert/fetch.sh
-        continue-on-error: true  # not pinned until the first real release
-      - name: Configure
-        run: cmake --preset switch-release
-      - name: Build
-        run: cmake --build --preset switch-release
-      - name: Upload artefacts
+
+      - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        with: { name: toolchain-image, path: /tmp }
+
+      - name: Load the toolchain image
+        run: docker load --input /tmp/nsx-image.tar
+
+      - name: ${{ matrix.task }}
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}:/workspace" \
+            -w /workspace \
+            nsx-manager-build:ci ${{ matrix.task }}
+
+      - name: Upload Switch artefacts
+        if: matrix.task == 'switch'
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         with:
-          name: nsx-manager-nro
-          path: build/switch-release/**/*.nro
+          name: switch-build
+          path: |
+            build/switch-release/**/*.nro
+            build/switch-release/romfs/nsx_rcm.bin
           if-no-files-found: ignore
 
-  build-rcm:
-    name: Build RCM payload (devkitARM)
+  pins:
+    name: Dependency pins
+    needs: image
     runs-on: ubuntu-latest
-    container: devkitpro/devkitarm:latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      # Built by its OWN Makefile with a DIFFERENT toolchain, in a separate job,
-      # because it is GPL-2.0-only and must never be linked with the GPL-3.0
-      # application. See ADR-0011.
-      - name: Build
+        with: { submodules: recursive }
+      - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        with: { name: toolchain-image, path: /tmp }
+      - run: docker load --input /tmp/nsx-image.tar
+      - name: Verify submodule pins match PINS.md
         run: |
-          if [ -f apps/rcm-payload/Makefile ]; then
-            make -C apps/rcm-payload
-          else
-            echo "apps/rcm-payload not ported yet - skipping"
-          fi
+          docker run --rm -v "${{ github.workspace }}:/workspace" -w /workspace \
+            nsx-manager-build:ci tools/deps/verify_pins.sh
 
-  docs:
-    name: Documentation
+  links:
+    name: Documentation links
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - name: Install doxygen
-        run: sudo apt-get update && sudo apt-get install -y doxygen graphviz
-      # EXTRACT_ALL = NO plus WARN_AS_ERROR means an undocumented public entity
-      # fails the build. The predecessor has a commit claiming "comprehensive
-      # Doxygen documentation across all headers" that produced no Doxyfile, no
-      # build and no output - nothing was ever verified.
-      - name: Build API docs
-        run: |
-          mkdir -p build/docs
-          cd docs && doxygen Doxyfile
-      - name: Check internal links
-        uses: lycheeverse/lychee-action@2b973e86fc7b1f6b36a93795fe2c9c6ae1118621 # v1.10.0
+      # Runs outside the container: it checks prose cross-links, needs no
+      # toolchain, and starting before the image is built keeps it off the
+      # critical path.
+      - uses: lycheeverse/lychee-action@2b973e86fc7b1f6b36a93795fe2c9c6ae1118621 # v1.10.0
         with:
-          args: --offline --no-progress --include-fragments './**/*.md'
+          args: >-
+            --offline --no-progress --include-fragments
+            --exclude-path third_party --exclude-path apps/rcm-payload
+            './**/*.md'
           fail: true
