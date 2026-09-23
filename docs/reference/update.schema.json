@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/mateussantoos/nsx-manager/blob/main/docs/reference/update.schema.json",
+  "title": "NSX Manager update manifest",
+  "description": "Published as the release asset update.json. The client fetches it from releases/latest/download/update.json. See docs/reference/update-manifest.md and ADR-0005.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "product",
+    "version",
+    "tag",
+    "published_at",
+    "channel",
+    "mandatory",
+    "min_supported",
+    "assets"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "schema_version": {
+      "description": "Contract version. A client refuses anything greater than it understands and tells the user to update manually, rather than guessing.",
+      "type": "integer",
+      "minimum": 1
+    },
+    "product": {
+      "description": "Guards against a manifest from a different product being served by mistake.",
+      "const": "nsx-manager"
+    },
+    "version": {
+      "description": "SemVer 2.0.0, no leading v.",
+      "type": "string",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(-[0-9A-Za-z.-]+)?$"
+    },
+    "tag": {
+      "description": "The git tag. Must equal 'v' + version.",
+      "type": "string",
+      "pattern": "^v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(-[0-9A-Za-z.-]+)?$"
+    },
+    "published_at": {
+      "description": "ISO-8601 UTC. Displayed as 'released N days ago'.",
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+    },
+    "channel": {
+      "description": "Clients on the stable channel ignore a beta manifest.",
+      "enum": [
+        "stable",
+        "beta"
+      ]
+    },
+    "mandatory": {
+      "description": "When true the client blocks the main menu until the user updates. Making this a per-release publisher decision replaces the predecessor's unconditional lockout at main_frame.cpp:94-133, which hid all ten tabs whenever any newer tag existed.",
+      "type": "boolean"
+    },
+    "min_supported": {
+      "description": "Oldest installed version that may update in-app. If installed < min_supported the client refuses the in-app path and directs the user to the zip, which covers breaking SD-layout changes.",
+      "type": "string",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(-[0-9A-Za-z.-]+)?$"
+    },
+    "min_atmosphere": {
+      "description": "Minimum Atmosphere version. The client warns rather than refusing - it cannot always detect this reliably.",
+      "type": "string",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(-[0-9A-Za-z.-]+)?$"
+    },
+    "changelog_url": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https://"
+    },
+    "release_notes_url": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https://"
+    },
+    "assets": {
+      "description": "At least one asset of kind app-nro is required, or the updater has nothing to download.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/asset"
+      }
+    }
+  },
+  "$defs": {
+    "asset": {
+      "type": "object",
+      "required": [
+        "name",
+        "kind",
+        "url",
+        "size",
+        "sha256"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "name": {
+          "description": "A BARE filename. No slashes, no backslashes, no '..', no leading dot - a name that can traverse directories must never reach a filesystem call.",
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]*$"
+        },
+        "kind": {
+          "description": "What the client selects by. It never parses a filename to decide what something is. An unknown kind is skipped, not an error - that is the forward-compatibility escape hatch.",
+          "enum": [
+            "app-nro",
+            "forwarder-nro",
+            "sd-overlay-zip"
+          ]
+        },
+        "url": {
+          "description": "https only, and must be a GitHub release asset.",
+          "type": "string",
+          "pattern": "^https://github\\.com/"
+        },
+        "size": {
+          "description": "Bytes. Used for the free-space pre-flight and as a cheap truncation check before hashing.",
+          "type": "integer",
+          "exclusiveMinimum": 0
+        },
+        "sha256": {
+          "description": "Lowercase hex. An asset without a verifiable digest must never be downloadable.",
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    }
+  }
+}
