@@ -9,9 +9,10 @@ hunting for images by hand and missing one.
     python3 tools/assets/generate.py            # write the derivatives
     python3 tools/assets/generate.py --check    # verify they are up to date
 
-`--check` runs in CI: it regenerates in memory and compares, so a master that
-changed without its derivatives being refreshed fails the build instead of
-shipping a half-rebranded application.
+`--check` runs in CI. It compares against `assets/derivatives.json`, which records the
+master hash the derivatives were built from - it does NOT re-encode, because Pillow
+output differs between versions and that would report a false "stale" on any machine
+whose Pillow differs from whoever last generated.
 
 SPDX-License-Identifier: GPL-3.0-only
 """
@@ -19,6 +20,7 @@ from __future__ import annotations
 
 import argparse
 import io
+import json
 import sys
 from pathlib import Path
 
@@ -81,45 +83,123 @@ def render(spec: dict) -> bytes:
     return buf.getvalue()
 
 
+LOCK = ROOT / "assets" / "derivatives.json"
+
+
+def sha256(data: bytes) -> str:
+    import hashlib
+    return hashlib.sha256(data).hexdigest()
+
+
+def describe(path: Path) -> dict:
+    """Record what a derivative IS, independent of how it was encoded."""
+    with Image.open(path) as im:
+        size, fmt, mode = im.size, im.format, im.mode
+    return {
+        "sha256": sha256(path.read_bytes()),
+        "bytes": path.stat().st_size,
+        "width": size[0],
+        "height": size[1],
+        "format": fmt,
+        "mode": mode,
+    }
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--check", action="store_true",
-                    help="verify derivatives match the master; write nothing")
+                    help="verify derivatives match the recorded master; write nothing")
     args = ap.parse_args()
 
     if not MASTER.is_file():
         print("ERROR: master logo missing: {}".format(MASTER), file=sys.stderr)
         return 1
 
-    stale = 0
-    for spec in DERIVATIVES:
-        rel = spec["path"].relative_to(ROOT)
-        data = render(spec)
+    master_sha = sha256(MASTER.read_bytes())
 
-        if args.check:
+    # ---------------------------------------------------------------- check --
+    #
+    # Deliberately does NOT re-encode. Pillow's PNG and JPEG output differs
+    # between versions, so comparing freshly encoded bytes reports a false
+    # "stale" on a machine whose Pillow differs from whoever last generated -
+    # which is exactly what happened between a developer host and the container.
+    #
+    # Instead: compare against derivatives.json, which records the master hash
+    # the derivatives were built from plus each derivative's own hash and
+    # geometry. That catches both real failures - master changed without
+    # regenerating, and a derivative edited by hand - and is identical in every
+    # environment.
+    if args.check:
+        if not LOCK.is_file():
+            print("MISSING: {} - run without --check to create it".format(
+                LOCK.relative_to(ROOT)), file=sys.stderr)
+            return 1
+
+        lock = json.loads(LOCK.read_text(encoding="utf-8"))
+        problems = 0
+
+        if lock.get("master_sha256") != master_sha:
+            print("STALE: {} changed since the derivatives were generated.".format(
+                MASTER.relative_to(ROOT)), file=sys.stderr)
+            print("       recorded {}".format(lock.get("master_sha256", "?")[:16]),
+                  file=sys.stderr)
+            print("       actual   {}".format(master_sha[:16]), file=sys.stderr)
+            problems += 1
+
+        for spec in DERIVATIVES:
+            rel = str(spec["path"].relative_to(ROOT)).replace("\\", "/")
+            recorded = lock.get("derivatives", {}).get(rel)
+
             if not spec["path"].is_file():
                 print("MISSING: {}".format(rel), file=sys.stderr)
-                stale += 1
-            elif spec["path"].read_bytes() != data:
-                print("STALE:   {} does not match the master".format(rel), file=sys.stderr)
-                stale += 1
+                problems += 1
+                continue
+            if recorded is None:
+                print("UNRECORDED: {}".format(rel), file=sys.stderr)
+                problems += 1
+                continue
+
+            actual = describe(spec["path"])
+            if actual["sha256"] != recorded["sha256"]:
+                print("MODIFIED: {} does not match derivatives.json".format(rel),
+                      file=sys.stderr)
+                problems += 1
+            elif (actual["width"], actual["height"]) != tuple(spec["size"]) \
+                    or actual["format"] != spec["format"]:
+                print("WRONG SHAPE: {} is {}x{} {}, expected {}x{} {}".format(
+                    rel, actual["width"], actual["height"], actual["format"],
+                    spec["size"][0], spec["size"][1], spec["format"]), file=sys.stderr)
+                problems += 1
             else:
                 print("  ok     {:<28} {}x{} {}".format(
-                    str(rel), spec["size"][0], spec["size"][1], spec["format"]))
-            continue
+                    rel, actual["width"], actual["height"], actual["format"]))
 
+        if problems:
+            print("\n{} problem(s). Regenerate with:  "
+                  "python3 tools/assets/generate.py".format(problems), file=sys.stderr)
+            return 1
+        print("assets: derivatives match the master")
+        return 0
+
+    # ------------------------------------------------------------- generate --
+    lock = {"master": str(MASTER.relative_to(ROOT)).replace("\\", "/"),
+            "master_sha256": master_sha,
+            "derivatives": {}}
+
+    for spec in DERIVATIVES:
+        rel = str(spec["path"].relative_to(ROOT)).replace("\\", "/")
+        data = render(spec)
         spec["path"].parent.mkdir(parents=True, exist_ok=True)
         spec["path"].write_bytes(data)
+        info = describe(spec["path"])
+        info["why"] = spec["why"]
+        lock["derivatives"][rel] = info
         print("  wrote  {:<28} {}x{} {:<4} {:>7} bytes   {}".format(
-            str(rel), spec["size"][0], spec["size"][1], spec["format"],
-            len(data), spec["why"]))
+            rel, spec["size"][0], spec["size"][1], spec["format"], len(data), spec["why"]))
 
-    if args.check and stale:
-        print("\n{} derivative(s) out of date. Run:  "
-              "python3 tools/assets/generate.py".format(stale), file=sys.stderr)
-        return 1
-    if args.check:
-        print("assets: derivatives match the master")
+    LOCK.write_text(json.dumps(lock, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    print("  wrote  {:<28} record of what was generated".format(
+        str(LOCK.relative_to(ROOT)).replace("\\", "/")))
     return 0
 
 

@@ -17,7 +17,8 @@ run tools/lint/forbid_hardcoded_version.sh
 run tools/lint/forbid_insecure_curl.sh
 run tools/lint/check_license_isolation.sh
 run tools/lint/check_adr_index.sh
-run python tools/lint/check_i18n.py
+run python3 tools/lint/check_i18n.py
+run python3 tools/assets/generate.py --check
 
 printf '\n'
 if [ -n "$FAILED" ]; then

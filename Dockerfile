@@ -96,9 +96,9 @@ RUN curl -fsSL --proto '=https' --tlsv1.2 https://apt.llvm.org/llvm-snapshot.gpg
     && update-alternatives --install /usr/bin/clang-tidy   clang-tidy   /usr/bin/clang-tidy-${LLVM_VERSION} 100 \
     && rm -rf /var/lib/apt/lists/*
 
-# jsonschema backs tools/release/validate_manifest.py. --break-system-packages
-# is correct in a container: there is no other Python consumer to protect.
-RUN pip3 install --no-cache-dir --break-system-packages jsonschema
+# jsonschema backs validate_manifest.py; Pillow backs the branding asset
+# check, which regenerates the derivatives in memory and compares.
+RUN pip3 install --no-cache-dir --break-system-packages jsonschema Pillow
 
 ENV DEVKITPRO=/opt/devkitpro \
     DEVKITARM=/opt/devkitpro/devkitARM \
