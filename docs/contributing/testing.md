@@ -8,9 +8,7 @@ Decision: [ADR-0014](../adr/0014-split-pure-logic-into-a-host-testable-core-libr
 ## Host tests
 
 ```sh
-cmake --preset host-debug
-cmake --build --preset host-debug
-ctest --preset host-debug --output-on-failure
+docker compose run --rm nsx test
 ```
 
 Seconds, no console, no emulator. `nsx_core` is compiled by the host compiler from the **same**
@@ -19,17 +17,15 @@ source list the Switch build uses, so there is no second file list to drift.
 Sanitizers:
 
 ```sh
-cmake --preset host-asan && ctest --preset host-asan --output-on-failure
+docker compose run --rm nsx asan
 ```
 
-> **The `host-asan` preset does not work on Windows.** clang's AddressSanitizer
-> does not support the MSVC dynamic debug CRT, so the binary aborts inside
-> `ucrtbased.dll` during CRT startup - before `main()`, with no frames in our
-> code. It is a toolchain incompatibility, not a finding.
->
-> Sanitizers therefore run in CI on Linux (the `sanitizers` job), which is where
-> the check is meaningful. On Windows, use `host-debug` locally and let CI do the
-> sanitized run.
+> **Run sanitizers in the container, not natively on Windows.** clang's AddressSanitizer is
+> incompatible with the MSVC debug CRT, so a native `host-asan` build on Windows aborts inside
+> `ucrtbased.dll` during CRT startup - before `main()`, with no frames in our code. It is a
+> toolchain incompatibility, not a finding. In the container they work, which is why this is
+> the documented way to run them. See
+> [ADR-0015](../adr/0015-build-and-verify-inside-a-container.md).
 
 ## What is host-tested
 
@@ -71,7 +67,7 @@ TEST_CASE("a date-shaped tag does not throw") {
 [`tests/fixtures/handoff/`](../../tests/fixtures/handoff/).
 
 ```sh
-python3 tools/release/validate_manifest.py --check-fixtures
+docker compose run --rm nsx manifest
 ```
 
 This runs in CI, so the parser contract cannot drift silently. The release workflow also runs the

@@ -23,16 +23,19 @@ By participating you agree to the [Code of Conduct](CODE_OF_CONDUCT.md).
 ```sh
 git clone --recurse-submodules https://github.com/mateussantoos/nsx-manager.git
 cd nsx-manager
-tools/hooks/install.sh          # commit-msg validation + commit template
-cmake --preset host-debug       # no Switch toolchain needed for core/ and tests
-ctest --preset host-debug --output-on-failure
+tools/hooks/install.sh                 # commit-msg validation + commit template
+docker compose build                   # once
+docker compose run --rm nsx verify     # lint + tests + manifest + docs
 ```
+
+You need Docker and git. The toolchain - devkitA64, devkitARM, clang, CMake, Ninja, Doxygen -
+lives in the image, not on your machine.
 
 Then branch, change, and open a pull request:
 
 ```sh
 git switch -c feat/my-change
-git commit                      # the template tells you the format
+git commit                             # the template tells you the format
 git push -u origin feat/my-change
 ```
 

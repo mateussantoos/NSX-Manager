@@ -1,133 +1,156 @@
 # Local setup
 
-## What you need
+**The supported way to build NSX Manager is the container.** It carries devkitA64, devkitARM, the
+Switch portlibs, a pinned clang, CMake, Ninja, Doxygen and the Python tooling - and it is the
+same image CI runs, so "works on my machine" and "passes CI" stop being different questions.
 
-| Tool | Version | For |
-|---|---|---|
-| devkitPro with `switch-dev` | current | Building the app |
-| devkitPro with `devkitARM` | current | Building the RCM payload (optional) |
-| CMake | 3.24+ | Everything |
-| Ninja | any | The generator the presets use |
-| git | 2.30+ | Submodules |
-| Python | 3.10+ | Lint and release tooling |
-| clang-format | 18 | Formatting (CI uses 18; other versions differ) |
-| Node | 20+ | commitlint only - **not needed to commit** |
+A native toolchain still works and is documented at the bottom, but nothing in this project
+requires you to install devkitPro on your own machine.
 
-Only CMake, Ninja, git, Python and a host C++ compiler are needed for the host test build. You
-can contribute to `core/` without devkitPro at all.
+## Requirements
 
-## Clone
+Docker with Compose v2, and git. That is all.
 
 ```sh
 git clone --recurse-submodules https://github.com/mateussantoos/nsx-manager.git
 cd nsx-manager
-tools/hooks/install.sh
+docker compose build          # once, roughly 5 minutes
+docker compose run --rm nsx doctor
 ```
 
-Forgot `--recurse-submodules`? `git submodule update --init --recursive`.
-`tools/deps/verify_pins.sh` tells you when this is the problem.
+`doctor` prints every toolchain the container provides and flags anything missing. Run it first
+whenever something behaves oddly.
 
-`install.sh` sets `core.hooksPath` and the commit template, so your commit messages are validated
-locally instead of failing in CI ten minutes later.
-
-## The fastest loop: host tests
-
-No Switch toolchain, no hardware.
+## The tasks
 
 ```sh
-cmake --preset host-debug
-cmake --build --preset host-debug
-ctest --preset host-debug --output-on-failure
+docker compose run --rm nsx <task>
 ```
 
-This is where most work on `core/` happens.
+| Task | What it does |
+|---|---|
+| `switch` | configure + build the Switch release: app, forwarder, RCM payload |
+| `switch-debug` | the same, debug configuration |
+| `rcm` | only the RCM payload, via devkitARM |
+| `host` | configure + build `nsx_core` and the tests |
+| `test` | host build, then `ctest` |
+| `asan` | host build under ASan and UBSan, then `ctest` |
+| `lint` | every check in `tools/lint`, exactly as CI runs them |
+| `format` | rewrite sources in place with the pinned clang-format |
+| `tidy` | clang-tidy over the host compilation database |
+| `docs` | Doxygen, with warnings as errors |
+| `manifest` | validate the `update.json` fixtures and a generated manifest |
+| `release <tag>` | package a release into `dist/` the way `release.yml` does |
+| `verify` | lint + test + manifest + docs - **run this before pushing** |
+| `all` | `verify`, then the Switch build |
+| `doctor` | report what the container provides |
+| `shell` | interactive shell with everything on `PATH` |
 
-`--preset host-asan` adds ASan and UBSan, **on Linux and macOS only** - clang's ASan is
-incompatible with the MSVC debug CRT, so on Windows it aborts during CRT startup before any test
-runs. CI runs the sanitized build for you on Linux.
-
-## Building for the Switch
-
-### Windows (MSYS2) - the maintainer's environment
-
-1. Install [devkitPro for Windows](https://github.com/devkitPro/installer/releases). It installs
-   MSYS2 and the package manager.
-2. Open the **MSYS2 MinGW 64-bit** shell from the Start menu, then:
+Named shortcuts exist for the common ones:
 
 ```sh
-pacman -S switch-dev devkitARM cmake ninja
+docker compose run --rm switch
+docker compose run --rm test
+docker compose run --rm verify
 ```
 
-3. Build:
+Anything unrecognised runs verbatim, so this works too:
 
 ```sh
-cmake --preset switch-release
-cmake --build --preset switch-release
+docker compose run --rm nsx cmake --version
+docker compose run --rm nsx ctest --preset host-debug -R semver --output-on-failure
 ```
 
-Use the devkitPro MSYS2 shell, not Git Bash or PowerShell - `$DEVKITPRO` and the toolchain
-`PATH` are only set up there.
+## How the mounts work
 
-### Linux and macOS
+The repository is bind-mounted at `/workspace`, so edits on your machine are visible immediately
+and generated files land back in your working tree.
+
+**Build trees live in a named volume**, not in the bind mount. On Docker Desktop for Windows and
+macOS a bind mount crosses a filesystem boundary, and compiling tens of thousands of objects
+across it is several times slower. The consequence worth knowing: `build/` inside the container
+is not the same directory as `build/` on your host.
+
+To get a built artefact onto your machine, copy it out:
 
 ```sh
-# see https://devkitpro.org/wiki/Getting_Started for pacman setup
-sudo dkp-pacman -S switch-dev devkitARM
-export DEVKITPRO=/opt/devkitpro
-export DEVKITARM=$DEVKITPRO/devkitARM
-cmake --preset switch-release && cmake --build --preset switch-release
+docker compose run --rm nsx bash -c 'cp build/switch-release/*.nro /workspace/out/'
 ```
 
-### Docker - closest to CI
+`ccache` and the devkitPro package cache are also named volumes, so they survive `--rm`.
+
+## The fastest loop
+
+Most work on `core/` needs neither devkitPro nor a console:
 
 ```sh
-docker run --rm -v "$PWD:/src" -w /src devkitpro/devkita64:latest \
-  sh -c 'cmake --preset switch-release && cmake --build --preset switch-release'
+docker compose run --rm nsx test
 ```
 
-The RCM payload needs `devkitpro/devkitarm` instead; CI builds them in separate jobs for exactly
-this reason.
-
-## Deploying to a console
-
-```sh
-# with nxlink (ships with devkitPro), console in hbmenu with nxlink listening
-nxlink -s build/switch-release/nsx-manager.nro
-```
-
-Or copy it to `/switch/nsx-manager/nsx-manager.nro` on the SD card.
-
-For anything touching the update path, test on **real hardware**. Emulators do not reproduce
-FatFs rename semantics or `envSetNextLoad`, which is where the interesting failures live.
+Seconds. `nsx_core` is pure C++20 compiled by the host compiler from the same source list the
+Switch build uses.
 
 ## Before you push
 
 ```sh
-tools/lint/run_all.sh
+docker compose run --rm nsx verify
 ```
 
-Runs everything CI runs: encoding, formatting, layering, version literals, insecure curl, licence
-isolation, the ADR index, and i18n parity.
+Lint, host tests, manifest contract and Doxygen - the same checks that gate a pull request.
 
-## Editor setup
+## Editor integration
 
-`.editorconfig` and `.clang-format` are respected by every major editor.
+Generate a compilation database in the container, then point your editor at it. Because the build
+tree is a volume, copy it into the working tree first:
 
-For IntelliSense, point your extension at the generated compilation database:
-
+```sh
+docker compose run --rm nsx bash -c \
+  'cmake --preset host-debug >/dev/null && cp build/host-debug/compile_commands.json /workspace/'
 ```
-build/host-debug/compile_commands.json     # or build/switch-release/
+
+VS Code: set `"C_Cpp.default.compileCommands": "${workspaceFolder}/compile_commands.json"`.
+It is gitignored.
+
+`.editorconfig` and `.clang-format` are respected by every major editor. If you format locally,
+use **clang-format 18** - the version the container pins. Other major versions produce different
+output and will fight the lint.
+
+---
+
+## Native toolchain (optional)
+
+Only if you would rather not use Docker.
+
+| Tool | Version |
+|---|---|
+| devkitPro with `switch-dev` and `devkitARM` | current |
+| Switch portlibs | `switch-zlib switch-curl switch-mbedtls switch-glfw switch-glad switch-mesa switch-libdrm_nouveau` |
+| CMake | 3.24+ |
+| Ninja | any |
+| clang / clang-format / clang-tidy | **18** |
+| Python | 3.10+, with `jsonschema` |
+
+```sh
+cmake --preset switch-release && cmake --build --preset switch-release
+cmake --preset host-debug && ctest --preset host-debug --output-on-failure
 ```
 
-VS Code: install the C/C++ extension and set `"C_Cpp.default.compileCommands"` to that path.
+On Windows use the devkitPro MSYS2 shell, not Git Bash or PowerShell - `$DEVKITPRO` and the
+toolchain `PATH` are only set up there.
+
+**Sanitizers do not work on Windows.** clang's ASan is incompatible with the MSVC debug CRT, so
+`host-asan` aborts inside `ucrtbased.dll` during CRT startup, before any test runs. Use the
+container, where they work.
 
 ## Troubleshooting
 
 | Symptom | Fix |
 |---|---|
-| `DEVKITPRO is not set` | Use the devkitPro MSYS2 shell, or export it |
 | `third_party/borealis is empty` | `git submodule update --init --recursive` |
-| `VERSION must be SemVer 2.0.0` | `/VERSION` is malformed - the guard doing its job |
+| `The CA bundle is missing` | `tools/cacert/fetch.sh` - it is gitignored, only its hash is committed. The container does this for you. |
+| `Missing Switch portlib 'z'` | Native build without the portlibs. Install them, or use the container. |
+| `VERSION must be SemVer 2.0.0` | `/VERSION` is malformed - the guard working as intended |
 | `no sources yet - target skipped` | Expected until that module lands |
-| clang-format disagrees with CI | Use version 18; formatting differs between major versions |
+| clang-format disagrees with CI | Use version 18, or just run `docker compose run --rm nsx format` |
+| Docker build is slow the first time | It downloads devkitPro packages. Subsequent builds are cached. |
 | Commit rejected by the hook | Read the message - it names the exact rule. See [`commit-convention.md`](commit-convention.md) |

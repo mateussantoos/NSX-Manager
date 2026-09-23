@@ -23,7 +23,7 @@ OUTPUT_LANGUAGE        = English
 # ---------------------------------------------------------------------------
 INPUT                  = ../src/nsx \
                          ../apps/forwarder/src \
-                         ../docs
+                         api-mainpage.md
 FILE_PATTERNS          = *.cpp *.hpp *.h *.md
 RECURSIVE              = YES
 EXCLUDE                = ../third_party \
@@ -31,7 +31,7 @@ EXCLUDE                = ../third_party \
                          ../build
 EXCLUDE_PATTERNS       = */detail/* */build/*
 EXCLUDE_SYMBOLS        = *::detail::*
-USE_MDFILE_AS_MAINPAGE = ../docs/README.md
+USE_MDFILE_AS_MAINPAGE = api-mainpage.md
 MARKDOWN_SUPPORT       = YES
 
 # ---------------------------------------------------------------------------
@@ -86,7 +86,6 @@ HTML_OUTPUT            = html
 GENERATE_TREEVIEW      = YES
 DISABLE_INDEX          = NO
 FULL_SIDEBAR           = NO
-HTML_COLORSTYLE        = TOGGLE
 GENERATE_LATEX         = NO
 GENERATE_MAN           = NO
 GENERATE_XML           = NO

@@ -40,7 +40,7 @@ and every standard the project holds itself to. If you read one page, read that 
 | [Self-update forwarder](architecture/self-update-forwarder.md) | The swap and its recovery states |
 | [Threat model](architecture/threat-model.md) | Trust boundaries and known gaps |
 | [Licensing](architecture/licensing.md) | The GPL-2.0 / GPL-3.0 problem and its resolution |
-| [**Architecture decisions**](adr/README.md) | 14 ADRs - why each of the above is as it is |
+| [**Architecture decisions**](adr/README.md) | 15 ADRs - why each of the above is as it is |
 
 ### Integrators and machines
 

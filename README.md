@@ -48,23 +48,29 @@ how updates work and how to recover a failed one, are in
 
 ## Build
 
-Requires [devkitPro](https://devkitpro.org/wiki/Getting_Started) with the `switch-dev` and
-`devkitARM` groups, plus CMake 3.24 or newer and Ninja.
+Everything runs in a container - devkitA64, devkitARM, the Switch portlibs and a pinned clang are
+all inside it. You need **Docker and git**, nothing else.
 
 ```sh
 git clone --recurse-submodules https://github.com/mateussantoos/nsx-manager.git
 cd nsx-manager
-cmake --preset switch-release
-cmake --build --preset switch-release
+docker compose build
+docker compose run --rm nsx switch     # app + forwarder + RCM payload
 ```
 
-Host-side unit tests need no Switch toolchain and no hardware:
+Other tasks:
 
 ```sh
-cmake --preset host-debug && ctest --preset host-debug --output-on-failure
+docker compose run --rm nsx test       # host unit tests, seconds, no console
+docker compose run --rm nsx verify     # lint + tests + manifest + docs
+docker compose run --rm nsx doctor     # what the toolchain actually provides
+docker compose run --rm nsx help       # every task
 ```
 
-Full setup for Windows/MSYS2 and Docker: [`docs/contributing/local-setup.md`](docs/contributing/local-setup.md).
+CI runs these same commands in this same image, so a failure reproduces exactly.
+
+Building natively without Docker is still supported and documented in
+[`docs/contributing/local-setup.md`](docs/contributing/local-setup.md).
 
 ## Documentation
 
@@ -72,7 +78,7 @@ Full setup for Windows/MSYS2 and Docker: [`docs/contributing/local-setup.md`](do
 |---|---|
 | [Project scope](docs/PROJECT_SCOPE.md) | What this project is, its standards, and the 1.0.0 parity checklist |
 | [Architecture](docs/architecture/overview.md) | Layering, build system, update pipeline, threat model |
-| [Architecture decisions](docs/adr/README.md) | 14 ADRs recording every foundational choice and its rejected alternatives |
+| [Architecture decisions](docs/adr/README.md) | 15 ADRs recording every foundational choice and its rejected alternatives |
 | [Contributing](CONTRIBUTING.md) | Setup, coding style, commit convention, branching, releasing |
 | [User guide](docs/user/installation.md) | Install, update, troubleshoot |
 | [API reference](https://mateussantoos.github.io/nsx-manager/) | Doxygen, published from `main` |

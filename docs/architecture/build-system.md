@@ -6,9 +6,14 @@ CMake with devkitPro's Switch toolchain file. Decision and alternatives:
 ## Quick start
 
 ```sh
-cmake --preset switch-release && cmake --build --preset switch-release   # the app
-cmake --preset host-debug && ctest --preset host-debug                   # tests, no hardware
+docker compose run --rm nsx switch     # the app, forwarder and RCM payload
+docker compose run --rm nsx test       # host tests, no hardware
 ```
+
+Those wrap the presets below. The container carries devkitA64, devkitARM and the Switch portlibs
+so none of it has to be installed natively - see
+[ADR-0015](../adr/0015-build-and-verify-inside-a-container.md). Running the presets directly
+works too, if you have the toolchain.
 
 ## Presets
 
@@ -96,6 +101,26 @@ opaque data. This is a licensing boundary
 to also be good architecture: it is a freestanding ARM7 program for a different processor.
 
 Disable it with `-DNSX_BUILD_RCM=OFF` if `DEVKITARM` is not installed.
+
+## Switch portlibs
+
+devkitPro's `Switch.cmake` sets up the compiler and the NRO helpers, but it does **not** put
+`$DEVKITPRO/portlibs/switch/include` on the search path. Linking a bare `z` therefore compiles
+until the first `#include <zlib.h>` and then fails pointing at the wrong problem.
+
+[`cmake/NsxPortlibs.cmake`](../../cmake/NsxPortlibs.cmake) resolves each library explicitly and
+fails at **configure** time naming the exact `dkp-pacman` package to install. Required:
+`switch-zlib`, `switch-curl`, `switch-mbedtls`, `switch-glfw`, `switch-glad`, `switch-mesa`,
+`switch-libdrm_nouveau`.
+
+## Vendored C and GCC 15
+
+devkitPro now ships GCC 15, which promoted `-Wincompatible-pointer-types` from a warning to an
+error. minizip's `ioapi` predates that. `-w` does not help - it silences warnings, and this is an
+error - so `third_party/CMakeLists.txt` scopes
+`-Wno-error=incompatible-pointer-types` to the vendored C targets only. First-party code still
+gets the diagnostic at full strength. The predecessor carried the same workaround globally, at
+`Makefile:44`.
 
 ## third_party
 

@@ -26,6 +26,7 @@ and add your row to the table below in the same pull request.
 | [0012](0012-use-borealis-i18n-with-en-us-as-the-source-of-truth.md) | Use Borealis i18n with en-US as the source of truth | accepted | 2026-09-23 |
 | [0013](0013-adopt-conventional-commits-and-trunk-based-development.md) | Adopt Conventional Commits and trunk-based development | accepted | 2026-09-23 |
 | [0014](0014-split-pure-logic-into-a-host-testable-core-library.md) | Split pure logic into a host-testable core library | accepted | 2026-09-23 |
+| [0015](0015-build-and-verify-inside-a-container.md) | Build and verify inside a container | accepted | 2026-09-23 |
 
 ## Reading order
 

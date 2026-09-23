@@ -176,7 +176,9 @@ nsx-manager/
 │   ├── forwarder/      nsx-forwarder.nro - completes the self-update swap
 │   └── rcm-payload/    nsx_rcm.bin - hekate/BDK derived, GPL-2.0-only, ISOLATED
 ├── assets/             staged into romfs: images, sounds, data, i18n
-├── cmake/              NsxVersion, NsxLayer, NsxRomfs, NsxRcmPayload
+├── cmake/              NsxVersion, NsxLayer, NsxPortlibs, NsxCaBundle, NsxRomfs, NsxRcmPayload
+├── docker/             entrypoint and doctor for the build container
+├── Dockerfile          devkitA64 + devkitARM + pinned clang + verification tooling
 ├── docs/               this file, ADRs, architecture, contributing, user, reference
 ├── src/nsx/            the application, one directory per layer
 │   ├── core/           result, version, update, paths, text, json, hash, net, log
@@ -278,6 +280,13 @@ and a changelog entry at `changelog_page.cpp:154`). Bumping the version reliably
 one.
 
 [ADR-0004](adr/0004-adopt-semantic-versioning-from-0-1-0-with-v-prefixed-tags.md)
+
+### Building
+
+The build and verification environment is a container carrying devkitA64, devkitARM, the Switch
+portlibs and a pinned clang. `docker compose run --rm nsx <task>` is what developers and CI both
+run, so the two cannot drift.
+[ADR-0015](adr/0015-build-and-verify-inside-a-container.md)
 
 ---
 
@@ -611,7 +620,10 @@ foundations that release did not have. Ordered by milestone, not by priority wit
 - [x] Repository, standards, CI, documentation and ADRs
 - [ ] `core/` modules: `semver`, `manifest`, `update_policy`, `handoff`, `sd_paths`, `sha256`
 - [ ] Host test suite green in CI
-- [ ] Borealis and zipper pinned as submodules; the tree builds
+- [x] Borealis and zipper pinned as submodules; the tree builds
+- [x] Containerised build and verification environment (ADR-0015)
+- [x] RCM payload ported and building
+- [x] CA bundle pinned and embedded
 - [ ] A minimal bootable shell that reports its own version
 
 ### 0.2.x - the update path
@@ -628,7 +640,6 @@ foundations that release did not have. Ordered by milestone, not by priority wit
 - [ ] The content catalogue manifest, published under `mateussantoos`
 - [ ] CFW pack listing and installation
 - [ ] Official firmware listing and Daybreak handoff
-- [ ] The RCM payload ported and building in CI
 - [ ] Coverage gate enabled on `core/`
 
 ### 0.4.x - the rest of the feature surface

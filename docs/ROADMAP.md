@@ -10,10 +10,11 @@ adds the ordering and the reasoning.
 
 **Goal: a repository that is correct by construction, and a binary that boots.**
 
-- [x] Repository, standards, CI, documentation, 14 ADRs
+- [x] Repository, standards, CI, documentation, 15 ADRs
 - [ ] `core/`: `semver`, `manifest`, `update_policy`, `handoff`, `sd_paths`, `sha256`
 - [ ] Host test suite green in CI
-- [ ] Borealis and zipper pinned; the tree builds
+- [x] Borealis and zipper pinned; the tree builds
+- [x] Containerised build environment, with the Switch build green
 - [ ] A minimal bootable shell that reports its own version
 
 `core/` comes first deliberately: it is testable without hardware, and it contains the logic the
@@ -39,7 +40,7 @@ ever successfully updated itself.
 - [ ] The content catalogue manifest, published under `mateussantoos`
 - [ ] CFW pack listing and installation
 - [ ] Official firmware listing and Daybreak handoff
-- [ ] The RCM payload ported and building in CI
+- [x] The RCM payload ported and building (moved up from 0.3.x - it came with the container work)
 - [ ] Coverage gate enabled on `core/`
 
 ## 0.4.x - feature parity
