@@ -65,12 +65,12 @@ endif()
 # Layers. Order matters: each may only link the ones above it (ADR-0003),
 # which tools/lint/check_layering.sh enforces at the #include level too.
 # --------------------------------------------------------------------------
+add_subdirectory(third_party)
 add_subdirectory(src/nsx/core)
 nsx_add_layer(core SOURCES ${NSX_CORE_SOURCES})
 
 if(NSX_BUILD_APP)
     include(NsxCaBundle)
-    add_subdirectory(third_party)
 
     add_subdirectory(src/nsx/platform)
     nsx_add_layer(platform SOURCES ${NSX_PLATFORM_SOURCES} DEPENDS nsx_core)

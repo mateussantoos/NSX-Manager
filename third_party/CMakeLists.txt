@@ -33,6 +33,15 @@ target_include_directories(nsx_doctest SYSTEM INTERFACE
     "${CMAKE_CURRENT_SOURCE_DIR}/doctest")
 
 # --------------------------------------------------------------------------
+# Everything below is compiled code that links devkitPro portlibs (z, glfw3,
+# EGL, glad, glapi, drm_nouveau). The host test build has none of those and
+# needs none of them - it only ever links nsx_core - so it stops here.
+# --------------------------------------------------------------------------
+if(NOT NSX_BUILD_APP)
+    return()
+endif()
+
+# --------------------------------------------------------------------------
 # zipper - minizip wrapper
 #
 # The predecessor built this with `SOURCES := lib/zipper/source`, i.e. the
