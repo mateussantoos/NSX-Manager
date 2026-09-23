@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "product": "nsx-manager",
+  "version": "0.2.0",
+  "tag": "v0.2.0",
+  "published_at": "2026-10-01T12:00:00Z",
+  "channel": "stable",
+  "mandatory": false,
+  "min_supported": "0.1.0",
+  "assets": [
+    {
+      "name": "nsx-manager-0.2.0.nro",
+      "kind": "app-nro",
+      "url": "https://github.com/mateussantoos/nsx-manager/releases/download/v0.2.0/nsx-manager-0.2.0.nro",
+      "size": 12880849
+    }
+  ]
+}

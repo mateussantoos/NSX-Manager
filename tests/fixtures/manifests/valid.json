@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "product": "nsx-manager",
+  "version": "0.2.0",
+  "tag": "v0.2.0",
+  "published_at": "2026-10-01T12:00:00Z",
+  "channel": "stable",
+  "mandatory": false,
+  "min_supported": "0.1.0",
+  "min_atmosphere": "1.7.0",
+  "changelog_url": "https://github.com/mateussantoos/nsx-manager/releases/tag/v0.2.0",
+  "release_notes_url": "https://github.com/mateussantoos/nsx-manager/releases/download/v0.2.0/RELEASE_NOTES.md",
+  "assets": [
+    {
+      "name": "nsx-manager-0.2.0.nro",
+      "kind": "app-nro",
+      "url": "https://github.com/mateussantoos/nsx-manager/releases/download/v0.2.0/nsx-manager-0.2.0.nro",
+      "size": 12880849,
+      "sha256": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
+    },
+    {
+      "name": "nsx-forwarder-0.2.0.nro",
+      "kind": "forwarder-nro",
+      "url": "https://github.com/mateussantoos/nsx-manager/releases/download/v0.2.0/nsx-forwarder-0.2.0.nro",
+      "size": 730737,
+      "sha256": "60303ae22b998861bce3b28f33eec1be758a213c86c93c076dbe9f558c11c752"
+    }
+  ]
+}

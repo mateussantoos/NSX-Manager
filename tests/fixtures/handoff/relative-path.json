@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "created_at_unix": 1790000000,
+  "from_version": "0.1.0",
+  "to_version": "0.2.0",
+  "staged_nro": "staging/nsx-manager.nro",
+  "staged_sha256": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+  "target_nro": "../../switch/nsx-manager/nsx-manager.nro",
+  "backup_nro": "nsx-manager.nro.bak",
+  "forwarder_nro": "nsx-forwarder.nro",
+  "attempts": 0,
+  "max_attempts": 3
+}

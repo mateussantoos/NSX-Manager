@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "product": "nsx-manager",
+  "version": "not-a-version",
+  "tag": 20260923,
+  "published_at": "yesterday",
+  "channel": "experimental",
+  "mandatory": "yes",
+  "min_supported": "0.1.0",
+  "assets": "nsx-manager.nro"
+}

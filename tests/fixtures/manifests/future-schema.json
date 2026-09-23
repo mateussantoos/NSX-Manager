@@ -1,0 +1,11 @@
+{
+  "schema_version": 2,
+  "product": "nsx-manager",
+  "version": "9.9.9",
+  "tag": "v9.9.9",
+  "published_at": "2027-01-01T00:00:00Z",
+  "channel": "stable",
+  "mandatory": true,
+  "min_supported": "0.1.0",
+  "assets": []
+}
