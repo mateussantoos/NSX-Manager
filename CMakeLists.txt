@@ -69,6 +69,7 @@ add_subdirectory(src/nsx/core)
 nsx_add_layer(core SOURCES ${NSX_CORE_SOURCES})
 
 if(NSX_BUILD_APP)
+    include(NsxCaBundle)
     add_subdirectory(third_party)
 
     add_subdirectory(src/nsx/platform)
