@@ -1,0 +1,57 @@
+# NSX Manager C++ formatting - see docs/contributing/coding-style.md
+# Derived from the predecessor's .clang-format, with ColumnLimit raised from 0
+# to 100: a limit of 0 disables all reflow, which is how that codebase ended up
+# with 300-character lines.
+---
+Language:        Cpp
+Standard:        c++20
+BasedOnStyle:    Google
+
+ColumnLimit:     100
+IndentWidth:     4
+AccessModifierOffset: -4
+NamespaceIndentation: All
+DerivePointerAlignment: false
+PointerAlignment: Left
+ReferenceAlignment: Left
+
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortCaseLabelsOnASingleLine: false
+
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass:           true
+  AfterStruct:          true
+  AfterUnion:           true
+  AfterEnum:            true
+  AfterFunction:        true
+  AfterNamespace:       false
+  AfterControlStatement: Never
+  AfterExternBlock:     false
+  BeforeCatch:          false
+  BeforeElse:           true
+  SplitEmptyFunction:   true
+  SplitEmptyRecord:     true
+  SplitEmptyNamespace:  true
+
+FixNamespaceComments: true
+SortIncludes:    CaseSensitive
+IncludeBlocks:   Regroup
+# 1 own header | 2 C stdlib | 3 C++ stdlib | 4 third-party | 5 project "nsx/..."
+IncludeCategories:
+  - Regex:    '^<(assert|ctype|errno|inttypes|limits|stdarg|stddef|stdint|stdio|stdlib|string|time)\.h>'
+    Priority: 2
+  - Regex:    '^<[a-z_]+>$'
+    Priority: 3
+  - Regex:    '^<.*>$'
+    Priority: 4
+  - Regex:    '^"nsx/.*"$'
+    Priority: 5
+  - Regex:    '.*'
+    Priority: 4
+SeparateDefinitionBlocks: Always
+EmptyLineBeforeAccessModifier: LogicalBlock
+PackConstructorInitializers: NextLine
+AlwaysBreakTemplateDeclarations: Yes

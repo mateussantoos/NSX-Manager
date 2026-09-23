@@ -1,0 +1,39 @@
+# Normalise to LF in the repository; check out LF everywhere.
+* text=auto eol=lf
+
+# Explicit text types (all source and docs are UTF-8, LF).
+*.c      text eol=lf
+*.cc     text eol=lf
+*.cpp    text eol=lf
+*.h      text eol=lf
+*.hpp    text eol=lf
+*.in     text eol=lf
+*.cmake  text eol=lf
+*.json   text eol=lf
+*.md     text eol=lf
+*.py     text eol=lf
+*.sh     text eol=lf
+*.yml    text eol=lf
+*.yaml   text eol=lf
+*.txt    text eol=lf
+*.pem    text eol=lf
+Makefile text eol=lf
+CMakeLists.txt text eol=lf
+
+# Shell scripts and git hooks must never get CRLF - they are executed by sh.
+tools/hooks/*  text eol=lf
+tools/lint/*   text eol=lf
+
+# Binary - never diffed, never normalised.
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.wav    binary
+*.nro    binary
+*.bin    binary
+*.zip    binary
+*.ttf    binary
+
+# Vendored code is excluded from language statistics and from diffs by default.
+third_party/**       linguist-vendored
+apps/rcm-payload/**  linguist-vendored
