@@ -1,0 +1,18 @@
+# Keep the build context small: the image needs the Dockerfile and entrypoint,
+# not 4 MB of payload source or a submodule's git history. The repository
+# arrives through a bind mount at run time, not through the context.
+.git
+build
+build-*
+out
+dist
+staging
+node_modules
+third_party/borealis
+third_party/zipper
+third_party/cacert/cacert.pem
+docs/reference/api
+**/*.nro
+**/*.elf
+**/*.bin
+**/__pycache__

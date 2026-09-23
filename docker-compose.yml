@@ -1,0 +1,74 @@
+# NSX Manager containerised build and verification.
+#
+#   docker compose build            build the image once
+#   docker compose run --rm nsx switch     the Switch release
+#   docker compose run --rm nsx verify     lint + tests + manifest + docs
+#
+# The repository is bind-mounted, so edits on the host are visible immediately
+# and build output lands in the working tree where the host tooling can see it.
+# Toolchain caches are named volumes: they survive `--rm` without polluting the
+# repository or being wiped by a rebuild.
+#
+# SPDX-License-Identifier: GPL-3.0-only
+
+services:
+  # The one service that does everything. A task is the first argument:
+  #   docker compose run --rm nsx <task>
+  nsx:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: nsx-manager-build:latest
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      # Build trees live in named volumes rather than the bind mount. On Docker
+      # Desktop for Windows a bind mount crosses a filesystem boundary, and
+      # compiling tens of thousands of objects across it is many times slower.
+      - build-switch:/workspace/build
+      - ccache:/root/.ccache
+      - pacman-cache:/opt/devkitpro/pacman/var/cache/pacman/pkg
+    environment:
+      CCACHE_DIR: /root/.ccache
+      # Keeps a release build byte-identical across machines.
+      SOURCE_DATE_EPOCH: "${SOURCE_DATE_EPOCH:-1790000000}"
+    tty: true
+
+  # Named aliases for the common tasks, so a reader of `docker compose config`
+  # can see what this project actually does without opening the entrypoint.
+  # Each is the same image with a fixed command.
+
+  switch:
+    extends: { service: nsx }
+    command: ["switch"]
+
+  test:
+    extends: { service: nsx }
+    command: ["test"]
+
+  lint:
+    extends: { service: nsx }
+    command: ["lint"]
+
+  asan:
+    extends: { service: nsx }
+    command: ["asan"]
+
+  docs:
+    extends: { service: nsx }
+    command: ["docs"]
+
+  verify:
+    extends: { service: nsx }
+    command: ["verify"]
+
+  # Interactive shell with devkitA64, devkitARM, clang, cmake and ninja on PATH.
+  shell:
+    extends: { service: nsx }
+    command: ["shell"]
+    stdin_open: true
+
+volumes:
+  build-switch:
+  ccache:
+  pacman-cache:
