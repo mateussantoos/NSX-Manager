@@ -5,6 +5,7 @@
 # SPDX-License-Identifier: GPL-3.0-only
 
 set(NSX_INFRA_SOURCES
+    http/tls_config.cpp
 )
 
 list(TRANSFORM NSX_INFRA_SOURCES PREPEND "${CMAKE_CURRENT_LIST_DIR}/")
