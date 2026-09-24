@@ -23,6 +23,8 @@ set(NSX_TEST_MODULES
     handoff
     # sd_paths
     traversal_guard
+    preserve_rules
+    catalog
     sha256
     # text_format
     # json_safe_get

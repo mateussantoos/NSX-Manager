@@ -18,6 +18,9 @@ set(NSX_CORE_SOURCES
     update/backoff.cpp
     # paths/sd_paths.cpp
     paths/traversal_guard.cpp
+    paths/preserve_rules.cpp
+    paths/extraction_policy.cpp
+    catalog/catalog.cpp
     # text/format.cpp
     # json/safe_get.cpp
     hash/sha256.cpp
