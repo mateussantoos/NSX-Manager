@@ -34,6 +34,7 @@ run tools/lint/check_layering.sh
 run tools/lint/forbid_hardcoded_version.sh
 run tools/lint/forbid_insecure_curl.sh
 run tools/lint/check_license_isolation.sh
+run tools/lint/check_path_agreement.sh
 run tools/lint/check_adr_index.sh
 run "$PYTHON" tools/lint/check_i18n.py
 run "$PYTHON" tools/assets/generate.py --check
