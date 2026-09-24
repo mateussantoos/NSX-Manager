@@ -319,6 +319,29 @@ void UpdateService::discardStaged()
     (void)m_files.remove(m_config.backupNroPath());
 }
 
+void UpdateService::discardStalePartials()
+{
+    (void)m_files.remove(m_config.stagedNroPath() + ".part");
+}
+
+bool UpdateService::installForwarder()
+{
+    const bool chainloadable = ensureForwarder();
+
+    // The hbmenu entry is a recovery convenience, not part of the update path,
+    // so its failure is not this function's answer. Copied from romfs rather
+    // than from the chainload copy so a damaged one cannot propagate.
+    if (!m_files.exists(m_config.repairEntryNro)) {
+        const std::string::size_type slash = m_config.repairEntryNro.find_last_of('/');
+        if (slash != std::string::npos && slash > 0) {
+            (void)m_files.makeDirectories(m_config.repairEntryNro.substr(0, slash));
+        }
+        (void)m_files.copyFile(m_config.forwarderSource, m_config.repairEntryNro);
+    }
+
+    return chainloadable;
+}
+
 bool UpdateService::ensureForwarder()
 {
     if (m_files.exists(m_config.forwarderNro)) {

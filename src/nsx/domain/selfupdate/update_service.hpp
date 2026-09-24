@@ -46,6 +46,12 @@ struct SelfUpdateConfig
     /// @brief Where a missing or damaged forwarder is restored from.
     std::string forwarderSource{"romfs:/nsx-forwarder.nro"};
 
+    /// @brief The copy hbmenu lists as "NSX Manager (Repair)".
+    /// @details Beside the application rather than in `/config`, because hbmenu
+    ///          only lists `/switch`. It exists so there is always a launchable
+    ///          entry point even if the application binary is lost (ADR-0007).
+    std::string repairEntryNro{"/switch/nsx-manager/nsx-forwarder.nro"};
+
     core::SemVer installed;                        ///< The running version.
     core::Channel channel{core::Channel::Stable};  ///< Which channel to accept.
 
@@ -188,11 +194,41 @@ public:
     [[nodiscard]] StageOutcome stage(const core::UpdateManifest& manifest,
                                      const infra::ProgressCallback& onProgress = {});
 
+    /// @brief Put the forwarder where it can be chainloaded and launched.
+    ///
+    /// @details Two copies, from the one in this binary's romfs:
+    ///
+    ///          - @ref SelfUpdateConfig::forwarderNro, which @ref stage
+    ///            chainloads. **Load-bearing**: without it there is nothing able
+    ///            to perform a swap, and this returning false is the reason
+    ///            @ref stage refuses to write a handoff.
+    ///          - @ref SelfUpdateConfig::repairEntryNro, which hbmenu shows as
+    ///            "NSX Manager (Repair)". Best effort - it is how a user
+    ///            recovers by hand, not something the update path needs.
+    ///
+    ///          Call it at startup. An installation that has only ever been
+    ///          unzipped has neither copy until something puts them there.
+    ///
+    /// @return True when the chainload copy exists.
+    /// @see ADR-0007
+    bool installForwarder();
+
+    /// @brief Delete an interrupted download.
+    ///
+    /// @details Removes **only** the `.part`, which is unverified by definition
+    ///          and which nothing will ever resume - there is no `Range:` resume
+    ///          yet. Deliberately leaves the staged binary and the handoff
+    ///          alone: those describe an update still in flight, and discarding
+    ///          them here would silently abandon it.
+    ///
+    ///          Safe at startup. @ref discardStaged is not.
+    void discardStalePartials();
+
     /// @brief Delete a previous attempt's leftovers.
-    /// @details Removes the staged binary, its `.part`, the backup and the
-    ///          handoff. Safe to call at startup: with no handoff present the
-    ///          forwarder would ignore these anyway, and a stale `.part` is by
-    ///          definition unverified.
+    /// @details Removes the staged binary, its `.part`, the backup **and the
+    ///          handoff**. Only call this when abandoning an update on purpose -
+    ///          at startup it would discard one that is still in flight. Use
+    ///          @ref discardStalePartials there instead.
     void discardStaged();
 
     /// @brief The configuration this service was built with.

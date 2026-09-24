@@ -804,6 +804,113 @@ TEST_CASE("discardStaged removes every leftover")
     CHECK_FALSE(rig.files.exists(rig.config.handoffPath()));
 }
 
+TEST_CASE("installForwarder places both copies on a fresh installation")
+{
+    // An unzipped install contains only the application. Neither the chainload
+    // copy nor the hbmenu repair entry exists until something puts them there.
+    Rig rig;
+    rig.withForwarderInRomfs();
+
+    UpdateService service = rig.service();
+    REQUIRE_FALSE(rig.files.exists(rig.config.forwarderNro));
+    REQUIRE_FALSE(rig.files.exists(rig.config.repairEntryNro));
+
+    CHECK(service.installForwarder());
+    CHECK(rig.files.exists(rig.config.forwarderNro));
+    CHECK(rig.files.exists(rig.config.repairEntryNro));
+}
+
+TEST_CASE("installForwarder reports failure only for the copy the swap needs")
+{
+    // The repair entry is how a user recovers by hand; the chainload copy is
+    // what the update path cannot proceed without. Only the second is an answer
+    // of false.
+    Rig rig;
+    rig.withForwarderInRomfs();
+    rig.files.writeFailures.insert(rig.config.repairEntryNro);
+
+    UpdateService service = rig.service();
+    CHECK(service.installForwarder());
+    CHECK(rig.files.exists(rig.config.forwarderNro));
+    CHECK_FALSE(rig.files.exists(rig.config.repairEntryNro));
+}
+
+TEST_CASE("installForwarder fails when there is no source to restore from")
+{
+    Rig rig;  // nothing in romfs
+    UpdateService service = rig.service();
+    CHECK_FALSE(service.installForwarder());
+}
+
+TEST_CASE("installForwarder leaves an existing forwarder alone")
+{
+    Rig rig;
+    rig.withForwarderInRomfs();
+    rig.files.files[rig.config.forwarderNro] = "a forwarder already installed";
+    rig.files.files[rig.config.repairEntryNro] = "a repair entry already installed";
+
+    UpdateService service = rig.service();
+    CHECK(service.installForwarder());
+    CHECK(rig.files.files[rig.config.forwarderNro] == "a forwarder already installed");
+    CHECK(rig.files.files[rig.config.repairEntryNro] == "a repair entry already installed");
+}
+
+TEST_CASE("discardStalePartials removes the .part and nothing else")
+{
+    // Startup calls this. Removing the handoff or the staged binary here would
+    // silently abandon an update that is still in flight and about to be
+    // applied by the forwarder.
+    Rig rig;
+    (void)rig.files.makeDirectories(rig.config.stagingDir);
+    rig.files.files[rig.config.stagedNroPath() + ".part"] = "half a download";
+    rig.files.files[rig.config.stagedNroPath()] = "a verified staged binary";
+    rig.files.files[rig.config.handoffPath()] = "an update in flight";
+    rig.files.files[rig.config.backupNroPath()] = "the outgoing binary";
+
+    UpdateService service = rig.service();
+    service.discardStalePartials();
+
+    CHECK_FALSE(rig.files.exists(rig.config.stagedNroPath() + ".part"));
+    CHECK(rig.files.exists(rig.config.stagedNroPath()));
+    CHECK(rig.files.exists(rig.config.handoffPath()));
+    CHECK(rig.files.exists(rig.config.backupNroPath()));
+}
+
+TEST_CASE("a startup sequence leaves a pending update installable")
+{
+    // The exact order main() performs: install the forwarder, clear partials,
+    // then let the forwarder decide. A pending update must survive it.
+    Rig rig;
+    rig.withForwarderInRomfs();
+    rig.files.files[rig.config.targetNro] = "the currently installed binary";
+    rig.http.fetchResults.push_back(ok(manifestFor("0.2.0", kAppBody)));
+    rig.http.downloadBodies.push_back(kAppBody);
+
+    UpdateService first = rig.service();
+    REQUIRE(first.installForwarder());
+    const CheckOutcome check = first.check();
+    REQUIRE(first.stage(*check.manifest).result == StageResult::Staged);
+
+    // ... the console is powered off before the chainload, and the app is
+    // launched again directly.
+    UpdateService second = rig.service();
+    CHECK(second.installForwarder());
+    second.discardStalePartials();
+
+    const core::Result<core::Handoff, core::HandoffError> parsed =
+        core::parseHandoff(rig.files.files[rig.config.handoffPath()]);
+    REQUIRE(parsed.hasValue());
+
+    core::FilePresence present;
+    present.handoff = true;
+    present.staged = rig.files.exists(parsed.value().stagedNro);
+    present.target = rig.files.exists(parsed.value().targetNro);
+    present.backup = rig.files.exists(parsed.value().backupNro);
+
+    CHECK(core::decideRecovery(parsed.value(), present).action ==
+          core::RecoveryAction::ProceedWithSwap);
+}
+
 TEST_CASE("every staging result has a description")
 {
     for (const StageResult r :
