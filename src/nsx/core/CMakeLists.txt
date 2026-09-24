@@ -22,6 +22,7 @@ set(NSX_CORE_SOURCES
     paths/extraction_policy.cpp
     catalog/catalog.cpp
     cfw/merge_marker.cpp
+    firmware/firmware_set.cpp
     # text/format.cpp
     # json/safe_get.cpp
     hash/sha256.cpp
