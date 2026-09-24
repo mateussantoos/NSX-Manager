@@ -16,6 +16,9 @@
 #include "nsx/core/hash/sha256.hpp"
 #include "nsx/core/update/update_policy.hpp"
 #include "nsx/core/version/version.hpp"
+#include "nsx/domain/selfupdate/curl_gateway.hpp"
+#include "nsx/domain/selfupdate/sd_file_store.hpp"
+#include "nsx/domain/selfupdate/update_service.hpp"
 #include "nsx/infra/http/ca_bundle.hpp"
 
 namespace {
@@ -75,6 +78,43 @@ bool selfTest()
     return true;
 }
 
+/// Build the update service the way the composition root should: concrete
+/// adapters constructed here and nowhere else, the running version taken from
+/// the generated header rather than typed anywhere.
+nsx::domain::SelfUpdateConfig updateConfig()
+{
+    nsx::domain::SelfUpdateConfig config;
+    const nsx::core::Result<nsx::core::SemVer, nsx::core::SemVerError> self =
+        nsx::core::parseSemVer(nsx::core::version::kString);
+    if (self) {
+        config.installed = self.value();
+    }
+    return config;
+}
+
+/// Run one update check and report it. Console output for now - the UI layer
+/// will present the same CheckOutcome, which is why the decision and its reason
+/// are values rather than something printed from inside the service.
+void reportUpdateCheck()
+{
+    nsx::domain::SdFileStore files;
+    nsx::domain::CurlGateway http;
+    const nsx::domain::SystemClock clock;
+
+    nsx::domain::UpdateService service(http, files, clock, updateConfig());
+    const nsx::domain::CheckOutcome outcome = service.check();
+
+    const std::string_view action = nsx::core::describe(outcome.decision.action);
+    std::printf("  update     : %.*s\n", static_cast<int>(action.size()), action.data());
+    if (!outcome.detail.empty()) {
+        std::printf("               %s\n", outcome.detail.c_str());
+    }
+    if (outcome.servedFromCache) {
+        std::printf("               (from cache, %lld s old)\n",
+                    static_cast<long long>(outcome.manifestAgeSeconds));
+    }
+}
+
 }  // namespace
 
 int main(int argc, char** argv)
@@ -112,13 +152,18 @@ int main(int argc, char** argv)
                                                : "not connected");
     }
 
-    std::printf("\n  The update pipeline is not wired to the UI yet.\n");
-    std::printf("  Press + to exit.\n");
+    std::printf("\n  Press Y to check for updates, + to exit.\n");
 
     while (appletMainLoop()) {
         padUpdate(&pad);
-        if (padGetButtonsDown(&pad) & HidNpadButton_Plus) {
+        const u64 down = padGetButtonsDown(&pad);
+        if (down & HidNpadButton_Plus) {
             break;
+        }
+        if (down & HidNpadButton_Y) {
+            // Checking only. Staging an update has no confirmation screen yet,
+            // and downloading a binary is not something to do without asking.
+            reportUpdateCheck();
         }
         consoleUpdate(nullptr);
     }
