@@ -1,10 +1,18 @@
 # Layer - ui. See docs/architecture/layering.md for what it may depend on.
 #
+# The only layer that knows Borealis exists. Nothing here is host-compilable -
+# it links glfw3, EGL, glad, glapi and drm_nouveau - so there is no HOST subset
+# the way infra and domain have one (ADR-0017).
+#
 # Sources are listed explicitly and never globbed, and are anchored to this
 # directory because nsx_add_layer() runs from the root.
 # SPDX-License-Identifier: GPL-3.0-only
 
 set(NSX_UI_SOURCES
+    app_shell/shell.cpp
+    # tabs/...
+    # pages/...
+    # widgets/...
 )
 
 list(TRANSFORM NSX_UI_SOURCES PREPEND "${CMAKE_CURRENT_LIST_DIR}/")
