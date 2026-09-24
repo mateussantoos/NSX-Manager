@@ -46,7 +46,7 @@ ever successfully updated itself.
 
 - [ ] The content catalogue manifest, published under `mateussantoos`
 - [ ] CFW pack listing and installation
-- [ ] Official firmware listing and Daybreak handoff
+- [x] Official firmware: download, verify, stage to /firmware/, Daybreak handoff
 - [x] The RCM payload ported and building (moved up from 0.3.x - it came with the container work)
 - [ ] Coverage gate enabled on `core/`
 

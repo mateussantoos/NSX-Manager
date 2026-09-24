@@ -14,6 +14,7 @@ set(NSX_DOMAIN_HOST_SOURCES
     selfupdate/update_service.cpp
     selfupdate/system_clock.cpp
     cfw/cfw_install_service.cpp
+    firmware/firmware_install_service.cpp
 )
 
 set(NSX_DOMAIN_DEVICE_SOURCES
