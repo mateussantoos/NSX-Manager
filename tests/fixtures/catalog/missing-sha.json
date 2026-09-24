@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "items": [
+    {
+      "id": "no-digest",
+      "name": "No integrity at all",
+      "kind": "tool",
+      "target": "switch-apps",
+      "url": "https://example.invalid/x.zip",
+      "size": 1,
+      "sha256": ""
+    }
+  ]
+}

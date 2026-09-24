@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "items": [
+    {
+      "id": "plaintext",
+      "name": "Served over http",
+      "kind": "tool",
+      "target": "switch-apps",
+      "url": "http://example.invalid/x.zip",
+      "size": 1,
+      "sha256": "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881"
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-09-24T12:00:00Z",
+  "items": [
+    {
+      "id": "atmosphere-pack",
+      "name": "Atmosphère CFW Pack",
+      "summary": "Atmosphère, Hekate and the usual sysmodules",
+      "kind": "cfw-pack",
+      "target": "sd-root",
+      "version": "1.7.1",
+      "url": "https://github.com/mateussantoos/nsx-catalog/releases/download/packs/atmosphere-1.7.1.zip",
+      "size": 48210944,
+      "sha256": "bfd5a8ed7357ec4de9597c2858902db1a0e3050438fcb5f2b37c1de0e4496b49",
+      "min_atmosphere": "1.7.0",
+      "notes_url": "https://github.com/Atmosphere-NX/Atmosphere/releases"
+    },
+    {
+      "id": "firmware-19.0.1",
+      "name": "Firmware 19.0.1",
+      "kind": "firmware",
+      "target": "firmware-staging",
+      "version": "19.0.1",
+      "url": "https://example.invalid/firmware/19.0.1.zip",
+      "size": 419430400,
+      "sha256": "c3bf47ea1f4a4a605470313cacb3a44f4a461f68c6faeab07e737610cb5ac835"
+    },
+    {
+      "id": "ovlloader",
+      "name": "Tesla Overlay Loader",
+      "kind": "tool",
+      "target": "switch-apps",
+      "version": "1.2.4",
+      "url": "https://example.invalid/tools/ovlloader.zip",
+      "size": 204800,
+      "sha256": "8ae6bd99a0a108e26329a392e2f962674681c70b41296e2f284ac4cb01f424f1"
+    },
+    {
+      "id": "future-content",
+      "name": "Something a later release adds",
+      "kind": "holographic-shader",
+      "target": "sd-root",
+      "url": "https://example.invalid/x.zip",
+      "size": 1,
+      "sha256": "ebb3de8a3d9a40366132eb5deb5af44e4c96c11696f8fc34ea2c1d8bd8399171"
+    },
+    {
+      "id": "unknown-destination",
+      "name": "Aimed somewhere this version does not write",
+      "kind": "tool",
+      "target": "exefs-patches",
+      "url": "https://example.invalid/y.zip",
+      "size": 1,
+      "sha256": "1d5e6a1edddf2cb59b7bbc0218e03c305de6c11485a2aa0d3bafc7466b4b8e3c"
+    }
+  ]
+}
