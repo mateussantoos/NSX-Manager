@@ -41,7 +41,9 @@ docker compose run --rm nsx <task>
 | `docs` | Doxygen, with warnings as errors |
 | `manifest` | validate the `update.json` fixtures and a generated manifest |
 | `release <tag>` | package a release into `dist/` the way `release.yml` does |
-| `verify` | lint + test + manifest + docs - **run this before pushing** |
+| `archive` | extraction against real hostile zip archives |
+| `export` | build the Switch targets and copy the `.nro` files to `dist/` |
+| `verify` | lint + test + archive + manifest + docs - **run this before pushing** |
 | `all` | `verify`, then the Switch build |
 | `doctor` | report what the container provides |
 | `shell` | interactive shell with everything on `PATH` |
@@ -49,9 +51,9 @@ docker compose run --rm nsx <task>
 Named shortcuts exist for the common ones:
 
 ```sh
-docker compose run --rm switch
-docker compose run --rm test
-docker compose run --rm verify
+docker compose run --rm nsx switch
+docker compose run --rm nsx test
+docker compose run --rm nsx verify
 ```
 
 Anything unrecognised runs verbatim, so this works too:
@@ -71,11 +73,28 @@ macOS a bind mount crosses a filesystem boundary, and compiling tens of thousand
 across it is several times slower. The consequence worth knowing: `build/` inside the container
 is not the same directory as `build/` on your host.
 
-To get a built artefact onto your machine, copy it out:
+To get built artefacts onto your machine, use the `export` task:
 
 ```sh
-docker compose run --rm nsx bash -c 'cp build/switch-release/*.nro /workspace/out/'
+docker compose run --rm nsx export
 ```
+
+It builds the Switch targets and copies every `.nro` into `dist/`, which **is** in the bind mount,
+then prints sizes and SHA-256 digests so a copy to the SD card can be checked rather than assumed.
+A truncated NRO fails on the console with no explanation.
+
+Copying by hand needs the real paths, which are nested per target - there is no `.nro` at the root
+of the build tree:
+
+```sh
+build/switch-release/src/nsx/app/nsx-manager.nro
+build/switch-release/apps/forwarder/nsx-forwarder.nro
+build/switch-release/apps/ui-probe/nsx-ui-probe.nro
+```
+
+And the destination must be inside `/workspace`. Copying to anywhere else - including
+`/workspace/build`, which the named volume covers - writes into the container and disappears with
+it.
 
 `ccache` and the devkitPro package cache are also named volumes, so they survive `--rm`.
 

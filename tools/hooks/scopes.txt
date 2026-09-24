@@ -71,6 +71,7 @@ rcm
 assets
 build
 cmake
+docker
 deps
 ci
 release

@@ -23,6 +23,7 @@ NSX Manager build environment
   asan               host build under ASan/UBSan, then ctest
   lint               every check in tools/lint, exactly as CI runs them
   archive            extraction against real hostile zip archives
+  export             build the Switch targets and copy the .nro files to dist/
   format             rewrite sources in place with clang-format
   tidy               clang-tidy over the host compilation database
   docs               doxygen (warnings are errors)
@@ -114,6 +115,39 @@ case "$task" in
         ASAN_OPTIONS="${ASAN_OPTIONS:-detect_leaks=1:abort_on_error=1}" \
         UBSAN_OPTIONS="${UBSAN_OPTIONS:-print_stacktrace=1:halt_on_error=1}" \
             ctest --preset host-asan --output-on-failure "$@"
+        ;;
+
+    export)
+        # The build tree lives in a NAMED VOLUME, not the bind mount (see
+        # docker-compose.yml), so build/ is not reachable from the host at all -
+        # `cp` from there in a one-off container writes into that same volume
+        # and vanishes with it. This copies into dist/, which IS the bind mount.
+        "$0" switch
+        banner "Exporting to dist/"
+        mkdir -p dist
+        for artefact in             build/switch-release/src/nsx/app/nsx-manager.nro             build/switch-release/apps/forwarder/nsx-forwarder.nro             build/switch-release/apps/ui-probe/nsx-ui-probe.nro             build/switch-release/romfs/nsx_rcm.bin
+        do
+            if [ -f "$artefact" ]; then
+                cp "$artefact" "dist/$(basename "$artefact")"
+            else
+                echo "  missing: $artefact" >&2
+            fi
+        done
+        # Sizes and digests so a copy to the SD card can be checked rather than
+        # assumed - a truncated NRO fails on the console with no explanation.
+        (cd dist && ls -l ./*.nro ./*.bin 2>/dev/null | sed 's|^|  |')
+        echo
+        (cd dist && sha256sum ./*.nro ./*.bin 2>/dev/null | sed 's|^|  |')
+        cat <<'WHERE'
+
+  Copy to the SD card:
+    dist/nsx-manager.nro    -> /switch/nsx-manager/nsx-manager.nro
+    dist/nsx-forwarder.nro  -> /switch/nsx-manager/nsx-forwarder.nro   ("NSX Manager (Repair)")
+    dist/nsx-ui-probe.nro   -> /switch/nsx-ui-probe.nro                (throwaway; delete after)
+
+  nsx_rcm.bin ships inside nsx-manager.nro's romfs - it does not go on the card.
+  Note: `release` rebuilds dist/ from scratch and will remove these.
+WHERE
         ;;
 
     archive)
