@@ -33,7 +33,6 @@
 // not control.
 
 #include <switch.h>
-
 #include <unistd.h>
 
 namespace {
