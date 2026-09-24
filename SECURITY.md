@@ -48,7 +48,7 @@ the highest-value target in the project, and reports about it are the ones we mo
 - The RCM payload's own internals, which are hekate/BDK code - report those to
   [CTCaer/hekate](https://github.com/CTCaer/hekate).
 - Missing code signing. This is a **known, documented gap**, tracked in
-  [ADR-0006](docs/adr/0006-verify-tls-with-an-embedded-ca-bundle-and-mandate-sha-256.md) and in
+  [ADR-0016](docs/adr/0016-verify-tls-against-the-firmware-trust-store.md) and in
   [`docs/architecture/threat-model.md`](docs/architecture/threat-model.md). The current trust
   anchor is TLS plus the SHA-256 digests published in a release asset served over TLS. A report
   that says only "releases are not signed" is a duplicate of that record.
@@ -58,7 +58,7 @@ the highest-value target in the project, and reports about it are the ones we mo
 Documented in [`docs/architecture/threat-model.md`](docs/architecture/threat-model.md) and
 enforced in CI:
 
-- TLS peer **and** host verification are always on. `tools/lint/forbid_insecure_curl.sh` fails the
+- TLS peer **and** host verification are always on, against the firmware trust store. `tools/lint/forbid_insecure_curl.sh` fails the
   build on any attempt to disable them, or on any plaintext `http://` URL under `src/`.
 - Every downloaded artefact is SHA-256 verified against the manifest **before** it is executed,
   extracted, or renamed into place.

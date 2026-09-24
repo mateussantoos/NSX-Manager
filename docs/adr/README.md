@@ -17,7 +17,7 @@ and add your row to the table below in the same pull request.
 | [0003](0003-use-a-layered-source-tree-with-co-located-headers.md) | Use a layered source tree with co-located headers | accepted | 2026-09-23 |
 | [0004](0004-adopt-semantic-versioning-from-0-1-0-with-v-prefixed-tags.md) | Adopt Semantic Versioning from 0.1.0 with v-prefixed tags | accepted | 2026-09-23 |
 | [0005](0005-distribute-updates-via-github-releases-with-a-published-manifest.md) | Distribute updates via GitHub Releases with a published manifest | accepted | 2026-09-23 |
-| [0006](0006-verify-tls-with-an-embedded-ca-bundle-and-mandate-sha-256.md) | Verify TLS with an embedded CA bundle and mandate SHA-256 | accepted | 2026-09-23 |
+| [0006](0006-verify-tls-with-an-embedded-ca-bundle-and-mandate-sha-256.md) | Verify TLS with an embedded CA bundle and mandate SHA-256 | superseded | 2026-09-23 |
 | [0007](0007-self-update-by-staging-an-nro-and-chainloading-a-forwarder.md) | Self-update by staging an NRO and chainloading a forwarder | accepted | 2026-09-23 |
 | [0008](0008-ship-a-bare-nro-for-in-app-updates-and-a-zip-for-first-install.md) | Ship a bare NRO for in-app updates and a zip for first install | accepted | 2026-09-23 |
 | [0009](0009-vendor-dependencies-as-pinned-git-submodules.md) | Vendor dependencies as pinned git submodules | accepted | 2026-09-23 |
@@ -27,6 +27,7 @@ and add your row to the table below in the same pull request.
 | [0013](0013-adopt-conventional-commits-and-trunk-based-development.md) | Adopt Conventional Commits and trunk-based development | accepted | 2026-09-23 |
 | [0014](0014-split-pure-logic-into-a-host-testable-core-library.md) | Split pure logic into a host-testable core library | accepted | 2026-09-23 |
 | [0015](0015-build-and-verify-inside-a-container.md) | Build and verify inside a container | accepted | 2026-09-23 |
+| [0016](0016-verify-tls-against-the-firmware-trust-store.md) | Verify TLS against the firmware trust store | accepted | 2026-09-23 |
 
 ## Reading order
 

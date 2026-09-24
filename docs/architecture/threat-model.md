@@ -51,18 +51,26 @@ Stated plainly, because a threat model that pretends otherwise is theatre.
 
 **Threat:** an attacker substitutes content in transit.
 
-**Defence:** `CURLOPT_SSL_VERIFYPEER = 1`, `CURLOPT_SSL_VERIFYHOST = 2`, TLS 1.2 minimum, `https`
-only including after redirects, verified against a Mozilla CA bundle embedded as a compile-time
-blob via `CURLOPT_CAINFO_BLOB`.
+**Defence:** `CURLOPT_SSL_VERIFYPEER = 1`, `CURLOPT_SSL_VERIFYHOST = 2`, TLS 1.2 minimum,
+`https` only including after redirects.
 
-An embedded blob rather than a file, because a file introduces a "what if it is missing?" branch,
-and that branch is where an insecure fallback gets added. There is no branch.
+**Where the trust anchor comes from.** devkitPro ships curl 7.69.1 built against **libnx's `ssl`
+service** - the firmware's own TLS stack - so verification runs against the trust store the
+console itself uses, maintained by Nintendo through system updates.
+
+This corrects an earlier assumption. [ADR-0006](../adr/0006-verify-tls-with-an-embedded-ca-bundle-and-mandate-sha-256.md)
+recorded that the backend was mbedTLS and that `CURLOPT_CAINFO_BLOB` was available; neither is
+true on this toolchain, and the option did not compile. The reasoning and the correction are in
+[ADR-0016](../adr/0016-verify-tls-against-the-firmware-trust-store.md).
+
+A pinned Mozilla CA bundle is still compiled into the binary and is handed to curl automatically
+if devkitPro ever ships 7.77.0 or newer. The `#if` guarding it is a **version gate, not a
+fallback** - verification is enabled identically either way, and there is no branch in which
+missing certificates turn it off.
 
 **The predecessor had no defence here at all**: `CURLOPT_SSL_VERIFYPEER` and
 `CURLOPT_SSL_VERIFYHOST` were set to `0` on every request
-(`download.cpp:140-141, 198-199, 353-354, 472-473`). The underlying cause is worth recording -
-devkitPro's curl is mbedTLS-backed and has no system trust store, so verification failed and was
-switched off instead of being supplied with an anchor.
+(`download.cpp:140-141, 198-199, 353-354, 472-473`).
 
 **Clock skew:** the Switch RTC is often wrong, producing `CURLE_PEER_FAILED_VERIFICATION`. We
 detect the date-related case and tell the user to set their clock. We never downgrade.

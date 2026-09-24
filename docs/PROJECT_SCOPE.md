@@ -443,10 +443,11 @@ requirements, not aspirations, and each one is checked.
 
 1. **TLS verification is always on.** `CURLOPT_SSL_VERIFYPEER = 1`,
    `CURLOPT_SSL_VERIFYHOST = 2`, TLS 1.2 minimum, `https` only for both initial and redirected
-   requests. The trust store is a pinned Mozilla CA bundle embedded as a compile-time blob and
-   passed via `CURLOPT_CAINFO_BLOB` - devkitPro's curl is mbedTLS-backed and has **no** system
-   trust store, which is the real reason the predecessor turned verification off instead of
-   fixing it.
+   requests. devkitPro's curl is built against libnx's `ssl` service, so verification runs
+   against the firmware trust store the console itself uses. A pinned Mozilla bundle is compiled
+   in and used automatically if a future curl accepts it - see
+   [ADR-0016](adr/0016-verify-tls-against-the-firmware-trust-store.md), which corrects the
+   mbedTLS assumption in ADR-0006.
    *Enforced by* [`forbid_insecure_curl.sh`](../tools/lint/forbid_insecure_curl.sh).
 
 2. **A console clock that is wrong produces a clear message, never a downgrade.** Switch RTC skew
