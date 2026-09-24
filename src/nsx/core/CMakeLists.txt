@@ -17,7 +17,7 @@ set(NSX_CORE_SOURCES
     update/manifest_cache.cpp
     update/backoff.cpp
     # paths/sd_paths.cpp
-    # paths/traversal_guard.cpp
+    paths/traversal_guard.cpp
     # text/format.cpp
     # json/safe_get.cpp
     hash/sha256.cpp
