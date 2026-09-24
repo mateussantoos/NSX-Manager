@@ -32,7 +32,17 @@ if(TARGET nsx-forwarder)
         COMMAND "${CMAKE_COMMAND}" -E copy
                 "$<TARGET_FILE_DIR:nsx-forwarder>/nsx-forwarder.nro"
                 "${NSX_ROMFS_DIR}/nsx-forwarder.nro")
-    list(APPEND NSX_ROMFS_DEPS nsx-forwarder)
+
+    # Depend on the NRO target, not the executable. nx_create_nro() produces a
+    # separate target named <name>_nro that turns the .elf into a .nro; waiting
+    # only on `nsx-forwarder` waits for the ELF, and the copy then races the
+    # NRO step. It happened to win on an incremental build and lost on a clean
+    # one - the worst kind of build bug to leave in.
+    if(TARGET nsx-forwarder_nro)
+        list(APPEND NSX_ROMFS_DEPS nsx-forwarder_nro)
+    else()
+        list(APPEND NSX_ROMFS_DEPS nsx-forwarder)
+    endif()
 endif()
 
 if(TARGET nsx_rcm)
