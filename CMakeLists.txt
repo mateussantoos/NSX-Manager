@@ -99,7 +99,6 @@ if(NSX_BUILD_APP)
 
     add_subdirectory(src/nsx/app)
     add_subdirectory(apps/forwarder)
-    add_subdirectory(apps/ui-probe)
 else()
     # Host build. Not every layer is portable, but the portable SUBSET of infra
     # and domain is - and it is the important one: the update orchestration and

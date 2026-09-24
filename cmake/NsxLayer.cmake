@@ -111,7 +111,7 @@ function(nsx_verify_switch_services)
     get_property(declared GLOBAL PROPERTY NSX_SWITCH_SERVICE_TARGETS)
 
     get_property(targets DIRECTORY "${CMAKE_SOURCE_DIR}" PROPERTY BUILDSYSTEM_TARGETS)
-    foreach(dir src/nsx/app apps/ui-probe)
+    foreach(dir src/nsx/app)
         get_property(more DIRECTORY "${CMAKE_SOURCE_DIR}/${dir}" PROPERTY BUILDSYSTEM_TARGETS)
         list(APPEND targets ${more})
     endforeach()

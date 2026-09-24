@@ -2,7 +2,6 @@
     "name": "NSX Manager",
     "repair_name": "NSX Manager (Repair)",
     "tagline": "Custom firmware and homebrew, managed on the console",
-
     "actions": {
         "ok": "OK",
         "cancel": "Cancel",
@@ -10,16 +9,25 @@
         "retry": "Retry",
         "continue": "Continue"
     },
-
     "state": {
         "loading": "Loading...",
         "unavailable": "Unavailable",
         "no_network": "No internet connection"
     },
-
     "about": {
         "version": "Version {}",
         "built": "Built {} from {}",
-        "licence": "Released under the GNU General Public License v3.0"
+        "licence": "Released under the GNU General Public License v3.0",
+        "version_label": "Version",
+        "build_label": "Build",
+        "date_label": "Built"
+    },
+    "tabs": {
+        "cfw": "CFW packs",
+        "firmware": "Firmware",
+        "system": "System"
+    },
+    "pending": {
+        "catalog": "The installer for this is finished and tested, but nothing downloads the catalogue of available packages yet. This tab will list them once that lands."
     }
 }

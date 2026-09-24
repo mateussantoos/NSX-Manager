@@ -1,213 +1,66 @@
 // SPDX-License-Identifier: GPL-3.0-only
 //
-// Baseline entry point for nsx-manager.nro.
+// nsx-manager.nro - the composition root.
 //
-// Deliberately console-only for now. The Borealis shell arrives with the UI
-// layer; what this proves today is the whole chain underneath it - devkitA64,
-// libnx, romfs, the generated version header, the embedded CA bundle, and the
-// core library - by booting on hardware and reporting what it was built from.
+// The only place that constructs a concrete adapter. Everything above it takes
+// ports: the UI knows it has an UpdateService, not that the bytes arrive over
+// libcurl or that the card is reached through stdio.
 //
-// See docs/architecture/overview.md for the startup sequence this grows into.
+// Services (romfs, pl, setsys, set, nifm) are brought up before main by
+// userAppInit in platform/system/app_init.cpp - Borealis calls into pl and
+// setsys from inside its own initialisation and cannot wait for us.
+//
+// See docs/architecture/overview.md.
 
 #include <cstdio>
-#include <memory>
 #include <string>
 
 #include <switch.h>
 
-#include "nsx/core/hash/sha256.hpp"
-#include "nsx/core/update/update_policy.hpp"
 #include "nsx/core/version/version.hpp"
+#include "nsx/domain/cfw/cfw_install_service.hpp"
+#include "nsx/domain/cfw/zip_archive_gateway.hpp"
+#include "nsx/domain/firmware/firmware_install_service.hpp"
 #include "nsx/domain/selfupdate/curl_gateway.hpp"
 #include "nsx/domain/selfupdate/sd_file_store.hpp"
 #include "nsx/domain/selfupdate/update_service.hpp"
-#include "nsx/infra/http/ca_bundle.hpp"
+#include "nsx/ui/app_shell/shell.hpp"
 
 namespace {
 
-/// Whether the services this application needs actually came up.
-///
-/// It does NOT bring them up. `userAppInit` in
-/// `src/nsx/platform/system/app_init.cpp` does that, before main, because
-/// Borealis calls into `pl` and `setsys` from inside its own initialisation and
-/// cannot wait for us. This only confirms the result, so a console where one of
-/// them failed says so instead of crashing later in a place that does not
-/// explain itself.
-bool servicesReady()
+/// The running version, from the generated header. Never typed anywhere.
+nsx::core::SemVer installedVersion()
 {
-    // A romfs read that must succeed: the CA bundle, the forwarder and every
-    // translation live in there.
-    FILE* probe = std::fopen("romfs:/nsx-forwarder.nro", "rb");
-    if (probe == nullptr) {
-        return false;
-    }
-    std::fclose(probe);
-
-    // setsys answers only when it is initialised.
-    ColorSetId theme{};
-    return R_SUCCEEDED(setsysGetColorSetId(&theme));
-}
-
-/// A self-check that the build is internally consistent. Cheap, and it fails
-/// loudly on a device rather than silently producing wrong results later.
-bool selfTest()
-{
-    // NOT `using namespace nsx::core` here. libnx declares a global `Result`
-    // (the HOS status code) in <switch.h>, so the unqualified name is ambiguous
-    // in any translation unit that includes both. Every file in platform/,
-    // infra/ and app/ will hit this - qualify, do not import.
-    using nsx::core::parseSemVer;
-    using nsx::core::Sha256;
-
-    // The hash the whole update path depends on.
-    if (Sha256::hexOf("abc") !=
-        "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad") {
-        return false;
-    }
-
-    // The version string must parse as the SemVer it claims to be.
-    const nsx::core::Result<nsx::core::SemVer, nsx::core::SemVerError> self =
-        parseSemVer(nsx::core::version::kString);
-    if (!self) {
-        return false;
-    }
-
-    // The trust anchor must actually be compiled in.
-    if (nsx::infra::kCaBundleCertCount <= 0 || nsx::infra::kCaBundlePem.empty()) {
-        return false;
-    }
-
-    return true;
-}
-
-/// Build the update service the way the composition root should: concrete
-/// adapters constructed here and nowhere else, the running version taken from
-/// the generated header rather than typed anywhere.
-nsx::domain::SelfUpdateConfig updateConfig()
-{
-    nsx::domain::SelfUpdateConfig config;
-    const nsx::core::Result<nsx::core::SemVer, nsx::core::SemVerError> self =
+    const nsx::core::Result<nsx::core::SemVer, nsx::core::SemVerError> parsed =
         nsx::core::parseSemVer(nsx::core::version::kString);
-    if (self) {
-        config.installed = self.value();
-    }
-    return config;
+    return parsed.hasValue() ? parsed.value() : nsx::core::SemVer{};
 }
 
-/// Block until the user answers, redrawing while we wait.
+/// Report a failure that happened before the UI could draw anything.
 ///
-/// Returns false if the applet is closing, which must read as "no" - a system
-/// that is tearing the process down is not consent to start a download.
-bool confirm(PadState& pad)
+/// Falls back to the console because there is nothing else left: if Borealis
+/// could not start, it cannot show why it could not start.
+void reportStartupFailure(std::string_view why)
 {
+    consoleInit(nullptr);
+    padConfigureInput(1, HidNpadStyleSet_NpadStandard);
+
+    PadState pad;
+    padInitializeDefault(&pad);
+
+    std::printf("\x1b[2J\x1b[H");
+    std::printf("\x1b[31mNSX Manager could not start\x1b[0m\n\n  %.*s\n\n",
+                static_cast<int>(why.size()), why.data());
+    std::printf("  Press + to exit.\n");
+
     while (appletMainLoop()) {
         padUpdate(&pad);
-        const u64 down = padGetButtonsDown(&pad);
-        if (down & HidNpadButton_A) {
-            return true;
-        }
-        if (down & HidNpadButton_B) {
-            return false;
+        if (padGetButtonsDown(&pad) & HidNpadButton_Plus) {
+            break;
         }
         consoleUpdate(nullptr);
     }
-    return false;
-}
-
-/// Draw download progress on one line, and let the user out of it.
-///
-/// Returning false aborts the transfer. The console is redrawn from in here
-/// because the transfer owns the thread for its whole duration - without this
-/// the screen would freeze on the last frame drawn before the download began.
-nsx::infra::ProgressCallback progressPrinter(PadState& pad)
-{
-    auto lastShown = std::make_shared<int>(-1);
-
-    return [&pad, lastShown](const nsx::infra::Progress& p) {
-        if (!appletMainLoop()) {
-            return false;
-        }
-
-        padUpdate(&pad);
-        if (padGetButtonsDown(&pad) & HidNpadButton_B) {
-            std::printf("\n  cancelled\n");
-            return false;
-        }
-
-        // Only redraw when the whole-percent figure changes: curl calls this
-        // far more often than the screen can usefully change.
-        const int percent = p.total > 0 ? static_cast<int>((p.received * 100U) / p.total) : -1;
-        if (percent != *lastShown) {
-            *lastShown = percent;
-            if (percent >= 0) {
-                std::printf("\r  downloading: %3d%%  (%llu KB)   ", percent,
-                            static_cast<unsigned long long>(p.received / 1024U));
-            }
-            else {
-                std::printf("\r  downloading: %llu KB   ",
-                            static_cast<unsigned long long>(p.received / 1024U));
-            }
-            consoleUpdate(nullptr);
-        }
-        return true;
-    };
-}
-
-/// Check, offer, stage, chainload.
-///
-/// @return The forwarder argv to hand to envSetNextLoad, or empty when there is
-///         nothing to launch. Returning it rather than calling envSetNextLoad
-///         here keeps the chainload in main(), after the services this function
-///         used have been shut down.
-std::string runUpdateFlow(PadState& pad)
-{
-    nsx::domain::SdFileStore files;
-    nsx::domain::CurlGateway http;
-    const nsx::domain::SystemClock clock;
-
-    nsx::domain::UpdateService service(http, files, clock, updateConfig());
-
-    std::printf("\n  Checking for updates...\n");
-    consoleUpdate(nullptr);
-
-    const nsx::domain::CheckOutcome outcome = service.check();
-
-    const std::string_view action = nsx::core::describe(outcome.decision.action);
-    std::printf("  %.*s\n", static_cast<int>(action.size()), action.data());
-    if (!outcome.detail.empty()) {
-        std::printf("  %s\n", outcome.detail.c_str());
-    }
-
-    if (!outcome.offersUpdate() || !outcome.manifest.has_value()) {
-        return {};
-    }
-
-    std::printf("\n  Install %s now? (A = yes, B = no)\n",
-                outcome.manifest->version.toString().c_str());
-    consoleUpdate(nullptr);
-
-    if (!confirm(pad)) {
-        std::printf("  Not installed.\n");
-        return {};
-    }
-
-    const nsx::domain::StageOutcome staged = service.stage(*outcome.manifest, progressPrinter(pad));
-
-    std::printf("\n");
-    if (!staged.readyToChainload()) {
-        const std::string_view why = nsx::domain::describe(staged.result);
-        std::printf("  \x1b[31m%.*s\x1b[0m\n", static_cast<int>(why.size()), why.data());
-        if (!staged.detail.empty()) {
-            std::printf("  %s\n", staged.detail.c_str());
-        }
-        std::printf("  Your current version is untouched.\n");
-        return {};
-    }
-
-    std::printf("  \x1b[32m%s\x1b[0m\n", staged.detail.c_str());
-    std::printf("  Launching the updater...\n");
-    consoleUpdate(nullptr);
-    return staged.forwarderArgs;
+    consoleExit(nullptr);
 }
 
 }  // namespace
@@ -217,93 +70,58 @@ int main(int argc, char** argv)
     (void)argc;
     (void)argv;
 
-    consoleInit(nullptr);
-    padConfigureInput(1, HidNpadStyleSet_NpadStandard);
+    // The adapters. Constructed here and nowhere else.
+    nsx::domain::SdFileStore files;
+    nsx::domain::CurlGateway http;
+    nsx::domain::ZipArchiveGateway archives;
+    const nsx::domain::SystemClock clock;
 
-    PadState pad;
-    padInitializeDefault(&pad);
+    nsx::domain::SelfUpdateConfig updateConfig;
+    updateConfig.installed = installedVersion();
 
-    const bool services = servicesReady();
-    const bool healthy = selfTest();
+    nsx::domain::UpdateService update(http, files, clock, updateConfig);
+    nsx::domain::CfwInstallService cfw(http, archives, files, clock, {});
+    nsx::domain::FirmwareInstallService firmware(http, archives, files, {});
 
-    using nsx::core::version::kBuildDate;
-    using nsx::core::version::kGitSha;
-    using nsx::core::version::kString;
+    // First run has no forwarder on the card, and staging an update refuses
+    // without one. Done before the UI can offer an update, rather than
+    // discovered after a download.
+    const bool forwarderReady = update.installForwarder();
+    update.discardStalePartials();
 
-    std::printf("\x1b[2J\x1b[H");
-    std::printf("\x1b[36mNSX Manager\x1b[0m %.*s\n", static_cast<int>(kString.size()),
-                kString.data());
-    std::printf("  built %.*s from %.*s\n\n", static_cast<int>(kBuildDate.size()),
-                kBuildDate.data(), static_cast<int>(kGitSha.size()), kGitSha.data());
-
-    std::printf("  services   : %s\n", services ? "\x1b[32mok\x1b[0m" : "\x1b[31mFAILED\x1b[0m");
-    std::printf("  self test  : %s\n", healthy ? "\x1b[32mok\x1b[0m" : "\x1b[31mFAILED\x1b[0m");
-    std::printf("  CA bundle  : %d roots\n", nsx::infra::kCaBundleCertCount);
-
-    NifmInternetConnectionStatus status{};
-    if (services && R_SUCCEEDED(nifmGetInternetConnectionStatus(nullptr, nullptr, &status))) {
-        std::printf("  network    : %s\n", status == NifmInternetConnectionStatus_Connected
-                                               ? "connected"
-                                               : "not connected");
+    // A merge interrupted by a power cut leaves the card part one pack and part
+    // another. Undo it before anything else touches the card - including the
+    // user, through the UI.
+    const nsx::domain::InstallOutcome recovered = cfw.recoverInterruptedMerge();
+    if (recovered.result == nsx::domain::InstallResult::MergeFailed) {
+        // Reported, not fatal. The application still runs and the message says
+        // what to reinstall.
+        std::printf("%s\n", recovered.detail.c_str());
     }
 
-    // First run has neither forwarder copy - an unzipped installation contains
-    // only the application. Do this before offering an update, because staging
-    // one refuses to write a handoff without something able to act on it.
-    bool forwarderReady = false;
-    {
-        nsx::domain::SdFileStore files;
-        nsx::domain::CurlGateway http;
-        const nsx::domain::SystemClock clock;
-        nsx::domain::UpdateService service(http, files, clock, updateConfig());
+    const nsx::ui::ShellServices services{update, cfw, firmware};
+    const nsx::ui::ShellOutcome outcome = nsx::ui::runShell(services);
 
-        forwarderReady = service.installForwarder();
-
-        // An interrupted download is unverified and nothing resumes it. The
-        // staged binary and the handoff are deliberately left alone: they
-        // describe an update still in flight.
-        service.discardStalePartials();
-    }
-    std::printf("  forwarder  : %s\n",
-                forwarderReady ? "\x1b[32mok\x1b[0m" : "\x1b[31mMISSING\x1b[0m");
-
-    std::printf("\n  Press Y to check for updates, + to exit.\n");
-
-    std::string chainload;
-
-    while (appletMainLoop()) {
-        padUpdate(&pad);
-        const u64 down = padGetButtonsDown(&pad);
-        if (down & HidNpadButton_Plus) {
-            break;
-        }
-        if (down & HidNpadButton_Y) {
-            chainload = runUpdateFlow(pad);
-            if (!chainload.empty()) {
-                break;
-            }
-            std::printf("\n  Press Y to check again, + to exit.\n");
-        }
-        consoleUpdate(nullptr);
+    if (outcome.error != nsx::ui::ShellError::None) {
+        reportStartupFailure(nsx::ui::describe(outcome.error));
+        return 1;
     }
 
-    consoleExit(nullptr);
-
-    // The handoff is written and the staged binary is verified. Hand over to
-    // the forwarder, which performs the swap this process cannot perform on
-    // its own file. Only ever to a path that exists - chainloading a missing
-    // one drops the user back to hbmenu with no explanation.
-    if (!chainload.empty()) {
-        const nsx::domain::SelfUpdateConfig config = updateConfig();
-        if (R_FAILED(envSetNextLoad(config.forwarderNro.c_str(), chainload.c_str()))) {
+    // The handoff, after the UI is fully torn down and its background worker
+    // joined. Only ever to a path that exists: chainloading a missing one drops
+    // the user back to hbmenu with no explanation.
+    if (outcome.chainloads() && forwarderReady) {
+        if (R_FAILED(
+                envSetNextLoad(outcome.chainloadPath.c_str(), outcome.chainloadArgs.c_str()))) {
             // Almost always "not launched from hbmenu", where there is no next
-            // load to set. The update is staged and will be applied the next
-            // time the repair entry runs, so say that rather than failing.
-            std::printf("Could not launch the updater automatically.\n");
-            std::printf("Run \"NSX Manager (Repair)\" from hbmenu to finish.\n");
+            // load to set. The update is staged and verified, so it will be
+            // applied whenever the repair entry next runs.
+            reportStartupFailure(
+                "Could not launch the updater. Run \"NSX Manager (Repair)\" "
+                "from hbmenu to finish installing.");
             return 1;
         }
     }
 
-    return healthy ? 0 : 1;
+    return 0;
 }

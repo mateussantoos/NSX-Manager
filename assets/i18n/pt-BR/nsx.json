@@ -17,6 +17,17 @@
     "about": {
         "version": "Versão {}",
         "built": "Compilado em {} a partir de {}",
-        "licence": "Distribuído sob a GNU General Public License v3.0"
+        "licence": "Distribuído sob a GNU General Public License v3.0",
+        "version_label": "Versão",
+        "build_label": "Compilação",
+        "date_label": "Compilado em"
+    },
+    "tabs": {
+        "cfw": "Pacotes CFW",
+        "firmware": "Firmware",
+        "system": "Sistema"
+    },
+    "pending": {
+        "catalog": "O instalador disso está pronto e testado, mas ainda não há nada que baixe o catálogo de pacotes disponíveis. Esta aba vai listá-los quando isso existir."
     }
 }

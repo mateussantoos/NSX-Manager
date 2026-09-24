@@ -107,6 +107,6 @@ function(nsx_rebuild_nro_on_romfs_change target)
 endfunction()
 
 # Every target whose NRO embeds the romfs.
-foreach(_nro_target nsx-manager nsx-ui-probe)
+foreach(_nro_target nsx-manager)
     nsx_rebuild_nro_on_romfs_change(${_nro_target})
 endforeach()

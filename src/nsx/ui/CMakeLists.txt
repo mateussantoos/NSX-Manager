@@ -10,9 +10,9 @@
 
 set(NSX_UI_SOURCES
     app_shell/shell.cpp
-    # tabs/...
+    tabs/update_tab.cpp
+    widgets/background_job.cpp
     # pages/...
-    # widgets/...
 )
 
 list(TRANSFORM NSX_UI_SOURCES PREPEND "${CMAKE_CURRENT_LIST_DIR}/")

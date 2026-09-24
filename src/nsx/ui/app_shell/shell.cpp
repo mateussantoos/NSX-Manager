@@ -2,13 +2,12 @@
 //
 // The Borealis shell.
 //
-// What this file is for right now: proving that Borealis links against the
-// devkitPro portlibs, finds its resources in romfs, and draws a frame on
-// hardware. Those are three separate ways for a UI to fail silently, and none
-// of them is visible from a successful build.
-//
 // See ADR-0010 for why this fork, and docs/architecture/overview.md for the
-// shell this grows into.
+// startup sequence.
+//
+// The services this needs - pl, setsys, set, romfs - are brought up before main
+// by userAppInit in platform/system/app_init.cpp. Borealis calls into them from
+// inside Application::init and cannot wait for us to do it afterwards.
 
 #include "nsx/ui/app_shell/shell.hpp"
 
@@ -17,12 +16,10 @@
 #include <borealis.hpp>
 
 #include "nsx/core/version/version.hpp"
+#include "nsx/ui/tabs/update_tab.hpp"
 
 namespace nsx::ui {
 
-// The `_i18n` literal, and only that. A blanket `using namespace brls` in a
-// translation unit that also sees <switch.h> would be asking for the same
-// ambiguity libnx's global `Result` already causes elsewhere.
 using namespace brls::i18n::literals;
 
 namespace {
@@ -45,31 +42,41 @@ bool readable(const char* path)
     return true;
 }
 
-/// The placeholder content view.
+/// A tab for a use-case whose data source does not exist yet.
 ///
-/// A label rather than nothing, because "the screen is blank" and "the screen
-/// drew what it was asked to" are the two outcomes this whole exercise is
-/// trying to tell apart. If this text appears on a console, the link line, the
-/// romfs staging, the font loading and the i18n lookup all worked.
-brls::View* buildPlaceholder()
+/// The install services behind these are complete and tested; what is missing
+/// is the catalogue FETCH. `core/catalog` parses a catalogue and nothing
+/// downloads one. An empty list would say "there is nothing to install", which
+/// is a different claim and a false one.
+brls::View* pendingTab(const std::string& title, const std::string& because)
 {
     auto* list = new brls::List();
 
-    auto* status = new brls::ListItem("nsx/name"_i18n);
-    status->setValue(std::string(core::version::kString));
-    list->addView(status);
+    auto* header = new brls::ListItem(title);
+    header->setValue("nsx/state/unavailable"_i18n);
+    list->addView(header);
 
-    auto* built = new brls::ListItem("Build");
-    built->setValue(std::string(core::version::kGitSha));
+    list->addView(new brls::Label(brls::LabelStyle::DESCRIPTION, because, true));
+    return list;
+}
+
+brls::View* buildSystemTab()
+{
+    auto* list = new brls::List();
+
+    auto* version = new brls::ListItem("nsx/about/version_label"_i18n);
+    version->setValue(std::string(core::version::kString));
+    list->addView(version);
+
+    auto* build = new brls::ListItem("nsx/about/build_label"_i18n);
+    build->setValue(std::string(core::version::kGitSha));
+    list->addView(build);
+
+    auto* built = new brls::ListItem("nsx/about/date_label"_i18n);
+    built->setValue(std::string(core::version::kBuildDate));
     list->addView(built);
 
-    auto* note =
-        new brls::Label(brls::LabelStyle::DESCRIPTION,
-                        "Borealis is running. The shell, the tabs and the update view are not "
-                        "built yet - this frame exists to prove the framework boots on hardware.",
-                        true);
-    list->addView(note);
-
+    list->addView(new brls::Label(brls::LabelStyle::DESCRIPTION, "nsx/about/licence"_i18n, true));
     return list;
 }
 
@@ -98,38 +105,64 @@ bool resourcesPresent()
     return true;
 }
 
-ShellError runShell()
+ShellOutcome runShell(const ShellServices& services)
 {
+    ShellOutcome outcome;
+
     // Checked before init, not after. Borealis treats a missing font as a
     // loadFont() of -1 and carries on, so by the time anything looks wrong the
     // only symptom is a black screen.
     if (!resourcesPresent()) {
-        return ShellError::RomfsMissing;
+        outcome.error = ShellError::RomfsMissing;
+        return outcome;
     }
 
     brls::Logger::setLogLevel(brls::LogLevel::INFO);
-
-    // Before init: Application::init takes an already-translated title.
     brls::i18n::loadTranslations();
 
     if (!brls::Application::init("nsx/name"_i18n)) {
-        return ShellError::BorealisInit;
+        outcome.error = ShellError::BorealisInit;
+        return outcome;
     }
 
-    auto* frame = new brls::AppletFrame(true, true);
-    frame->setTitle("nsx/name"_i18n);
-    frame->setFooterText(std::string(core::version::kString));
-    frame->setContentView(buildPlaceholder());
+    auto* root = new brls::TabFrame();
+    root->setTitle("nsx/name"_i18n);
+    root->setIcon(BOREALIS_ASSET("images/logo.png"));
+    root->setFooterText(std::string(core::version::kString));
 
-    // Borealis owns this pointer from here; it is freed when the view is
-    // popped or the application shuts down.
-    brls::Application::pushView(frame);
+    // Quit first, then chainload. Application::quit() ends mainLoop, and doing
+    // the envSetNextLoad after it returns means the UI is fully torn down - and
+    // the background worker joined - before the next binary starts.
+    auto* updates = new UpdateTab(services.update,
+                                  [&outcome](const std::string& path, const std::string& args) {
+                                      outcome.chainloadPath = path;
+                                      outcome.chainloadArgs = args;
+                                      brls::Application::quit();
+                                  });
+
+    root->addTab("update/title"_i18n, updates);
+    root->addSeparator();
+    root->addTab("nsx/tabs/cfw"_i18n, pendingTab("nsx/tabs/cfw"_i18n, "nsx/pending/catalog"_i18n));
+    root->addTab("nsx/tabs/firmware"_i18n,
+                 pendingTab("nsx/tabs/firmware"_i18n, "nsx/pending/catalog"_i18n));
+    root->addSeparator();
+    root->addTab("nsx/tabs/system"_i18n, buildSystemTab());
+
+    // Borealis owns these from here; they are freed when the application shuts
+    // down or the view is popped.
+    brls::Application::pushView(root);
 
     while (brls::Application::mainLoop()) {
         // Borealis drives everything from inside mainLoop.
     }
 
-    return ShellError::None;
+    // Held for the tabs that are not wired yet. Naming them here keeps the
+    // composition root's shape final, so landing the catalogue fetch touches
+    // this file and nothing else.
+    (void)services.cfw;
+    (void)services.firmware;
+
+    return outcome;
 }
 
 }  // namespace nsx::ui

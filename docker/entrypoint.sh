@@ -125,7 +125,10 @@ case "$task" in
         "$0" switch
         banner "Exporting to dist/"
         mkdir -p dist
-        for artefact in             build/switch-release/src/nsx/app/nsx-manager.nro             build/switch-release/apps/forwarder/nsx-forwarder.nro             build/switch-release/apps/ui-probe/nsx-ui-probe.nro             build/switch-release/romfs/nsx_rcm.bin
+        for artefact in \
+            build/switch-release/src/nsx/app/nsx-manager.nro \
+            build/switch-release/apps/forwarder/nsx-forwarder.nro \
+            build/switch-release/romfs/nsx_rcm.bin
         do
             if [ -f "$artefact" ]; then
                 cp "$artefact" "dist/$(basename "$artefact")"
@@ -143,7 +146,6 @@ case "$task" in
   Copy to the SD card:
     dist/nsx-manager.nro    -> /switch/nsx-manager/nsx-manager.nro
     dist/nsx-forwarder.nro  -> /switch/nsx-manager/nsx-forwarder.nro   ("NSX Manager (Repair)")
-    dist/nsx-ui-probe.nro   -> /switch/nsx-ui-probe.nro                (throwaway; delete after)
 
   nsx_rcm.bin ships inside nsx-manager.nro's romfs - it does not go on the card.
   Note: `release` rebuilds dist/ from scratch and will remove these.

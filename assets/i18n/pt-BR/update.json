@@ -38,5 +38,9 @@
     "advice": {
         "set_clock": "Ajuste a data e a hora do console e tente novamente",
         "check_network": "Verifique sua conexão com a internet e tente novamente"
-    }
+    },
+    "check_now": "Procurar atualizações",
+    "install_now": "Instalar agora",
+    "idle": "Ainda não verificado",
+    "busy": "Já existe outra operação em andamento"
 }
