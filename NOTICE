@@ -22,6 +22,25 @@ Borealis                                          GPL-3.0
   Bundles: nanovg (zlib), libretro-common (MIT), fmt (MIT), stb (public domain).
 
 --------------------------------------------------------------------------------
+Inter                                             OFL-1.1
+  https://rsms.me/inter/
+  Copyright (c) 2016-2018 The Inter Project Authors
+  Shipped as DATA inside nsx-manager.nro at romfs:/inter/Inter-Switch.ttf, which
+  Borealis loads by path at runtime. Not linked. The SIL Open Font License
+  requires the licence to travel with the font, so it ships alongside it at
+  romfs:/inter/LICENSE.txt.
+  Obtained from third_party/borealis/resources/; staged by cmake/NsxStageBorealis.cmake.
+
+--------------------------------------------------------------------------------
+Material Icons                                    Apache-2.0
+  https://github.com/google/material-design-icons
+  Copyright (C) Google Inc.
+  Shipped as DATA inside nsx-manager.nro at
+  romfs:/material/MaterialIcons-Regular.ttf, with its licence at
+  romfs:/material/LICENSE.txt. Not linked.
+  Obtained from third_party/borealis/resources/; staged by cmake/NsxStageBorealis.cmake.
+
+--------------------------------------------------------------------------------
 zipper                                            MIT
   https://github.com/HamletDuFromage/zipper
   A minizip wrapper. Linked into nsx-manager.nro. Pinned in third_party/PINS.md.
