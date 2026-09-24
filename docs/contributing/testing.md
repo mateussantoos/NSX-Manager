@@ -95,14 +95,19 @@ Run before tagging. Record the results in the release pull request.
 ### Update path - the important part
 
 4. Update from N-1 to N. Completes and relaunches on the new version.
-5. Cut the network mid-download. Resumes or fails cleanly; no `.part` left behind.
+5. Cut the network mid-download. Fails cleanly and leaves no `.part` behind. **There is no
+   `Range:` resume** - a retry restarts from zero, so confirm it restarts rather than
+   assuming it continues.
 6. Corrupt the staged NRO by hand. **Swap refuses; the old version still launches.**
 7. Set `attempts` to `max_attempts` in `handoff.json`. **Rollback runs, old version restored.**
 8. Power off during the download. Next launch cleans up and offers again.
 9. Power off between the two renames (`NSX_DEBUG_CRASH_AT_SWAP=1`). **Recovery restores.**
 10. Delete `nsx-manager.nro`. Launch **NSX Manager (Repair)** from hbmenu. It recovers.
-11. Set the console clock to 2010. Update check fails with **"set your console clock"**, not a
-    silent insecure fallback.
+11. Set the console clock to 2010. The update check must fail - never a silent insecure
+    fallback. **Open question:** whether it says *"set your console clock"* or falls back to the
+    generic verification message. `classify()` reads `CURLINFO_SSL_VERIFYRESULT` and tests
+    mbedTLS-style flags; the libnx backend (ADR-0016) may not populate them the same way. This
+    run is what settles it - record which message appeared.
 
 ### Hardware coverage
 

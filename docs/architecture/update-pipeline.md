@@ -136,7 +136,8 @@ Stated here rather than implied by omission:
   ([ADR-0016](../adr/0016-verify-tls-against-the-firmware-trust-store.md)) those may not populate
   the same way, so "set your console clock" can fall back to the generic verification message.
   Needs a console with a deliberately wrong clock to confirm.
-* **The UI.** `check()` and `stage()` are wired to a console print and a button, not to Borealis.
+* **The UI.** The flow is complete and reachable - check, confirm, download with progress,
+  hand off, chainload - but it is drawn with `printf` on the libnx console, not Borealis.
 
 ## Content updates
 

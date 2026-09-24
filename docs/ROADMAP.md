@@ -28,7 +28,8 @@ predecessor got wrong.
 - [x] Manifest fetch, six-hour cache, persisted backoff, mirror fallback
 - [x] `domain/selfupdate`: download, verify, stage, hand off
 - [x] The forwarder: swap, attempt counter, rollback, repair mode
-- [ ] Borealis UI for the update flow - today it is a console print behind a button
+- [x] The update flow reachable end to end - check, confirm, download, hand off, chainload
+- [ ] Borealis UI for it; today the whole flow is a console prompt behind the Y button
 - [ ] **`v0.2.0` published and updated to from `v0.1.0` on real hardware**
 
 The cache and backoff landed in `core/update/` rather than `infra/github/` as originally
