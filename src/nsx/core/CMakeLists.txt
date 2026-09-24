@@ -13,7 +13,7 @@ set(NSX_CORE_SOURCES
     version/semver.cpp
     update/manifest.cpp
     update/update_policy.cpp
-    # update/handoff.cpp
+    update/handoff.cpp
     # paths/sd_paths.cpp
     # paths/traversal_guard.cpp
     # text/format.cpp

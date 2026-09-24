@@ -78,17 +78,17 @@ struct ManifestAsset
 /// @since 0.2.0
 struct UpdateManifest
 {
-    int schemaVersion{};
-    SemVer version;           ///< The released version.
-    std::string tag;          ///< The git tag; always `v` + version.
-    std::string publishedAt;  ///< ISO-8601 UTC.
-    Channel channel{Channel::Stable};
+    int schemaVersion{};                  ///< Always kSupportedManifestSchema once parsed.
+    SemVer version;                       ///< The released version.
+    std::string tag;                      ///< The git tag; always `v` + version.
+    std::string publishedAt;              ///< ISO-8601 UTC.
+    Channel channel{Channel::Stable};     ///< Which channel this release is for.
     bool mandatory{};                     ///< Block the menu until updated.
     SemVer minSupported;                  ///< Oldest version allowed to update in-app.
     std::optional<SemVer> minAtmosphere;  ///< Warned about, never enforced.
-    std::string changelogUrl;
-    std::string releaseNotesUrl;
-    std::vector<ManifestAsset> assets;
+    std::string changelogUrl;             ///< Human-facing release page.
+    std::string releaseNotesUrl;          ///< Markdown notes for the in-app changelog.
+    std::vector<ManifestAsset> assets;    ///< Downloadable artefacts, unknown kinds dropped.
 
     /// @brief Find the first asset of a given kind.
     /// @param kind The kind to look for.

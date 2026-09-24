@@ -18,7 +18,7 @@ set(NSX_TEST_MODULES
     semver
     update_policy
     manifest
-    # handoff
+    handoff
     # sd_paths
     # traversal_guard
     sha256

@@ -26,7 +26,7 @@ enum class UpdateAction
 /// @since 0.2.0
 struct UpdateDecision
 {
-    UpdateAction action{UpdateAction::ManifestUnreadable};
+    UpdateAction action{UpdateAction::ManifestUnreadable};  ///< What to do.
     std::optional<SemVer> target;  ///< The offered version, when there is one.
     std::string reason;            ///< Why, in English.
 

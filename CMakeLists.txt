@@ -85,6 +85,10 @@ if(NSX_BUILD_APP)
     add_subdirectory(src/nsx/infra)
     nsx_add_layer(infra    SOURCES ${NSX_INFRA_SOURCES}
                            DEPENDS nsx_core nsx_platform nsx::portlibs curl z mbedtls nsx::zipper)
+    # infra/http includes the generated ca_bundle.hpp.
+    if(TARGET nsx_infra AND TARGET nsx_ca_bundle)
+        add_dependencies(nsx_infra nsx_ca_bundle)
+    endif()
 
     add_subdirectory(src/nsx/domain)
     nsx_add_layer(domain   SOURCES ${NSX_DOMAIN_SOURCES} DEPENDS nsx_core nsx_infra)
