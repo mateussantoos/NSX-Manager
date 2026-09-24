@@ -54,17 +54,21 @@ enum class PathError
 ///
 ///          What is refused, and why each one is a real attack on a Switch:
 ///
-///          | Refused | Why |
-///          |---|---|
-///          | `..` component | The zip-slip primitive. `../../atmosphere/x` escapes any
-///          destination. | | leading `/` | An absolute path ignores the destination entirely. | |
-///          `:` anywhere | `sdmc:/atmosphere/x` is absolute **on the console**, wherever it
-///          appears. | | `\` | A separator on a host and ambiguous on FatFs; `..\..\x` traverses on
-///          one and is a filename on the other. | | NUL | `safe.txt\0../../evil` passes a string
-///          check and truncates at the C API. | | trailing `.` or ` ` | FAT strips both, so `foo.`
-///          and `foo` are the same file - an overwrite primitive that survives a name comparison. |
-///          | control characters | Terminal escape sequences in a filename, shown to a user in a
-///          log or a UI. |
+///          - a `..` component - the zip-slip primitive itself;
+///            `../../atmosphere/x` escapes any destination.
+///          - a leading `/` - an absolute path ignores the destination.
+///          - `:` anywhere - `sdmc:/atmosphere/x` is absolute **on the
+///            console** wherever it appears, because the devoptab resolves the
+///            prefix rather than the leading separator.
+///          - `\` - a separator on a host and a legal filename character on
+///            FatFs, so `..\..\x` traverses on one and is a file on the other.
+///          - NUL - `safe.txt` followed by NUL and `../../evil` passes a string
+///            check and truncates at the C API.
+///          - a trailing `.` or space - FAT strips both, so `foo.` and `foo`
+///            are one file: an overwrite primitive that survives a name
+///            comparison.
+///          - control characters - terminal escape sequences in a name that a
+///            log or a UI will render.
 ///
 ///          Deliberately **not** refused: Windows reserved device names (`CON`,
 ///          `NUL`, `LPT1`). FatFs does not reserve them, the target is a
