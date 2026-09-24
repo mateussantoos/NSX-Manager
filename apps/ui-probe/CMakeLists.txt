@@ -19,6 +19,10 @@ endif()
 
 add_executable(nsx-ui-probe "${CMAKE_CURRENT_LIST_DIR}/src/main.cpp")
 target_link_libraries(nsx-ui-probe PRIVATE nsx::ui)
+
+# Brings up romfs, pl, setsys, set and nifm before main. Added to this
+# target's own sources rather than linked, for the reason in NsxLayer.cmake.
+nsx_add_switch_services(nsx-ui-probe)
 target_include_directories(nsx-ui-probe PRIVATE "${NSX_SOURCE_ROOT}" "${NSX_GENERATED_DIR}")
 
 nx_generate_nacp(nsx-ui-probe.nacp

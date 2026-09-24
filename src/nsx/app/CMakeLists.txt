@@ -29,6 +29,10 @@ foreach(layer platform infra domain ui)
 endforeach()
 
 target_link_libraries(nsx-manager PRIVATE ${NSX_APP_LIBS})
+
+# Brings up romfs, pl, setsys, set and nifm before main. Added to this
+# target's own sources rather than linked, for the reason in NsxLayer.cmake.
+nsx_add_switch_services(nsx-manager)
 target_include_directories(nsx-manager PRIVATE "${NSX_SOURCE_ROOT}" "${NSX_GENERATED_DIR}")
 
 # The CA bundle header is generated, so the app must wait for it.

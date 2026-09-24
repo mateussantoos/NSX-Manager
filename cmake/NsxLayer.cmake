@@ -60,3 +60,80 @@ function(nsx_add_layer NAME)
             -Wconversion -Wsign-conversion -Wdouble-promotion>
         $<$<AND:$<BOOL:${NSX_WERROR}>,$<CXX_COMPILER_ID:GNU,Clang,AppleClang>>:-Werror>)
 endfunction()
+
+# nsx_add_switch_services(<target>)
+#
+# Adds the libnx `userAppInit`/`userAppExit` override to <target>'s OWN sources.
+#
+# Directly, and never through a library, because that is the whole point. libnx
+# provides a weak empty default and a program overrides it; a static library
+# only contributes an object file when the link needs a symbol from it, and
+# nothing references `userAppInit` by name. Put this in a library and the
+# override is silently dropped, libnx's empty default wins, and Borealis crashes
+# on the first uninitialised service call - with no output, because it happens
+# before main.
+#
+# See src/nsx/platform/system/app_init.cpp and cmake/NsxCheckAppInit.cmake.
+function(nsx_add_switch_services target)
+    if(NOT TARGET ${target})
+        message(FATAL_ERROR "nsx_add_switch_services: no target ${target}")
+    endif()
+    target_sources(${target} PRIVATE
+        "${NSX_SOURCE_ROOT}/nsx/platform/system/app_init.cpp")
+
+    # Verify it survived the link. A source added is not a symbol linked, and
+    # the difference is exactly the bug this guards against.
+    add_custom_command(TARGET ${target} POST_BUILD
+        COMMAND "${CMAKE_COMMAND}"
+                -DNM=${CMAKE_NM}
+                -DELF=$<TARGET_FILE:${target}>
+                -P "${CMAKE_SOURCE_DIR}/cmake/NsxCheckAppInit.cmake"
+        COMMENT "Checking ${target} initialises its services"
+        VERBATIM)
+
+    set_property(GLOBAL APPEND PROPERTY NSX_SWITCH_SERVICE_TARGETS ${target})
+endfunction()
+
+# nsx_verify_switch_services()
+#
+# Configure-time companion to the post-link check above, for the failure that
+# check cannot see: a NEW target that links Borealis and never calls
+# nsx_add_switch_services at all. There is then no POST_BUILD step to fail, and
+# the binary crashes on hardware exactly as nsx-ui-probe.nro did.
+#
+# Linking Borealis is the precise trigger, which is why this keys on that rather
+# than on producing an NRO - nsx-forwarder.nro needs none of these services and
+# correctly does not ask for them.
+function(nsx_verify_switch_services)
+    if(NOT TARGET nsx_ui)
+        return()
+    endif()
+    get_property(declared GLOBAL PROPERTY NSX_SWITCH_SERVICE_TARGETS)
+
+    get_property(targets DIRECTORY "${CMAKE_SOURCE_DIR}" PROPERTY BUILDSYSTEM_TARGETS)
+    foreach(dir src/nsx/app apps/ui-probe)
+        get_property(more DIRECTORY "${CMAKE_SOURCE_DIR}/${dir}" PROPERTY BUILDSYSTEM_TARGETS)
+        list(APPEND targets ${more})
+    endforeach()
+
+    foreach(target IN LISTS targets)
+        if(NOT TARGET ${target})
+            continue()
+        endif()
+        get_target_property(type ${target} TYPE)
+        if(NOT type STREQUAL "EXECUTABLE")
+            continue()
+        endif()
+        get_target_property(libs ${target} LINK_LIBRARIES)
+        if(NOT libs MATCHES "nsx::ui|nsx_ui")
+            continue()
+        endif()
+        if(NOT target IN_LIST declared)
+            message(FATAL_ERROR
+                "${target} links Borealis but never called nsx_add_switch_services(). "
+                "Borealis calls plGetSharedFontByType() from inside Application::init "
+                "and the process is killed there, before main, with no output. "
+                "See cmake/NsxLayer.cmake.")
+        endif()
+    endforeach()
+endfunction()

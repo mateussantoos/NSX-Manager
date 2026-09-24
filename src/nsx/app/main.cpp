@@ -25,27 +25,27 @@
 
 namespace {
 
-/// Services this application needs. Ordering matters: romfs cannot mount before
-/// the filesystem is up.
-bool initialiseServices()
+/// Whether the services this application needs actually came up.
+///
+/// It does NOT bring them up. `userAppInit` in
+/// `src/nsx/platform/system/app_init.cpp` does that, before main, because
+/// Borealis calls into `pl` and `setsys` from inside its own initialisation and
+/// cannot wait for us. This only confirms the result, so a console where one of
+/// them failed says so instead of crashing later in a place that does not
+/// explain itself.
+bool servicesReady()
 {
-    if (R_FAILED(romfsInit())) {
+    // A romfs read that must succeed: the CA bundle, the forwarder and every
+    // translation live in there.
+    FILE* probe = std::fopen("romfs:/nsx-forwarder.nro", "rb");
+    if (probe == nullptr) {
         return false;
     }
-    if (R_FAILED(setsysInitialize())) {
-        return false;
-    }
-    if (R_FAILED(nifmInitialize(NifmServiceType_User))) {
-        return false;
-    }
-    return true;
-}
+    std::fclose(probe);
 
-void shutdownServices()
-{
-    nifmExit();
-    setsysExit();
-    romfsExit();
+    // setsys answers only when it is initialised.
+    ColorSetId theme{};
+    return R_SUCCEEDED(setsysGetColorSetId(&theme));
 }
 
 /// A self-check that the build is internally consistent. Cheap, and it fails
@@ -223,7 +223,7 @@ int main(int argc, char** argv)
     PadState pad;
     padInitializeDefault(&pad);
 
-    const bool services = initialiseServices();
+    const bool services = servicesReady();
     const bool healthy = selfTest();
 
     using nsx::core::version::kBuildDate;
@@ -287,9 +287,6 @@ int main(int argc, char** argv)
         consoleUpdate(nullptr);
     }
 
-    if (services) {
-        shutdownServices();
-    }
     consoleExit(nullptr);
 
     // The handoff is written and the staged binary is verified. Hand over to

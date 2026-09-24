@@ -114,6 +114,9 @@ else()
     nsx_add_layer(domain SOURCES ${NSX_DOMAIN_HOST_SOURCES} DEPENDS nsx_core nsx_infra)
 endif()
 
+# Any target linking Borealis must bring up the services it calls into.
+nsx_verify_switch_services()
+
 if(NSX_BUILD_RCM)
     include(NsxRcmPayload)
 endif()
