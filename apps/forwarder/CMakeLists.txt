@@ -11,8 +11,7 @@
 
 set(NSX_FORWARDER_SOURCES
     src/main.cpp
-    # src/swap.cpp
-    # src/recovery.cpp
+    src/swap.cpp
 )
 
 list(TRANSFORM NSX_FORWARDER_SOURCES PREPEND "${CMAKE_CURRENT_LIST_DIR}/")

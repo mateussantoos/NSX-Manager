@@ -7,18 +7,17 @@
 // new build, chainloads this, and this performs the swap. It also appears in
 // hbmenu as "NSX Manager (Repair)" so there is always something launchable.
 //
-// This is the baseline: it resolves and reports the handoff. The swap state
-// machine lands with nsx::core::Handoff, which both binaries will share - the
-// predecessor had two divergent ad-hoc parsers for the same file
-// (utils.cpp:555-575 and app-forwarder/source/main.cpp:26-46).
+// The decision of what to do comes from nsx::core::decideRecovery, which is
+// pure and host-tested against every row of the recovery table. This binary
+// only carries it out - see swap.cpp.
 //
 // See docs/architecture/self-update-forwarder.md and ADR-0007.
 
 #include <cstdio>
-#include <cstring>
 #include <string>
 #include <string_view>
 
+#include "swap.hpp"
 #include <switch.h>
 
 #include "nsx/core/version/version.hpp"
@@ -65,13 +64,17 @@ bool fileExists(const char* path)
     return true;
 }
 
-/// Hand control to the application. Called whether or not a swap happened: if
-/// there is nothing to do, the forwarder's job is to get out of the way.
-void chainload(const char* path)
+void printOutcome(const nsx::forwarder::SwapOutcome& outcome)
 {
-    if (fileExists(path)) {
-        const std::string quoted = std::string("\"") + path + "\"";
-        envSetNextLoad(path, quoted.c_str());
+    const std::string_view text = nsx::forwarder::describe(outcome.result);
+    const bool bad = outcome.result == nsx::forwarder::SwapResult::IoFailed ||
+                     outcome.result == nsx::forwarder::SwapResult::DigestMismatch ||
+                     outcome.result == nsx::forwarder::SwapResult::Unrecoverable;
+
+    std::printf("  result  : %s%.*s\x1b[0m\n", bad ? "\x1b[31m" : "\x1b[32m",
+                static_cast<int>(text.size()), text.data());
+    if (!outcome.detail.empty()) {
+        std::printf("            %s\n", outcome.detail.c_str());
     }
 }
 
@@ -86,31 +89,24 @@ int main(int argc, char** argv)
     padInitializeDefault(&pad);
 
     const std::string handoffPath = resolveHandoffPath(argc, argv);
-    const bool havePending = fileExists(handoffPath.c_str());
-    const bool haveTarget = fileExists(kTargetNro);
 
     using nsx::core::version::kString;
 
     std::printf("\x1b[2J\x1b[H");
     std::printf("\x1b[36mNSX Manager (Repair)\x1b[0m %.*s\n\n", static_cast<int>(kString.size()),
                 kString.data());
-    std::printf("  handoff : %s\n", handoffPath.c_str());
-    std::printf("            %s\n", havePending ? "present" : "none - nothing staged");
+    std::printf("  handoff : %s\n",
+                fileExists(handoffPath.c_str()) ? "present" : "none - nothing staged");
+
+    const nsx::forwarder::SwapOutcome outcome = nsx::forwarder::runSwap(handoffPath);
+    printOutcome(outcome);
+
+    const bool haveTarget = fileExists(kTargetNro);
     std::printf("  target  : %s\n", haveTarget ? "present" : "\x1b[31mMISSING\x1b[0m");
 
-    if (havePending) {
-        // The swap sequence is deliberately not implemented yet: doing it
-        // without the shared Handoff parser and its rollback state machine
-        // would risk the exact failure this binary exists to prevent.
-        std::printf("\n  A staged update was found.\n");
-        std::printf("  The swap is not implemented in this build.\n");
-    }
-    else if (!haveTarget) {
-        std::printf("\n  \x1b[31mThe application is missing and nothing is staged.\x1b[0m\n");
-        std::printf("  Reinstall from the release zip.\n");
-    }
-    else {
-        std::printf("\n  Nothing to repair.\n");
+    if (!outcome.applicationUsable() || !haveTarget) {
+        std::printf("\n  \x1b[31mNSX Manager could not be repaired automatically.\x1b[0m\n");
+        std::printf("  Reinstall from the release zip - your settings are not affected.\n");
     }
 
     std::printf("\n  Press A to launch NSX Manager, + to exit.\n");
@@ -131,8 +127,12 @@ int main(int argc, char** argv)
 
     consoleExit(nullptr);
 
-    if (launch) {
-        chainload(kTargetNro);
+    // Hand control back to the application. Only ever to a file that exists:
+    // chainloading a missing path would drop the user back to hbmenu with no
+    // explanation.
+    if (launch && haveTarget) {
+        const std::string quoted = std::string("\"") + kTargetNro + "\"";
+        envSetNextLoad(kTargetNro, quoted.c_str());
     }
     return 0;
 }
