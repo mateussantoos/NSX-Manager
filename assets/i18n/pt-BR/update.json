@@ -1,0 +1,42 @@
+{
+    "title": "Atualização",
+    "checking": "Procurando atualizações...",
+    "decision": {
+        "up_to_date": "Você está na versão mais recente",
+        "optional": "A versão {} está disponível",
+        "mandatory": "A versão {} é obrigatória",
+        "unsupported_path": "Esta versão é antiga demais para se atualizar sozinha. Reinstale pelo zip da release.",
+        "wrong_channel": "A release publicada é de outro canal de atualização",
+        "unreadable": "Não foi possível verificar atualizações"
+    },
+    "cache": {
+        "age": "Verificado pela última vez há {}",
+        "stale": "Exibindo a última release conhecida",
+        "retry_after": "Nova tentativa em {}"
+    },
+    "prompt": {
+        "install": "Instalar a versão {} agora?",
+        "declined": "Não instalada",
+        "mandatory_note": "Esta atualização é obrigatória para continuar."
+    },
+    "progress": {
+        "downloading": "Baixando {}",
+        "percent": "{}%",
+        "verifying": "Verificando...",
+        "staged": "Pronto para instalar. Reiniciando...",
+        "cancel_hint": "Pressione B para cancelar"
+    },
+    "failure": {
+        "no_app_asset": "Esta release não contém o binário do aplicativo",
+        "insufficient_space": "Espaço livre insuficiente: {} necessários, {} disponíveis",
+        "download_failed": "O download falhou",
+        "verify_failed": "O download não foi verificado. Sua versão atual não foi alterada.",
+        "forwarder_unavailable": "O binário de reparo está ausente e não pôde ser restaurado",
+        "write_failed": "Não foi possível registrar a atualização",
+        "untouched": "Sua versão atual não foi alterada"
+    },
+    "advice": {
+        "set_clock": "Ajuste a data e a hora do console e tente novamente",
+        "check_network": "Verifique sua conexão com a internet e tente novamente"
+    }
+}
