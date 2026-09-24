@@ -17,6 +17,8 @@ version
 manifest
 policy
 handoff
+cache
+backoff
 paths
 text
 json
@@ -44,6 +46,7 @@ mega
 # --- layer: domain (use-cases) ---
 domain
 update
+selfupdate
 cfw
 firmware
 catalog
