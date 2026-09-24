@@ -60,11 +60,12 @@ else()
 endif()
 
 if(NOT NSX_TARGET_SWITCH)
-    # Host build: only `core` is portable, so everything else is off by
-    # construction. This is the configuration CI runs unit tests in.
+    # Host build: the Switch binaries cannot be produced, so they are off by
+    # construction. The portable subset of every layer still builds - see the
+    # else() branch below. This is the configuration CI runs unit tests in.
     set(NSX_BUILD_APP OFF)
     set(NSX_BUILD_RCM OFF)
-    message(STATUS "Host toolchain detected - building nsx_core and tests only")
+    message(STATUS "Host toolchain detected - building the portable layers and tests")
 endif()
 
 # --------------------------------------------------------------------------
@@ -98,6 +99,18 @@ if(NSX_BUILD_APP)
 
     add_subdirectory(src/nsx/app)
     add_subdirectory(apps/forwarder)
+else()
+    # Host build. Not every layer is portable, but the portable SUBSET of infra
+    # and domain is - and it is the important one: the update orchestration and
+    # the error taxonomy the UI renders. Building it here is what lets
+    # tests/unit/selfupdate_test.cpp drive a whole update - cache, backoff,
+    # manifest, download, handoff - against fakes, with no console involved.
+    # The adapters that touch libcurl and the SD card stay out (ADR-0014).
+    add_subdirectory(src/nsx/infra)
+    nsx_add_layer(infra  SOURCES ${NSX_INFRA_HOST_SOURCES}  DEPENDS nsx_core)
+
+    add_subdirectory(src/nsx/domain)
+    nsx_add_layer(domain SOURCES ${NSX_DOMAIN_HOST_SOURCES} DEPENDS nsx_core nsx_infra)
 endif()
 
 if(NSX_BUILD_RCM)
