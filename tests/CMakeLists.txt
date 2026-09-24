@@ -36,6 +36,7 @@ set(NSX_TEST_MODULES
 # so a build that has not enabled them still runs everything else.
 set(NSX_TEST_MODULES_DOMAIN
     selfupdate
+    cfw_install
 )
 
 foreach(mod IN LISTS NSX_TEST_MODULES)

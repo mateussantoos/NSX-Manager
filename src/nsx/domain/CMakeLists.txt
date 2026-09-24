@@ -13,11 +13,13 @@
 set(NSX_DOMAIN_HOST_SOURCES
     selfupdate/update_service.cpp
     selfupdate/system_clock.cpp
+    cfw/cfw_install_service.cpp
 )
 
 set(NSX_DOMAIN_DEVICE_SOURCES
     selfupdate/sd_file_store.cpp
     selfupdate/curl_gateway.cpp
+    cfw/zip_archive_gateway.cpp
 )
 
 set(NSX_DOMAIN_SOURCES ${NSX_DOMAIN_HOST_SOURCES} ${NSX_DOMAIN_DEVICE_SOURCES})
