@@ -93,12 +93,12 @@ plaintext URL, so the predecessor's behaviour cannot return.
 | DNS or connection failure | curl error | Persisted backoff; serve cache |
 | TLS verification failed | `CURLE_PEER_FAILED_VERIFICATION` | **Never downgrade.** If the cause is certificate dates, show "set your console clock" |
 | HTTP 403 / 429 / 5xx | status code | Exponential backoff with jitter, base 60 s, cap 6 h, persisted across launches |
-| `github.com` unreachable | connection failure | Try the mirror branch |
-| Manifest is not valid JSON | parser | Serve cache; "update check unavailable" |
+| `github.com` unreachable | DNS, connection or timeout failure | Try the mirror branch, **without** the `If-None-Match` - a different document has a different ETag history. A 403, 404 or 5xx means GitHub was reached and answered, so the mirror is not consulted |
+| Manifest is not valid JSON | parser | Serve cache; "update check unavailable". **Never written to the cache** - the next launch would re-read the same failure from disk for six hours |
 | `schema_version` too new | parser | Refuse; "this version is too old to update itself" |
 | No `app-nro` asset | manifest validation | Treat as unreadable; the manifest is malformed |
 | Not enough space | pre-flight `size * 1.2` | Abort **before** the first byte, naming how much is needed |
-| Truncated download | byte count vs `size`, or `CURLE_PARTIAL_FILE` | Delete `.part`; resume with HTTP `Range:`, up to 3 attempts |
+| Truncated download | byte count vs `size`, or `CURLE_PARTIAL_FILE` | Delete `.part`; retry, up to 3 attempts. **`Range:` resume is not implemented yet** - the retry re-downloads from the start, which is correct but wasteful on a large asset |
 | Hash mismatch | SHA-256 compare | Delete `.part`; retry **once**; then hard-fail showing expected vs actual. Never fall back. |
 | Forwarder binary corrupt | hash against the romfs copy | Re-copy from romfs; if that fails, **abort before `envSetNextLoad`** - never chainload an unverified binary |
 | Power loss mid-swap | `handoff.json` present at next boot | Restore the backup; see [`self-update-forwarder.md`](self-update-forwarder.md) |
@@ -106,6 +106,37 @@ plaintext URL, so the predecessor's behaviour cannot return.
 
 Every row is a decision made in advance. The predecessor had none of them: a 404 became an empty
 string, and an empty string became "you are up to date".
+
+## Where this lives
+
+| Concern | Module | Tested by |
+|---|---|---|
+| Whether to use the network at all | `core/update/manifest_cache` (`planManifestFetch`) | `tests/unit/manifest_cache_test.cpp` |
+| How long to wait after a failure | `core/update/backoff` | `tests/unit/backoff_test.cpp` |
+| Whether a manifest is trustworthy | `core/update/manifest` | `tests/unit/manifest_test.cpp` |
+| What to offer the user | `core/update/update_policy` | `tests/unit/update_policy_test.cpp` |
+| Sequencing all of the above | `domain/selfupdate/update_service` | `tests/unit/selfupdate_test.cpp` |
+| Talking to the network | `infra/http/curl_client` | device smoke checklist |
+| Talking to the SD card | `domain/selfupdate/sd_file_store` | device smoke checklist |
+| Performing the swap | `apps/forwarder/src/swap` | device smoke checklist |
+
+`UpdateService` owns no policy. Every decision above it is a pure function in `core`, reached
+through the ports in `domain/selfupdate/ports.hpp` - which is what lets the whole sequence,
+including the states that only happen after a power cut, run in a host test ([ADR-0017](../adr/0017-drive-the-update-flow-through-ports-so-it-is-host-testable.md)).
+
+## Not yet implemented
+
+Stated here rather than implied by omission:
+
+* **`Range:` resume.** A failed transfer restarts from byte zero.
+* **Free-space pre-flight on a volume without `statvfs`.** The adapter returns "unknown" and the
+  check proceeds. A missing statistic must not become a stranded device.
+* **Clock-skew detection against the libnx TLS backend.** `classify()` reads
+  `CURLINFO_SSL_VERIFYRESULT` and tests mbedTLS-style flags; with the firmware stack
+  ([ADR-0016](../adr/0016-verify-tls-against-the-firmware-trust-store.md)) those may not populate
+  the same way, so "set your console clock" can fall back to the generic verification message.
+  Needs a console with a deliberately wrong clock to confirm.
+* **The UI.** `check()` and `stage()` are wired to a console print and a button, not to Borealis.
 
 ## Content updates
 

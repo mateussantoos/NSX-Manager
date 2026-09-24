@@ -21,9 +21,8 @@ overwrite user settings.
 |---|---|
 | `settings.json` | Theme, language, update channel, first-run flag |
 | `log.txt` | Append-only log, rotated at 1 MB. Attach this to a bug report. |
-| `cache/update.json` | Last fetched manifest |
-| `cache/update.etag` | ETag for conditional requests |
-| `cache/update.fetched_at` | Cache timestamp, for the six-hour TTL |
+| `cache/update.json` | Last fetched manifest, byte for byte as the server sent it |
+| `cache/update.meta.json` | ETag, fetch timestamp and the **digest of the document beside it** |
 | `cache/backoff.json` | Persisted backoff state - survives a relaunch, so a failing endpoint is not re-hammered on every start |
 | `staging/` | Downloads in progress and the update handoff |
 | `staging/*.part` | An unverified download. **Never executed, never extracted, never chainloaded.** Deleted at startup if stale. |
@@ -32,6 +31,13 @@ overwrite user settings.
 | `staging/nsx-manager.nro.bak` | The previous binary, kept until the swap is confirmed |
 | `forwarder/nsx-forwarder.nro` | The forwarder copy that is actually chainloaded |
 | `preserve.txt` | User-supplied list of files to preserve across a CFW pack update |
+
+The cache is two files, and the metadata is written **after** the document. That ordering is what
+makes a power cut between them detectable: the metadata then describes a document that is no
+longer there, the digests disagree, and the cache is treated as absent rather than half-trusted.
+A single combined file could not express that, and three loose files could disagree in more ways
+than one.
+
 
 ## Paths NSX Manager reads but does not own
 

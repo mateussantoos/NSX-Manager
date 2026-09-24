@@ -24,11 +24,16 @@ predecessor got wrong.
 
 **Goal: the thing this project exists for.**
 
-- [ ] `infra/http` with TLS verification and the embedded CA bundle
-- [ ] `infra/github`: manifest fetch, cache, backoff, mirror fallback
-- [ ] `domain/selfupdate`: download, verify, stage
-- [ ] The forwarder: swap, attempt counter, rollback, repair mode
+- [x] `infra/http` with TLS verification (against the firmware trust store - ADR-0016)
+- [x] Manifest fetch, six-hour cache, persisted backoff, mirror fallback
+- [x] `domain/selfupdate`: download, verify, stage, hand off
+- [x] The forwarder: swap, attempt counter, rollback, repair mode
+- [ ] Borealis UI for the update flow - today it is a console print behind a button
 - [ ] **`v0.2.0` published and updated to from `v0.1.0` on real hardware**
+
+The cache and backoff landed in `core/update/` rather than `infra/github/` as originally
+sketched: they are pure decisions about whether to make a request, not adapters for talking to
+GitHub, and putting them in `core` is what makes the whole matrix host-testable.
 
 That final item is the milestone that matters. It will be the first time this product line has
 ever successfully updated itself.
