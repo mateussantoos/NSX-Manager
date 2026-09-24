@@ -21,6 +21,7 @@ set(NSX_CORE_SOURCES
     paths/preserve_rules.cpp
     paths/extraction_policy.cpp
     catalog/catalog.cpp
+    cfw/merge_marker.cpp
     # text/format.cpp
     # json/safe_get.cpp
     hash/sha256.cpp
