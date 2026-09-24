@@ -22,6 +22,7 @@ NSX Manager build environment
   test               host build, then ctest
   asan               host build under ASan/UBSan, then ctest
   lint               every check in tools/lint, exactly as CI runs them
+  archive            extraction against real hostile zip archives
   format             rewrite sources in place with clang-format
   tidy               clang-tidy over the host compilation database
   docs               doxygen (warnings are errors)
@@ -115,6 +116,11 @@ case "$task" in
             ctest --preset host-asan --output-on-failure "$@"
         ;;
 
+    archive)
+        banner "Extraction against real archives"
+        bash tests/integration/zip_extraction/run.sh
+        ;;
+
     lint)
         banner "Lint"
         tools/lint/run_all.sh
@@ -182,6 +188,7 @@ case "$task" in
     verify)
         "$0" lint
         "$0" test
+        "$0" archive
         "$0" manifest
         "$0" docs
         printf '\n\033[1;32mAll verification passed.\033[0m\n'

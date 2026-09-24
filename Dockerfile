@@ -53,6 +53,10 @@ RUN dkp-pacman -Sy --noconfirm --needed \
 # --------------------------------------------------------------------------
 ARG LLVM_VERSION=18
 
+# zlib1g-dev is for the HOST, not the Switch. devkitPro ships its own zlib for
+# the console; this one lets the host build compile zipper, which is what makes
+# it possible to run the zip-slip guard against real malicious archives rather
+# than only against entry names in a unit test.
 RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential \
         cmake \
@@ -67,6 +71,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         lsb-release \
         zip \
         unzip \
+        zlib1g-dev \
         doxygen \
         graphviz \
         jq \
