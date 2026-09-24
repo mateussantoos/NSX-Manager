@@ -92,6 +92,40 @@ built forwarder, the RCM payload, and `CHANGELOG.md` rendered to `data/changelog
 in-app changelog is generated rather than hand-maintained. The predecessor's changelog was 47
 versions of hardcoded `std::vector<std::string>` literals across 176 lines.
 
+### Borealis resources
+
+[`cmake/NsxStageBorealis.cmake`](../../cmake/NsxStageBorealis.cmake) adds the fonts and
+framework strings Borealis loads by hard-coded path through `BOREALIS_ASSET()`, which the
+wrapper defines as `romfs:/`. A **named list, not a directory copy**: `resources/` belongs to
+the fork's own example application and also contains its icon and its strings - `main.json`
+opens with `"Borealis Example App"`. Only `brls.json` is a framework resource.
+
+It runs *after* the static assets, because the locales it copies framework strings for are the
+locales `assets/i18n/` staged. Borealis merges every `*.json` in `romfs:/i18n/<locale>/` into
+one namespace keyed by filename, so `brls.json` sits beside ours rather than replacing it.
+
+A missing font is not an error inside Borealis - `loadFont` returns `-1`, `Application::init`
+still succeeds, and the console draws black. So the staging script hard-fails on a missing
+required file, and `nsx::ui::resourcesPresent()` checks again at runtime.
+
+### Why there is a romfs stamp
+
+`nx_create_nro()` accepts `ROMFS` as an asset target or as a plain directory. Given a
+**directory** it appends `--romfsdir=` to the `elf2nro` command line and adds nothing to that
+command's `DEPENDS`; only the target form registers file-level dependencies through
+`DKP_ASSET_FILES`.
+
+The result is silent staleness: edit a translation string, rebuild, and the NRO still carries
+the old one with every step reporting success. You discover it by copying the build to a
+console.
+
+[`cmake/NsxRomfsStamp.cmake`](../../cmake/NsxRomfsStamp.cmake) therefore hashes the staged tree
+and rewrites `romfs.stamp` **only when the digest list changes**. `nsx_rebuild_nro_on_romfs_change()`
+attaches that stamp to each NRO target's sources as an `OBJECT_DEPENDS`, so the ELF relinks and
+the NRO is rebuilt from it - and only then. An `add_dependencies()` edge would not do this: it
+sequences targets without making an up-to-date output stale, which is the trap in the first
+place.
+
 ## The RCM payload
 
 Built by `make -C apps/rcm-payload` via `add_custom_command`, with devkitARM, from its own

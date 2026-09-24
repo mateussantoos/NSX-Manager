@@ -30,6 +30,7 @@ predecessor got wrong.
 - [x] The forwarder: swap, attempt counter, rollback, repair mode
 - [x] The update flow reachable end to end - check, confirm, download, hand off, chainload
 - [ ] Borealis UI for it; today the whole flow is a console prompt behind the Y button
+- [x] Borealis links, stages its resources and boots a frame - `nsx-ui-probe.nro`
 - [ ] **`v0.2.0` published and updated to from `v0.1.0` on real hardware**
 
 The cache and backoff landed in `core/update/` rather than `infra/github/` as originally
