@@ -14,6 +14,8 @@ set(NSX_CORE_SOURCES
     update/manifest.cpp
     update/update_policy.cpp
     update/handoff.cpp
+    update/manifest_cache.cpp
+    update/backoff.cpp
     # paths/sd_paths.cpp
     # paths/traversal_guard.cpp
     # text/format.cpp
