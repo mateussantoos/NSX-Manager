@@ -10,6 +10,8 @@
 // See docs/architecture/overview.md for the startup sequence this grows into.
 
 #include <cstdio>
+#include <memory>
+#include <string>
 
 #include <switch.h>
 
@@ -92,27 +94,120 @@ nsx::domain::SelfUpdateConfig updateConfig()
     return config;
 }
 
-/// Run one update check and report it. Console output for now - the UI layer
-/// will present the same CheckOutcome, which is why the decision and its reason
-/// are values rather than something printed from inside the service.
-void reportUpdateCheck()
+/// Block until the user answers, redrawing while we wait.
+///
+/// Returns false if the applet is closing, which must read as "no" - a system
+/// that is tearing the process down is not consent to start a download.
+bool confirm(PadState& pad)
+{
+    while (appletMainLoop()) {
+        padUpdate(&pad);
+        const u64 down = padGetButtonsDown(&pad);
+        if (down & HidNpadButton_A) {
+            return true;
+        }
+        if (down & HidNpadButton_B) {
+            return false;
+        }
+        consoleUpdate(nullptr);
+    }
+    return false;
+}
+
+/// Draw download progress on one line, and let the user out of it.
+///
+/// Returning false aborts the transfer. The console is redrawn from in here
+/// because the transfer owns the thread for its whole duration - without this
+/// the screen would freeze on the last frame drawn before the download began.
+nsx::infra::ProgressCallback progressPrinter(PadState& pad)
+{
+    auto lastShown = std::make_shared<int>(-1);
+
+    return [&pad, lastShown](const nsx::infra::Progress& p) {
+        if (!appletMainLoop()) {
+            return false;
+        }
+
+        padUpdate(&pad);
+        if (padGetButtonsDown(&pad) & HidNpadButton_B) {
+            std::printf("\n  cancelled\n");
+            return false;
+        }
+
+        // Only redraw when the whole-percent figure changes: curl calls this
+        // far more often than the screen can usefully change.
+        const int percent = p.total > 0 ? static_cast<int>((p.received * 100U) / p.total) : -1;
+        if (percent != *lastShown) {
+            *lastShown = percent;
+            if (percent >= 0) {
+                std::printf("\r  downloading: %3d%%  (%llu KB)   ", percent,
+                            static_cast<unsigned long long>(p.received / 1024U));
+            }
+            else {
+                std::printf("\r  downloading: %llu KB   ",
+                            static_cast<unsigned long long>(p.received / 1024U));
+            }
+            consoleUpdate(nullptr);
+        }
+        return true;
+    };
+}
+
+/// Check, offer, stage, chainload.
+///
+/// @return The forwarder argv to hand to envSetNextLoad, or empty when there is
+///         nothing to launch. Returning it rather than calling envSetNextLoad
+///         here keeps the chainload in main(), after the services this function
+///         used have been shut down.
+std::string runUpdateFlow(PadState& pad)
 {
     nsx::domain::SdFileStore files;
     nsx::domain::CurlGateway http;
     const nsx::domain::SystemClock clock;
 
     nsx::domain::UpdateService service(http, files, clock, updateConfig());
+
+    std::printf("\n  Checking for updates...\n");
+    consoleUpdate(nullptr);
+
     const nsx::domain::CheckOutcome outcome = service.check();
 
     const std::string_view action = nsx::core::describe(outcome.decision.action);
-    std::printf("  update     : %.*s\n", static_cast<int>(action.size()), action.data());
+    std::printf("  %.*s\n", static_cast<int>(action.size()), action.data());
     if (!outcome.detail.empty()) {
-        std::printf("               %s\n", outcome.detail.c_str());
+        std::printf("  %s\n", outcome.detail.c_str());
     }
-    if (outcome.servedFromCache) {
-        std::printf("               (from cache, %lld s old)\n",
-                    static_cast<long long>(outcome.manifestAgeSeconds));
+
+    if (!outcome.offersUpdate() || !outcome.manifest.has_value()) {
+        return {};
     }
+
+    std::printf("\n  Install %s now? (A = yes, B = no)\n",
+                outcome.manifest->version.toString().c_str());
+    consoleUpdate(nullptr);
+
+    if (!confirm(pad)) {
+        std::printf("  Not installed.\n");
+        return {};
+    }
+
+    const nsx::domain::StageOutcome staged = service.stage(*outcome.manifest, progressPrinter(pad));
+
+    std::printf("\n");
+    if (!staged.readyToChainload()) {
+        const std::string_view why = nsx::domain::describe(staged.result);
+        std::printf("  \x1b[31m%.*s\x1b[0m\n", static_cast<int>(why.size()), why.data());
+        if (!staged.detail.empty()) {
+            std::printf("  %s\n", staged.detail.c_str());
+        }
+        std::printf("  Your current version is untouched.\n");
+        return {};
+    }
+
+    std::printf("  \x1b[32m%s\x1b[0m\n", staged.detail.c_str());
+    std::printf("  Launching the updater...\n");
+    consoleUpdate(nullptr);
+    return staged.forwarderArgs;
 }
 
 }  // namespace
@@ -152,7 +247,29 @@ int main(int argc, char** argv)
                                                : "not connected");
     }
 
+    // First run has neither forwarder copy - an unzipped installation contains
+    // only the application. Do this before offering an update, because staging
+    // one refuses to write a handoff without something able to act on it.
+    bool forwarderReady = false;
+    {
+        nsx::domain::SdFileStore files;
+        nsx::domain::CurlGateway http;
+        const nsx::domain::SystemClock clock;
+        nsx::domain::UpdateService service(http, files, clock, updateConfig());
+
+        forwarderReady = service.installForwarder();
+
+        // An interrupted download is unverified and nothing resumes it. The
+        // staged binary and the handoff are deliberately left alone: they
+        // describe an update still in flight.
+        service.discardStalePartials();
+    }
+    std::printf("  forwarder  : %s\n",
+                forwarderReady ? "\x1b[32mok\x1b[0m" : "\x1b[31mMISSING\x1b[0m");
+
     std::printf("\n  Press Y to check for updates, + to exit.\n");
+
+    std::string chainload;
 
     while (appletMainLoop()) {
         padUpdate(&pad);
@@ -161,9 +278,11 @@ int main(int argc, char** argv)
             break;
         }
         if (down & HidNpadButton_Y) {
-            // Checking only. Staging an update has no confirmation screen yet,
-            // and downloading a binary is not something to do without asking.
-            reportUpdateCheck();
+            chainload = runUpdateFlow(pad);
+            if (!chainload.empty()) {
+                break;
+            }
+            std::printf("\n  Press Y to check again, + to exit.\n");
         }
         consoleUpdate(nullptr);
     }
@@ -172,5 +291,22 @@ int main(int argc, char** argv)
         shutdownServices();
     }
     consoleExit(nullptr);
+
+    // The handoff is written and the staged binary is verified. Hand over to
+    // the forwarder, which performs the swap this process cannot perform on
+    // its own file. Only ever to a path that exists - chainloading a missing
+    // one drops the user back to hbmenu with no explanation.
+    if (!chainload.empty()) {
+        const nsx::domain::SelfUpdateConfig config = updateConfig();
+        if (R_FAILED(envSetNextLoad(config.forwarderNro.c_str(), chainload.c_str()))) {
+            // Almost always "not launched from hbmenu", where there is no next
+            // load to set. The update is staged and will be applied the next
+            // time the repair entry runs, so say that rather than failing.
+            std::printf("Could not launch the updater automatically.\n");
+            std::printf("Run \"NSX Manager (Repair)\" from hbmenu to finish.\n");
+            return 1;
+        }
+    }
+
     return healthy ? 0 : 1;
 }
