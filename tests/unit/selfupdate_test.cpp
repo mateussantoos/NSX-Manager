@@ -13,6 +13,7 @@
 #include "nsx/domain/selfupdate/update_service.hpp"
 
 #include <deque>
+#include <iterator>
 #include <map>
 #include <set>
 #include <string>
@@ -123,6 +124,42 @@ public:
     [[nodiscard]] std::optional<std::uint64_t> freeSpaceBytes(const std::string&) const override
     {
         return freeSpace;
+    }
+
+    [[nodiscard]] bool rename(const std::string& from, const std::string& to) override
+    {
+        const auto it = files.find(from);
+        if (it == files.end() || writeFailures.count(to) != 0) {
+            return false;
+        }
+        const std::string data = it->second;
+        files.erase(it);
+        files[to] = data;
+        return true;
+    }
+
+    [[nodiscard]] std::vector<std::string> listFilesRecursive(
+        const std::string& dir) const override
+    {
+        const std::string prefix = dir.empty() || dir.back() == '/' ? dir : dir + "/";
+        std::vector<std::string> out;
+        for (const auto& [path, unused] : files) {
+            if (path.size() > prefix.size() && path.compare(0, prefix.size(), prefix) == 0) {
+                out.push_back(path.substr(prefix.size()));
+            }
+        }
+        return out;
+    }
+
+    bool removeTree(const std::string& dir) override
+    {
+        const std::string prefix = dir.empty() || dir.back() == '/' ? dir : dir + "/";
+        for (auto it = files.begin(); it != files.end();) {
+            const bool inside = it->first.size() > prefix.size() &&
+                                it->first.compare(0, prefix.size(), prefix) == 0;
+            it = (inside || it->first == dir) ? files.erase(it) : std::next(it);
+        }
+        return true;
     }
 };
 

@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "nsx/domain/selfupdate/ports.hpp"
+#include "nsx/domain/ports/ports.hpp"
 
 namespace nsx::domain {
 
@@ -67,6 +67,23 @@ public:
     /// @return Free bytes, or `std::nullopt` when `statvfs` is unavailable or fails.
     [[nodiscard]] std::optional<std::uint64_t> freeSpaceBytes(
         const std::string& dir) const override;
+
+    /// @brief Move a file, clearing the destination first.
+    /// @param from Absolute source path.
+    /// @param to Absolute destination path.
+    /// @return True on success.
+    [[nodiscard]] bool rename(const std::string& from, const std::string& to) override;
+
+    /// @brief Every file beneath a directory, as paths relative to it.
+    /// @param dir Absolute directory path.
+    /// @return Relative paths using `/`.
+    [[nodiscard]] std::vector<std::string> listFilesRecursive(
+        const std::string& dir) const override;
+
+    /// @brief Delete a directory and everything in it.
+    /// @param dir Absolute directory path.
+    /// @return True when the directory is gone afterwards.
+    bool removeTree(const std::string& dir) override;
 };
 
 }  // namespace nsx::domain

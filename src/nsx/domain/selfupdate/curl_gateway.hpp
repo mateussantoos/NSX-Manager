@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "nsx/domain/selfupdate/ports.hpp"
+#include "nsx/domain/ports/ports.hpp"
 
 namespace nsx::domain {
 

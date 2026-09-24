@@ -7,9 +7,12 @@
 #include <string>
 #include <string_view>
 #include <variant>
+#include <vector>
 
 #include "nsx/core/hash/sha256.hpp"
+#include "nsx/core/paths/extraction_policy.hpp"
 #include "nsx/core/result/result.hpp"
+#include "nsx/infra/archive/zip_extractor.hpp"
 #include "nsx/infra/http/curl_client.hpp"
 #include "nsx/infra/http/tls_config.hpp"
 
@@ -118,6 +121,57 @@ public:
     ///       turn a missing statistic into a stranded device.
     [[nodiscard]] virtual std::optional<std::uint64_t> freeSpaceBytes(
         const std::string& dir) const = 0;
+
+    /// @brief Move a file, replacing whatever is at the destination.
+    /// @param from Absolute source path.
+    /// @param to Absolute destination path.
+    /// @return True on success.
+    /// @details Implementations must clear the destination first: FatFs cannot
+    ///          rename onto an existing file. A merge is thousands of these, so
+    ///          it has to be a rename rather than a copy wherever the volume
+    ///          allows one.
+    [[nodiscard]] virtual bool rename(const std::string& from, const std::string& to) = 0;
+
+    /// @brief Every file beneath a directory, as paths relative to it.
+    /// @param dir Absolute directory path.
+    /// @return Relative paths using `/`, in no guaranteed order. Empty when the
+    ///         directory is absent or holds no files.
+    /// @details Files only - directories appear as the prefixes of the paths
+    ///          returned, which is all a merge needs to recreate them.
+    [[nodiscard]] virtual std::vector<std::string> listFilesRecursive(
+        const std::string& dir) const = 0;
+
+    /// @brief Delete a directory and everything in it.
+    /// @param dir Absolute directory path.
+    /// @return True when the directory is gone afterwards.
+    virtual bool removeTree(const std::string& dir) = 0;
+};
+
+/// @brief Extracting an archive, as the install flow needs it.
+///
+/// @details A port rather than a direct call so the whole install sequence -
+///          download, extract, merge, roll back - can be driven in a host test
+///          against archives that never existed. The production adapter wraps
+///          `nsx::infra::extractZip` and adds nothing.
+/// @since 0.3.0
+class ArchiveGateway
+{
+public:
+    ArchiveGateway() = default;
+    virtual ~ArchiveGateway() = default;
+
+    ArchiveGateway(const ArchiveGateway&) = delete;
+    ArchiveGateway& operator=(const ArchiveGateway&) = delete;
+
+    /// @brief Extract an archive under a destination, applying a policy.
+    /// @param archivePath The archive on disk.
+    /// @param policy Decides, per entry, where it goes or why it does not.
+    /// @param maxUncompressedBytes Ceiling on the declared expanded size.
+    /// @param onProgress Optional; returning false aborts.
+    /// @return What was extracted, or why it stopped.
+    [[nodiscard]] virtual core::Result<infra::ExtractionReport, infra::ArchiveError> extract(
+        const std::string& archivePath, const core::ExtractionPolicy& policy,
+        std::uint64_t maxUncompressedBytes, const infra::ExtractionCallback& onProgress) = 0;
 };
 
 /// @brief The network operations the update flow performs.

@@ -12,7 +12,7 @@
 #include "nsx/core/update/manifest_cache.hpp"
 #include "nsx/core/update/update_policy.hpp"
 #include "nsx/core/version/semver.hpp"
-#include "nsx/domain/selfupdate/ports.hpp"
+#include "nsx/domain/ports/ports.hpp"
 
 namespace nsx::domain {
 

@@ -2,11 +2,14 @@
 
 #include "nsx/domain/selfupdate/sd_file_store.hpp"
 
+#include <algorithm>
 #include <cstdio>
 #include <vector>
 
+#include <dirent.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 #if __has_include(<sys/statvfs.h>)
 #define NSX_HAVE_STATVFS 1
@@ -214,6 +217,117 @@ std::optional<std::uint64_t> SdFileStore::freeSpaceBytes(const std::string& dir)
     // and proceeds rather than refusing an update it has no evidence against.
     return std::nullopt;
 #endif
+}
+
+bool SdFileStore::rename(const std::string& from, const std::string& to)
+{
+    // FatFs cannot rename onto an existing file.
+    std::remove(to.c_str());
+    return std::rename(from.c_str(), to.c_str()) == 0;
+}
+
+std::vector<std::string> SdFileStore::listFilesRecursive(const std::string& dir) const
+{
+    std::vector<std::string> out;
+
+    // Iterative with an explicit stack rather than recursion: a CFW pack is
+    // deep as well as wide, and this runs on a console where the stack is a
+    // fixed, modest allocation.
+    std::vector<std::string> pending{""};
+
+    while (!pending.empty()) {
+        const std::string relative = pending.back();
+        pending.pop_back();
+
+        const std::string absolute = relative.empty() ? dir : dir + "/" + relative;
+        DIR* handle = ::opendir(absolute.c_str());
+        if (handle == nullptr) {
+            continue;
+        }
+
+        while (const dirent* entry = ::readdir(handle)) {
+            const std::string name = entry->d_name;
+            if (name == "." || name == "..") {
+                continue;
+            }
+
+            const std::string childRelative = relative.empty() ? name : relative + "/" + name;
+            const std::string childAbsolute = absolute + "/" + name;
+
+            // d_type is not filled in by every devoptab, so stat decides.
+            struct stat st
+            {
+            };
+
+            if (::stat(childAbsolute.c_str(), &st) != 0) {
+                continue;
+            }
+            if (S_ISDIR(st.st_mode)) {
+                pending.push_back(childRelative);
+            }
+            else {
+                out.push_back(childRelative);
+            }
+        }
+
+        ::closedir(handle);
+    }
+
+    return out;
+}
+
+bool SdFileStore::removeTree(const std::string& dir)
+{
+    for (const std::string& relative : listFilesRecursive(dir)) {
+        std::remove((dir + "/" + relative).c_str());
+    }
+
+    // Directories, deepest first: rmdir only removes an empty one. Sorting by
+    // descending length puts every child ahead of its parent without needing a
+    // second traversal.
+    std::vector<std::string> directories;
+    std::vector<std::string> pending{""};
+
+    while (!pending.empty()) {
+        const std::string relative = pending.back();
+        pending.pop_back();
+
+        const std::string absolute = relative.empty() ? dir : dir + "/" + relative;
+        DIR* handle = ::opendir(absolute.c_str());
+        if (handle == nullptr) {
+            continue;
+        }
+        while (const dirent* entry = ::readdir(handle)) {
+            const std::string name = entry->d_name;
+            if (name == "." || name == "..") {
+                continue;
+            }
+            const std::string childRelative = relative.empty() ? name : relative + "/" + name;
+
+            struct stat st
+            {
+            };
+
+            if (::stat((absolute + "/" + name).c_str(), &st) == 0 && S_ISDIR(st.st_mode)) {
+                pending.push_back(childRelative);
+                directories.push_back(childRelative);
+            }
+        }
+        ::closedir(handle);
+    }
+
+    std::sort(directories.begin(), directories.end(),
+              [](const std::string& a, const std::string& b) { return a.size() > b.size(); });
+    for (const std::string& relative : directories) {
+        ::rmdir((dir + "/" + relative).c_str());
+    }
+    ::rmdir(dir.c_str());
+
+    struct stat st
+    {
+    };
+
+    return ::stat(dir.c_str(), &st) != 0;
 }
 
 }  // namespace nsx::domain
