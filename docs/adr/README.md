@@ -28,6 +28,7 @@ and add your row to the table below in the same pull request.
 | [0014](0014-split-pure-logic-into-a-host-testable-core-library.md) | Split pure logic into a host-testable core library | accepted | 2026-09-23 |
 | [0015](0015-build-and-verify-inside-a-container.md) | Build and verify inside a container | accepted | 2026-09-23 |
 | [0016](0016-verify-tls-against-the-firmware-trust-store.md) | Verify TLS against the firmware trust store | accepted | 2026-09-23 |
+| [0017](0017-drive-the-update-flow-through-ports-so-it-is-host-testable.md) | Drive the update flow through ports so it is host-testable | accepted | 2026-09-24 |
 
 ## Reading order
 
