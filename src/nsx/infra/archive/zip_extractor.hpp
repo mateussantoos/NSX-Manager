@@ -9,28 +9,9 @@
 
 #include "nsx/core/paths/extraction_policy.hpp"
 #include "nsx/core/result/result.hpp"
+#include "nsx/infra/archive/archive_error.hpp"
 
 namespace nsx::infra {
-
-/// @brief Why an extraction stopped.
-/// @since 0.3.0
-enum class ArchiveError
-{
-    CannotOpen,       ///< Not readable, or not a zip.
-    Empty,            ///< No entries at all.
-    UnsafeEntry,      ///< An entry name was refused; see @ref ExtractionReport::rejected.
-    TooLarge,         ///< Declared uncompressed size exceeds the caller's ceiling.
-    DirectoryFailed,  ///< Could not create a destination directory.
-    WriteFailed,      ///< Could not write a file.
-    ReadFailed,       ///< Could not decompress an entry.
-    Aborted           ///< Cancelled by the caller.
-};
-
-/// @brief A short English description of an extraction failure.
-/// @param error The error to describe.
-/// @return A description suitable for a log line.
-/// @since 0.3.0
-[[nodiscard]] std::string_view describe(ArchiveError error);
 
 /// @brief Progress through an archive.
 /// @since 0.3.0
@@ -56,7 +37,7 @@ struct ExtractionReport
     std::uint64_t bytesWritten{};      ///< Total uncompressed bytes written.
 
     /// @brief Entry names the policy refused, with the reason.
-    /// @details Populated on an @ref ArchiveError::UnsafeEntry failure so the
+    /// @details Populated on an `ArchiveError::UnsafeEntry` failure so the
     ///          log can name what was wrong rather than only that something was.
     std::vector<std::string> rejected;
 };

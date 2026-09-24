@@ -13,6 +13,7 @@
 # vocabulary the UI renders is available to a host test.
 set(NSX_INFRA_HOST_SOURCES
     http/tls_config.cpp
+    archive/archive_error.cpp
 )
 
 # Needs libcurl, zipper and the generated CA bundle header.
