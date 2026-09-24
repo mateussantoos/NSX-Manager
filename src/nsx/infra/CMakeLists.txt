@@ -15,9 +15,10 @@ set(NSX_INFRA_HOST_SOURCES
     http/tls_config.cpp
 )
 
-# Needs libcurl and the generated CA bundle header.
+# Needs libcurl, zipper and the generated CA bundle header.
 set(NSX_INFRA_DEVICE_SOURCES
     http/curl_client.cpp
+    archive/zip_extractor.cpp
 )
 
 set(NSX_INFRA_SOURCES ${NSX_INFRA_HOST_SOURCES} ${NSX_INFRA_DEVICE_SOURCES})
