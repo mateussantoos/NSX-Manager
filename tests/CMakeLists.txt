@@ -16,12 +16,12 @@ endif()
 # parallelise. Uncomment as each module lands.
 set(NSX_TEST_MODULES
     semver
-    # update_policy
-    # manifest
+    update_policy
+    manifest
     # handoff
     # sd_paths
     # traversal_guard
-    # sha256
+    sha256
     # text_format
     # json_safe_get
     # mega_link

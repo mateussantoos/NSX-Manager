@@ -33,6 +33,12 @@ set(NSX_SOURCE_ROOT  "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(NSX_GENERATED_DIR "${CMAKE_BINARY_DIR}/generated")
 set(NSX_ROMFS_DIR     "${CMAKE_BINARY_DIR}/romfs")
 
+# nx_create_nro() validates the romfs directory at CONFIGURE time, but its
+# contents are staged at BUILD time by nsx_romfs. Create it here so a clean
+# build directory configures - otherwise the first configure after `rm -rf
+# build/` fails with "cannot find romfs dir", which points nowhere useful.
+file(MAKE_DIRECTORY "${NSX_ROMFS_DIR}")
+
 include(NsxLayer)
 include(CTest)
 
@@ -67,7 +73,7 @@ endif()
 # --------------------------------------------------------------------------
 add_subdirectory(third_party)
 add_subdirectory(src/nsx/core)
-nsx_add_layer(core SOURCES ${NSX_CORE_SOURCES})
+nsx_add_layer(core SOURCES ${NSX_CORE_SOURCES} DEPENDS nsx::json)
 
 if(NSX_BUILD_APP)
     include(NsxPortlibs)
