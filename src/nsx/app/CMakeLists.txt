@@ -3,10 +3,12 @@
 # SPDX-License-Identifier: GPL-3.0-only
 
 set(NSX_APP_SOURCES
-    # main.cpp
+    main.cpp
     # bootstrap.cpp
     # container.cpp
 )
+
+list(TRANSFORM NSX_APP_SOURCES PREPEND "${CMAKE_CURRENT_LIST_DIR}/")
 
 if(NOT NSX_APP_SOURCES)
     message(STATUS "nsx-manager.nro: no sources yet - target skipped")
@@ -14,8 +16,25 @@ if(NOT NSX_APP_SOURCES)
 endif()
 
 add_executable(nsx-manager ${NSX_APP_SOURCES})
-target_link_libraries(nsx-manager PRIVATE nsx::ui nsx::domain nsx::infra nsx::platform nsx::core)
+
+# Link the layers that actually exist. nsx_add_layer() skips a layer with no
+# sources, so naming ui/domain/platform unconditionally would fail the
+# configure until every one of them has landed - and the point of the
+# composition root is to grow one layer at a time.
+set(NSX_APP_LIBS nsx::core)
+foreach(layer platform infra domain ui)
+    if(TARGET nsx_${layer})
+        list(APPEND NSX_APP_LIBS nsx::${layer})
+    endif()
+endforeach()
+
+target_link_libraries(nsx-manager PRIVATE ${NSX_APP_LIBS})
 target_include_directories(nsx-manager PRIVATE "${NSX_SOURCE_ROOT}" "${NSX_GENERATED_DIR}")
+
+# The CA bundle header is generated, so the app must wait for it.
+if(TARGET nsx_ca_bundle)
+    add_dependencies(nsx-manager nsx_ca_bundle)
+endif()
 
 nx_generate_nacp(nsx-manager.nacp
     NAME    "NSX Manager"
@@ -27,4 +46,6 @@ nx_create_nro(nsx-manager
     ICON  "${CMAKE_SOURCE_DIR}/assets/icon.jpg"
     ROMFS "${NSX_ROMFS_DIR}")
 
-add_dependencies(nsx-manager nsx_romfs)
+if(TARGET nsx_romfs)
+    add_dependencies(nsx-manager nsx_romfs)
+endif()

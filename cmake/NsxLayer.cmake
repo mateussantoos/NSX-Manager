@@ -28,8 +28,22 @@ function(nsx_add_layer NAME)
 
     target_compile_features(nsx_${NAME} PUBLIC cxx_std_20)
 
-    if(ARG_DEPENDS)
-        target_link_libraries(nsx_${NAME} PUBLIC ${ARG_DEPENDS})
+    # Drop nsx_* dependencies whose target does not exist yet. A layer with no
+    # sources is skipped by this same function, and CMake would otherwise pass
+    # the unknown name straight to the linker as `-lnsx_platform` - which fails
+    # with "cannot find -lnsx_platform" rather than anything that points at the
+    # real cause. Layers land one at a time; the build should tolerate that.
+    set(RESOLVED_DEPS "")
+    foreach(dep IN LISTS ARG_DEPENDS)
+        if(dep MATCHES "^nsx_" AND NOT TARGET ${dep})
+            message(STATUS "nsx_${NAME}: skipping ${dep} - not built yet")
+        else()
+            list(APPEND RESOLVED_DEPS ${dep})
+        endif()
+    endforeach()
+
+    if(RESOLVED_DEPS)
+        target_link_libraries(nsx_${NAME} PUBLIC ${RESOLVED_DEPS})
     endif()
     if(ARG_DEFINES)
         target_compile_definitions(nsx_${NAME} PUBLIC ${ARG_DEFINES})

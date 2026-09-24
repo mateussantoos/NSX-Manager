@@ -10,10 +10,12 @@
 # SPDX-License-Identifier: GPL-3.0-only
 
 set(NSX_FORWARDER_SOURCES
-    # src/main.cpp
+    src/main.cpp
     # src/swap.cpp
     # src/recovery.cpp
 )
+
+list(TRANSFORM NSX_FORWARDER_SOURCES PREPEND "${CMAKE_CURRENT_LIST_DIR}/")
 
 if(NOT NSX_FORWARDER_SOURCES)
     message(STATUS "nsx-forwarder.nro: no sources yet - target skipped")
