@@ -29,6 +29,10 @@ std::string_view describe(HttpError error)
             return "rate limited by the server";
         case HttpError::TooLarge:
             return "the response was larger than allowed";
+        case HttpError::SizeMismatch:
+            return "the download was the wrong size";
+        case HttpError::DigestMismatch:
+            return "the download did not match its expected digest";
         case HttpError::WriteFailed:
             return "could not write to the SD card";
         case HttpError::Aborted:
@@ -59,6 +63,9 @@ std::string_view advise(HttpError error)
         case HttpError::TooLarge:
         case HttpError::WriteFailed:
             return "Free some space on your SD card and try again.";
+        case HttpError::SizeMismatch:
+        case HttpError::DigestMismatch:
+            return "The download was corrupted or altered, so it was discarded.";
         case HttpError::ConnectFailed:
         case HttpError::Timeout:
         case HttpError::HttpStatus:

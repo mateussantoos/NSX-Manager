@@ -22,6 +22,8 @@ enum class HttpError
     HttpStatus,       ///< A 4xx or 5xx response.
     RateLimited,      ///< 403 or 429; back off and serve the cache.
     TooLarge,         ///< Exceeded the caller's size limit.
+    SizeMismatch,     ///< Byte count did not match the manifest.
+    DigestMismatch,   ///< SHA-256 did not match the manifest.
     WriteFailed,      ///< Could not write the destination file.
     Aborted,          ///< Cancelled by the caller.
     Internal

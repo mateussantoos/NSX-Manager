@@ -6,6 +6,7 @@
 
 set(NSX_INFRA_SOURCES
     http/tls_config.cpp
+    http/curl_client.cpp
 )
 
 list(TRANSFORM NSX_INFRA_SOURCES PREPEND "${CMAKE_CURRENT_LIST_DIR}/")
