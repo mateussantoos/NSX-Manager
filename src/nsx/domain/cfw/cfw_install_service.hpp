@@ -107,11 +107,10 @@ enum class InstallResult
 /// @since 0.3.0
 enum class InstallStage
 {
-    Preflight,
-    Downloading,
-    Extracting,
-    Merging,
-    Cleaning
+    Preflight,    ///< Checking space and clearing leftovers.
+    Downloading,  ///< Fetching the package.
+    Extracting,   ///< Expanding it into staging.
+    Merging       ///< Moving it into place.
 };
 
 /// @brief Progress through an install.
