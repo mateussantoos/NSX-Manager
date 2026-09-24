@@ -1,0 +1,25 @@
+{
+    "name": "NSX Manager",
+    "repair_name": "NSX Manager (Repair)",
+    "tagline": "Custom firmware and homebrew, managed on the console",
+
+    "actions": {
+        "ok": "OK",
+        "cancel": "Cancel",
+        "close": "Close",
+        "retry": "Retry",
+        "continue": "Continue"
+    },
+
+    "state": {
+        "loading": "Loading...",
+        "unavailable": "Unavailable",
+        "no_network": "No internet connection"
+    },
+
+    "about": {
+        "version": "Version {}",
+        "built": "Built {} from {}",
+        "licence": "Released under the GNU General Public License v3.0"
+    }
+}

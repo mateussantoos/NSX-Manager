@@ -1,0 +1,48 @@
+{
+    "title": "Update",
+    "checking": "Checking for updates...",
+
+    "decision": {
+        "up_to_date": "You are on the latest version",
+        "optional": "Version {} is available",
+        "mandatory": "Version {} is required",
+        "unsupported_path": "This version is too old to update itself. Reinstall from the release zip.",
+        "wrong_channel": "The published release is for a different update channel",
+        "unreadable": "Could not check for updates"
+    },
+
+    "cache": {
+        "age": "Last checked {} ago",
+        "stale": "Showing the last known release",
+        "retry_after": "Retrying in {}"
+    },
+
+    "prompt": {
+        "install": "Install version {} now?",
+        "declined": "Not installed",
+        "mandatory_note": "This update is required before you can continue."
+    },
+
+    "progress": {
+        "downloading": "Downloading {}",
+        "percent": "{}%",
+        "verifying": "Verifying...",
+        "staged": "Ready to install. Restarting...",
+        "cancel_hint": "Press B to cancel"
+    },
+
+    "failure": {
+        "no_app_asset": "This release contains no application binary",
+        "insufficient_space": "Not enough free space: {} needed, {} available",
+        "download_failed": "The download failed",
+        "verify_failed": "The download did not verify. Your current version is untouched.",
+        "forwarder_unavailable": "The repair binary is missing and could not be restored",
+        "write_failed": "The update could not be recorded",
+        "untouched": "Your current version is untouched"
+    },
+
+    "advice": {
+        "set_clock": "Set your console's date and time, then try again",
+        "check_network": "Check your internet connection, then try again"
+    }
+}
