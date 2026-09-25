@@ -1,8 +1,0 @@
-[submodule "third_party/borealis"]
-	path = third_party/borealis
-	url = https://github.com/HamletDuFromage/borealis.git
-	shallow = true
-[submodule "third_party/zipper"]
-	path = third_party/zipper
-	url = https://github.com/HamletDuFromage/zipper.git
-	shallow = true
