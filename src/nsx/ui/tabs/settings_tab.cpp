@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "nsx/core/version/version.hpp"
+#include "nsx/ui/widgets/linear_list_item.hpp"
 
 namespace nsx::ui {
 
@@ -25,21 +26,21 @@ void SettingsTab::setupAboutSection()
 {
     addView(new brls::Header("settings/about/header"_i18n));
 
-    auto* version = new brls::ListItem("settings/about/version"_i18n);
-    version->setValue(std::string(core::version::kString));
+    auto* version =
+        new LinearListItem("settings/about/version"_i18n, std::string(core::version::kString));
     addView(version);
 
-    auto* build = new brls::ListItem("settings/about/commit"_i18n);
-    build->setValue(std::string(core::version::kGitSha));
+    auto* build =
+        new LinearListItem("settings/about/commit"_i18n, std::string(core::version::kGitSha));
     addView(build);
 
-    auto* built = new brls::ListItem("settings/about/date"_i18n);
-    built->setValue(std::string(core::version::kBuildDate));
+    auto* built =
+        new LinearListItem("settings/about/date"_i18n, std::string(core::version::kBuildDate));
     addView(built);
 
-    auto* toolchain = new brls::ListItem("settings/about/toolchain"_i18n);
+    auto* toolchain = new LinearListItem("settings/about/toolchain"_i18n);
 #if defined(__SWITCH__)
-    toolchain->setValue("devkitA64 (GCC " __VERSION__ ") / libnx");
+    toolchain->setValue("devkitA64 / libnx");
 #else
     toolchain->setValue("Host Toolchain (Clang/GCC)");
 #endif
@@ -54,8 +55,7 @@ void SettingsTab::setupNetworkSection()
 
     // Update Channel Toggle (Stable vs Preview/Beta)
     const bool isPreview = (m_update.config().channel == core::Channel::Beta);
-    auto* channelToggle = new brls::ToggleListItem("settings/network/preview_channel"_i18n,
-                                                   isPreview, "settings/network/preview_desc"_i18n);
+    auto* channelToggle = new LinearToggleItem("settings/network/preview_channel"_i18n, isPreview);
 
     channelToggle->getClickEvent()->subscribe([this, channelToggle](brls::View*) {
         const bool enabled = channelToggle->getToggleState();
@@ -64,8 +64,7 @@ void SettingsTab::setupNetworkSection()
     addView(channelToggle);
 
     // Alternative Mirror Toggle
-    auto* mirrorToggle = new brls::ToggleListItem("settings/network/mirror_raw"_i18n, false,
-                                                  "settings/network/mirror_raw_desc"_i18n);
+    auto* mirrorToggle = new LinearToggleItem("settings/network/mirror_raw"_i18n, false);
 
     mirrorToggle->getClickEvent()->subscribe([this, mirrorToggle](brls::View*) {
         const bool prefer = mirrorToggle->getToggleState();
@@ -79,13 +78,11 @@ void SettingsTab::setupPreferencesSection()
 {
     addView(new brls::Header("settings/preferences/header"_i18n));
 
-    m_langItem = new brls::ListItem("settings/preferences/language"_i18n);
-    m_langItem->setValue("settings/preferences/language_current"_i18n);
+    m_langItem = new LinearListItem("settings/preferences/language"_i18n,
+                                    "settings/preferences/language_current"_i18n);
 
     m_langItem->getClickEvent()->subscribe([this](brls::View*) { toggleLanguage(); });
     addView(m_langItem);
-    addView(new brls::Label(brls::LabelStyle::DESCRIPTION,
-                            "settings/preferences/language_desc"_i18n, true));
 }
 
 void SettingsTab::toggleLanguage()
@@ -124,11 +121,9 @@ void SettingsTab::setupLegalSection()
 {
     addView(new brls::Header("settings/legal/header"_i18n));
 
-    auto* noticesItem = new brls::ListItem("settings/legal/view_notices"_i18n);
+    auto* noticesItem = new LinearListItem("settings/legal/view_notices"_i18n, "Ver / View");
     noticesItem->getClickEvent()->subscribe([this](brls::View*) { showNoticesDialog(); });
     addView(noticesItem);
-    addView(new brls::Label(brls::LabelStyle::DESCRIPTION, "settings/legal/view_notices_desc"_i18n,
-                            true));
 }
 
 void SettingsTab::showNoticesDialog()

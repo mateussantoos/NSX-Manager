@@ -50,7 +50,7 @@ struct ShellServices
     domain::SysmoduleService& sysmodules;       ///< Sysmodule manager.
     domain::TelemetryService& telemetry;        ///< Telemetry protection checker.
     domain::FileStore& files;                   ///< FileStore for storage queries.
-    SystemVersionsQuery querySystemVersions{};  ///< Horizon OS & Atmosphere version query.
+    SystemOverviewQuery querySystemOverview{};  ///< System information query for dashboard.
     FixArchiveBitCallback fixArchiveBit{};      ///< Platform archive bit repair.
     RebootCallback rebootToPayload{};           ///< Platform reboot to payload.
 };

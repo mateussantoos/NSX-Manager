@@ -102,9 +102,16 @@ int main(int argc, char** argv)
 
     auto rebootToPayload = []() -> bool { return nsx::platform::rebootToPayload().hasValue(); };
 
-    auto querySystemVersions = []() -> std::pair<std::string, std::string> {
-        const auto versions = nsx::platform::querySystemVersions();
-        return {versions.hosVersion, versions.amsVersion};
+    auto querySystemOverview = []() -> nsx::ui::SystemOverview {
+        const auto info = nsx::platform::querySystemInfo();
+        return {
+            .model = info.model,
+            .hosVersion = info.hosVersion,
+            .amsVersion = info.amsVersion,
+            .nandType = info.nandType,
+            .fsType = info.fsType,
+            .isExFAT = info.isExFAT,
+        };
     };
 
     // First run has no forwarder on the card, and staging an update refuses
@@ -125,7 +132,7 @@ int main(int argc, char** argv)
 
     const nsx::ui::ShellServices services{update,        catalog,        cfw,
                                           firmware,      cleanup,        sysmodules,
-                                          telemetry,     files,          querySystemVersions,
+                                          telemetry,     files,          querySystemOverview,
                                           fixArchiveBit, rebootToPayload};
     const nsx::ui::ShellOutcome outcome = nsx::ui::runShell(services);
 

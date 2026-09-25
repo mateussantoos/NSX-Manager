@@ -6,20 +6,58 @@
 
 #ifdef __SWITCH__
 #include <switch.h>
+#include <unistd.h>
+
+extern "C" {
+int fileno(FILE* stream);
+int ftruncate(int fd, off_t length);
+}
 #endif
 
 namespace nsx::platform {
 
-SystemVersions querySystemVersions()
+SystemInfo querySystemInfo()
 {
-    SystemVersions versions{"Unknown", "Not detected"};
+    SystemInfo info;
+    info.model = "Nintendo Switch";
+    info.hosVersion = "Unknown";
+    info.amsVersion = "Not detected";
+    info.nandType = "SysNAND";
+    info.fsType = "FAT32";
+    info.isExFAT = false;
 
 #ifdef __SWITCH__
-    // 1. Current Horizon OS Firmware version
+    // 1. Detect Switch Model
+    SetSysProductModel model = SetSysProductModel_Invalid;
+    if (R_SUCCEEDED(setsysGetProductModel(&model))) {
+        switch (model) {
+            case SetSysProductModel_Aula:
+                info.model = "Switch OLED";
+                break;
+            case SetSysProductModel_Hoag:
+                info.model = "Switch Lite";
+                break;
+            case SetSysProductModel_Iowa:
+                info.model = "Switch V2";
+                break;
+            case SetSysProductModel_Nx:
+                info.model = "Switch V1";
+                break;
+            case SetSysProductModel_Copper:
+            case SetSysProductModel_Calcio:
+                info.model = "Switch DevKit";
+                break;
+            default:
+                info.model = "Nintendo Switch";
+                break;
+        }
+    }
+
+    // 2. Horizon OS Firmware version
     SetSysFirmwareVersion fw{};
     if (R_SUCCEEDED(setsysGetFirmwareVersion(&fw))) {
         fw.display_version[sizeof(fw.display_version) - 1] = '\0';
-        versions.hosVersion = fw.display_version;
+        info.hosVersion = fw.display_version;
     }
     else {
         const u32 hos = hosversionGet();
@@ -27,11 +65,11 @@ SystemVersions querySystemVersions()
             char buf[32];
             std::snprintf(buf, sizeof(buf), "%u.%u.%u", HOSVER_MAJOR(hos), HOSVER_MINOR(hos),
                           HOSVER_MICRO(hos));
-            versions.hosVersion = buf;
+            info.hosVersion = buf;
         }
     }
 
-    // 2. Detected Atmosphere CFW version
+    // 3. Atmosphere CFW version & NAND detection
     if (hosversionIsAtmosphere()) {
         if (R_SUCCEEDED(splInitialize())) {
             u64 amsVer = 0;
@@ -43,14 +81,30 @@ SystemVersions querySystemVersions()
                 const auto micro = static_cast<unsigned>((amsVer >> 40) & 0xFF);
                 char buf[32];
                 std::snprintf(buf, sizeof(buf), "%u.%u.%u", major, minor, micro);
-                versions.amsVersion = buf;
+                info.amsVersion = buf;
+            }
+
+            u64 emummc = 0;
+            if (R_SUCCEEDED(splGetConfig(static_cast<SplConfigItem>(65007), &emummc))) {
+                if (emummc == 1) {
+                    info.nandType = "EmuNAND (Partition)";
+                }
+                else if (emummc == 2) {
+                    info.nandType = "EmuNAND (File)";
+                }
+                else if (emummc > 0) {
+                    info.nandType = "EmuNAND";
+                }
+                else {
+                    info.nandType = "SysNAND";
+                }
             }
 #pragma GCC diagnostic pop
             splExit();
         }
 
-        if (versions.amsVersion == "Not detected") {
-            versions.amsVersion = "Atmosphere (Active)";
+        if (info.amsVersion == "Not detected") {
+            info.amsVersion = "Atmosphere (Active)";
         }
     }
     else {
@@ -61,15 +115,37 @@ SystemVersions querySystemVersions()
         }
         if (f) {
             std::fclose(f);
-            versions.amsVersion = "Atmosphere (Active)";
+            info.amsVersion = "Atmosphere (Active)";
+        }
+    }
+
+    // 4. SD Card Filesystem Detection (FAT32 vs exFAT)
+    const char* testPath = "/.__fstest_nsx.tmp";
+    std::FILE* fp = std::fopen(testPath, "wb");
+    if (fp) {
+        int fd = fileno(fp);
+        int res = ftruncate(fd, 0x100000001ULL);
+        std::fclose(fp);
+        std::remove(testPath);
+        if (res == 0) {
+            info.isExFAT = true;
+            info.fsType = "exFAT";
+        }
+        else {
+            info.isExFAT = false;
+            info.fsType = "FAT32";
         }
     }
 #else
-    versions.hosVersion = "Host Environment";
-    versions.amsVersion = "Atmosphere (Emulated)";
+    info.model = "Switch OLED (Emulated)";
+    info.hosVersion = "Emulated";
+    info.amsVersion = "Atmosphere (Emulated)";
+    info.nandType = "EmuNAND (Partition)";
+    info.fsType = "FAT32";
+    info.isExFAT = false;
 #endif
 
-    return versions;
+    return info;
 }
 
 }  // namespace nsx::platform

@@ -110,8 +110,28 @@ ShellOutcome runShell(const ShellServices& services)
                                       brls::Application::quit();
                                   });
 
-    root->addTab("nsx/tabs/home"_i18n, new HomeTab(services.update, services.telemetry,
-                                                   services.files, services.querySystemVersions));
+    auto onSelectTab = [root](int tabIndex) {
+        if (!root || !root->sidebar) {
+            return;
+        }
+        int currentItemIndex = 0;
+        for (size_t i = 0; i < root->sidebar->getViewsCount(); ++i) {
+            brls::View* child = root->sidebar->getChild(i);
+            auto* item = dynamic_cast<brls::SidebarItem*>(child);
+            if (item) {
+                if (currentItemIndex == tabIndex) {
+                    brls::Application::giveFocus(item);
+                    item->onClick();
+                    break;
+                }
+                currentItemIndex++;
+            }
+        }
+    };
+
+    root->addTab("nsx/tabs/home"_i18n,
+                 new HomeTab(services.update, services.telemetry, services.files,
+                             services.querySystemOverview, onSelectTab));
     root->addSeparator();
     root->addTab("update/title"_i18n, updates);
     root->addTab("nsx/tabs/cfw"_i18n, new CfwTab(services.catalog, services.cfw));

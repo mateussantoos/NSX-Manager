@@ -5,6 +5,8 @@
 #include <utility>
 #include <vector>
 
+#include "nsx/ui/widgets/linear_list_item.hpp"
+
 namespace nsx::ui {
 
 using namespace brls::i18n::literals;
@@ -69,8 +71,8 @@ void ToolsTab::setupTelemetrySection()
 {
     addView(new brls::Header("tools/telemetry/header"_i18n));
 
-    m_telemetryItem = new brls::ListItem("tools/telemetry/label"_i18n);
-    m_telemetryItem->setValue("tools/telemetry/checking"_i18n);
+    m_telemetryItem =
+        new LinearListItem("tools/telemetry/label"_i18n, "tools/telemetry/checking"_i18n);
 
     m_telemetryItem->getClickEvent()->subscribe([this](brls::View*) {
         if (!m_telemetryJob.running()) {
@@ -136,8 +138,8 @@ void ToolsTab::setupMaintenanceSection()
     addView(new brls::Header("tools/maintenance/header"_i18n));
 
     // 1. Fix Archive Bit
-    auto* fixItem = new brls::ListItem("tools/maintenance/archive_bit_label"_i18n);
-    fixItem->setValue("");
+    auto* fixItem =
+        new LinearListItem("tools/maintenance/archive_bit_label"_i18n, "Executar / Run");
     fixItem->getClickEvent()->subscribe([this](brls::View*) {
         if (m_archiveJob.running()) {
             return;
@@ -156,7 +158,8 @@ void ToolsTab::setupMaintenanceSection()
                             "tools/maintenance/archive_bit_desc"_i18n, true));
 
     // 2. Reboot to Payload / RCM
-    auto* rebootItem = new brls::ListItem("tools/maintenance/reboot_rcm_label"_i18n);
+    auto* rebootItem =
+        new LinearListItem("tools/maintenance/reboot_rcm_label"_i18n, "Reiniciar / Reboot");
     rebootItem->getClickEvent()->subscribe([this](brls::View*) {
         auto* dialog = new brls::Dialog("tools/maintenance/reboot_rcm_confirm"_i18n);
         dialog->addButton("nsx/actions/ok"_i18n, [this, dialog](brls::View*) {
@@ -171,7 +174,7 @@ void ToolsTab::setupMaintenanceSection()
                             true));
 
     // 3. Purge Staging Cache
-    auto* purgeItem = new brls::ListItem("tools/maintenance/cleanup_label"_i18n);
+    auto* purgeItem = new LinearListItem("tools/maintenance/cleanup_label"_i18n, "Limpar / Clean");
     purgeItem->getClickEvent()->subscribe([this](brls::View*) {
         if (m_archiveJob.running()) {
             return;
@@ -250,14 +253,7 @@ void ToolsTab::setupSysmodulesSection()
     }
 
     for (const auto& mod : modules) {
-        std::string desc = mod.description;
-        if (desc.empty()) {
-            desc = mod.titleId;
-        }
-
-        auto* toggle =
-            new brls::ToggleListItem(mod.name, mod.enabled, desc, "tools/sysmodules/enabled"_i18n,
-                                     "tools/sysmodules/disabled"_i18n);
+        auto* toggle = new LinearToggleItem(mod.name, mod.enabled);
 
         const std::string tid = mod.titleId;
         toggle->getClickEvent()->subscribe([this, tid, toggle](brls::View*) {
