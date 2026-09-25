@@ -24,7 +24,7 @@ fi
 BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 [ "$BRANCH" = "main" ] || { echo "ERROR: releases are cut from main, you are on '$BRANCH'" >&2; exit 1; }
 
-[ -z "$(git status --porcelain)" ] || { echo "ERROR: working tree is dirty" >&2; git status --short >&2; exit 1; }
+[ -z "$(git status --porcelain --ignore-submodules=dirty)" ] || { echo "ERROR: working tree is dirty" >&2; git status --short --ignore-submodules=dirty >&2; exit 1; }
 
 if git rev-parse "v$NEW" >/dev/null 2>&1; then
     echo "ERROR: tag v$NEW already exists. Versions are never reused." >&2
