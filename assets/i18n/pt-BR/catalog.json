@@ -1,0 +1,22 @@
+{
+    "fetching": "Buscando catálogo...",
+    "loaded": "Catálogo carregado",
+    "empty": "Nenhum item disponível",
+    "unavailable": "Catálogo indisponível",
+    "fetch_failed": "Não foi possível buscar o catálogo",
+    "no_cfw": "Nenhum pacote de CFW listado no catálogo",
+    "no_firmware": "Nenhum pacote de firmware listado no catálogo",
+    "confirm_install": "Baixar e instalar este pacote?",
+    "confirm_firmware": "Baixar este firmware e repassar para o Daybreak?",
+    "installing": "Instalando...",
+    "stage_preflight": "Preparando...",
+    "stage_downloading": "Baixando...",
+    "stage_clearing": "Limpando firmware anterior...",
+    "stage_extracting": "Extraindo arquivos...",
+    "stage_merging": "Instalando arquivos...",
+    "cancelling": "Cancelando...",
+    "install_success": "Instalação concluída com sucesso.",
+    "install_cancelled": "A instalação foi cancelada.",
+    "confirm_daybreak": "O firmware foi preparado e verificado. Iniciar o Daybreak agora para instalá-lo?",
+    "launch_daybreak": "Iniciar Daybreak"
+}

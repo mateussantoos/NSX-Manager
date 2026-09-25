@@ -1,0 +1,22 @@
+{
+    "fetching": "Fetching catalogue...",
+    "loaded": "Catalogue loaded",
+    "empty": "No items available",
+    "unavailable": "Catalogue unavailable",
+    "fetch_failed": "Could not fetch the catalogue",
+    "no_cfw": "No CFW packs listed in the catalogue",
+    "no_firmware": "No firmware sets listed in the catalogue",
+    "confirm_install": "Download and install this pack?",
+    "confirm_firmware": "Download this firmware set and hand off to Daybreak?",
+    "installing": "Installing...",
+    "stage_preflight": "Preparing...",
+    "stage_downloading": "Downloading...",
+    "stage_clearing": "Clearing previous firmware...",
+    "stage_extracting": "Extracting files...",
+    "stage_merging": "Installing files...",
+    "cancelling": "Cancelling...",
+    "install_success": "Installation completed successfully.",
+    "install_cancelled": "Installation was cancelled.",
+    "confirm_daybreak": "Firmware is staged and verified. Launch Daybreak now to install it?",
+    "launch_daybreak": "Launch Daybreak"
+}

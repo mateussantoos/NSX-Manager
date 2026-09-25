@@ -257,9 +257,23 @@ TEST_CASE("THE INVARIANT: anything resolveUnder accepts lands inside the root")
     // every name in this file - the hostile ones included, since those must
     // either be refused or land inside, and never anything else.
     for (const char* entry : {
-             "ordinary.txt", "a/b/c.txt", "dir/", "unicode/ação.txt", "../evil", "../../evil",
-             "a/../evil", "/absolute/evil", "sdmc:/evil", "a\\b", "a//b", "./a", "foo.", "..",
-             "", "a/./b", "atmosphere/../../bootloader/x",
+             "ordinary.txt",
+             "a/b/c.txt",
+             "dir/",
+             "unicode/ação.txt",
+             "../evil",
+             "../../evil",
+             "a/../evil",
+             "/absolute/evil",
+             "sdmc:/evil",
+             "a\\b",
+             "a//b",
+             "./a",
+             "foo.",
+             "..",
+             "",
+             "a/./b",
+             "atmosphere/../../bootloader/x",
          }) {
         CAPTURE(entry);
         const Result<std::string, PathError> r = resolveUnder(kRoot, entry);
@@ -330,9 +344,8 @@ TEST_CASE("fuzz: nothing accepted can escape, and nothing accepted holds a paren
     // The alphabet is entirely made of the pieces that matter - separators,
     // dots, volume markers, NUL, control bytes - so a random string from it is
     // far more likely to be an attack than a random string from ASCII.
-    static constexpr char kAlphabet[] = {'a', 'b', '/', '/', '.', '.', '.',
-                                         '\\', ':', ' ', '\0', '\n',
-                                         '\x1b', '-'};
+    static constexpr char kAlphabet[] = {'a',  'b', '/', '/',  '.',  '.',    '.',
+                                         '\\', ':', ' ', '\0', '\n', '\x1b', '-'};
     constexpr std::size_t kAlphabetSize = sizeof(kAlphabet);
 
     std::uint64_t state = 0x9E3779B97F4A7C15ULL;
@@ -397,12 +410,11 @@ TEST_CASE("fuzz: nothing accepted can escape, and nothing accepted holds a paren
 
 TEST_CASE("every path error has a description")
 {
-    for (const PathError e : {PathError::Empty, PathError::AbsolutePath, PathError::VolumePrefix,
-                              PathError::ParentTraversal, PathError::BackslashSeparator,
-                              PathError::NullByte, PathError::ControlCharacter,
-                              PathError::EmptyComponent, PathError::DotComponent,
-                              PathError::TrailingDotOrSpace, PathError::ComponentTooLong,
-                              PathError::PathTooLong}) {
+    for (const PathError e :
+         {PathError::Empty, PathError::AbsolutePath, PathError::VolumePrefix,
+          PathError::ParentTraversal, PathError::BackslashSeparator, PathError::NullByte,
+          PathError::ControlCharacter, PathError::EmptyComponent, PathError::DotComponent,
+          PathError::TrailingDotOrSpace, PathError::ComponentTooLong, PathError::PathTooLong}) {
         CHECK_FALSE(describe(e).empty());
         CHECK(describe(e) != "unknown path error");
     }

@@ -9,14 +9,14 @@
 // boot. So most of what follows is about what happens BEFORE anything is
 // deleted.
 
-#include "nsx/domain/firmware/firmware_install_service.hpp"
-
 #include <iterator>
 #include <map>
 #include <set>
 #include <string>
 
 #include <doctest.h>
+
+#include "nsx/domain/firmware/firmware_install_service.hpp"
 
 using namespace nsx::domain;
 namespace core = nsx::core;
@@ -70,8 +70,9 @@ public:
         const std::string& path) const override
     {
         const auto it = files.find(path);
-        return it == files.end() ? std::nullopt
-                                 : std::optional<core::Sha256::Digest>(core::Sha256::of(it->second));
+        return it == files.end()
+                   ? std::nullopt
+                   : std::optional<core::Sha256::Digest>(core::Sha256::of(it->second));
     }
 
     [[nodiscard]] std::optional<std::uint64_t> freeSpaceBytes(const std::string&) const override
@@ -91,8 +92,7 @@ public:
         return true;
     }
 
-    [[nodiscard]] std::vector<std::string> listFilesRecursive(
-        const std::string& dir) const override
+    [[nodiscard]] std::vector<std::string> listFilesRecursive(const std::string& dir) const override
     {
         const std::string prefix = dir.empty() || dir.back() == '/' ? dir : dir + "/";
         std::vector<std::string> out;
@@ -421,9 +421,8 @@ TEST_CASE("cancelling before the clear leaves the previous firmware in place")
     rig.withPreviousFirmware();
 
     FirmwareInstallService service = rig.service();
-    const FirmwareOutcome out = service.stage(rig.item, [](const FirmwareProgress& p) {
-        return p.stage != FirmwareStage::Clearing;
-    });
+    const FirmwareOutcome out = service.stage(
+        rig.item, [](const FirmwareProgress& p) { return p.stage != FirmwareStage::Clearing; });
 
     CHECK(isResult(out.result, FirmwareResult::Cancelled));
     CHECK(rig.at("/firmware/0100000000000800.nca") == "old-a");
@@ -510,12 +509,12 @@ TEST_CASE("inspect reports without changing anything")
 TEST_CASE("every firmware result has a description")
 {
     for (const FirmwareResult r :
-         {FirmwareResult::Ready, FirmwareResult::NotFirmwareItem,
-          FirmwareResult::InsufficientSpace, FirmwareResult::DownloadFailed,
-          FirmwareResult::VerifyFailed, FirmwareResult::UnsafeArchive,
-          FirmwareResult::ExtractFailed, FirmwareResult::DirectoryNotOurs,
-          FirmwareResult::ClearFailed, FirmwareResult::NotFirmwareContent,
-          FirmwareResult::DaybreakMissing, FirmwareResult::Cancelled}) {
+         {FirmwareResult::Ready, FirmwareResult::NotFirmwareItem, FirmwareResult::InsufficientSpace,
+          FirmwareResult::DownloadFailed, FirmwareResult::VerifyFailed,
+          FirmwareResult::UnsafeArchive, FirmwareResult::ExtractFailed,
+          FirmwareResult::DirectoryNotOurs, FirmwareResult::ClearFailed,
+          FirmwareResult::NotFirmwareContent, FirmwareResult::DaybreakMissing,
+          FirmwareResult::Cancelled}) {
         CHECK_FALSE(describe(r).empty());
         CHECK(describe(r) != "unknown");
     }

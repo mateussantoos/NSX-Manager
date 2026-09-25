@@ -26,8 +26,5 @@
         "cfw": "Pacotes CFW",
         "firmware": "Firmware",
         "system": "Sistema"
-    },
-    "pending": {
-        "catalog": "O instalador disso está pronto e testado, mas ainda não há nada que baixe o catálogo de pacotes disponíveis. Esta aba vai listá-los quando isso existir."
     }
 }

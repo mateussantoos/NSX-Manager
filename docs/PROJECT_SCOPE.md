@@ -45,16 +45,16 @@ menu.
 
 It manages:
 
-| Domain | What it does |
-|---|---|
-| CFW pack | Lists and installs releases of the NSX Pack custom firmware bundle |
-| Official firmware | Downloads Nintendo firmware sets and hands off to Daybreak for installation |
-| Itself | Checks GitHub Releases, verifies, and self-updates with rollback |
-| Saves | Backs up and restores save data; integrates with JKSV |
-| Cheats | Installs cheat databases into the Atmosphere contents directory |
-| Ports | Installs homebrew ports from a catalogue |
-| Translations and mods | Installs community translation and modification packs |
-| Maintenance tools | Reboot to payload, archive-bit repair, temp cleanup, sysmodule toggles, FTP server, DNS and network configuration, controller diagnostics, theme selection |
+| Domain                | What it does                                                                                                                                               |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CFW pack              | Lists and installs releases of the NSX Pack custom firmware bundle                                                                                         |
+| Official firmware     | Downloads Nintendo firmware sets and hands off to Daybreak for installation                                                                                |
+| Itself                | Checks GitHub Releases, verifies, and self-updates with rollback                                                                                           |
+| Saves                 | Backs up and restores save data; integrates with JKSV                                                                                                      |
+| Cheats                | Installs cheat databases into the Atmosphere contents directory                                                                                            |
+| Ports                 | Installs homebrew ports from a catalogue                                                                                                                   |
+| Translations and mods | Installs community translation and modification packs                                                                                                      |
+| Maintenance tools     | Reboot to payload, archive-bit repair, temp cleanup, sysmodule toggles, FTP server, DNS and network configuration, controller diagnostics, theme selection |
 
 **Audience:** users running the NSX Pack CFW distribution, predominantly Brazilian, on both
 Erista and Mariko consoles.
@@ -73,11 +73,11 @@ for licensing reasons ([section 16](#16-licensing)).
 
 The rewrite exists because three defects in the predecessor were structural, not incidental:
 
-| Defect in NSX Updater 4.2.1 | Evidence | Consequence |
-|---|---|---|
-| The self-update endpoint pointed at a repository that does not exist | `constants.hpp:11` set `GITHUB_USER = "NSX"`, producing `api.github.com/repos/NSX/nsx-updater`; the 404 was swallowed at `download.cpp:493-500` | **No user has ever received an update.** The feature looked present and was inert. |
-| Version comparison stripped every non-digit and compared the result as one integer | `main_frame.cpp:53-73` turned `"v4.2.1"` into `421` | `4.2.1-hotfix2` became `4212` and was offered as an "update" over `4.2.1` - a downgrade. A date-style tag overflowed `std::stoi`, throwing an uncaught `std::out_of_range`. |
-| TLS verification was disabled on every request, and unverified archives were extracted to the SD card root | `download.cpp:140-141`, `:198-199`, `:353-354`, `:472-473` set `CURLOPT_SSL_VERIFYPEER` and `CURLOPT_SSL_VERIFYHOST` to `0`; `utils.cpp:173` did `chdir("/")` before extracting | Any network attacker could replace the CFW pack, the firmware, or the application itself. The only check was a four-byte `PK\x03\x04` magic test. |
+| Defect in NSX Updater 4.2.1                                                                                | Evidence                                                                                                                                                                        | Consequence                                                                                                                                                                 |
+| ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| The self-update endpoint pointed at a repository that does not exist                                       | `constants.hpp:11` set `GITHUB_USER = "NSX"`, producing `api.github.com/repos/NSX/nsx-updater`; the 404 was swallowed at `download.cpp:493-500`                                 | **No user has ever received an update.** The feature looked present and was inert.                                                                                          |
+| Version comparison stripped every non-digit and compared the result as one integer                         | `main_frame.cpp:53-73` turned `"v4.2.1"` into `421`                                                                                                                             | `4.2.1-hotfix2` became `4212` and was offered as an "update" over `4.2.1` - a downgrade. A date-style tag overflowed `std::stoi`, throwing an uncaught `std::out_of_range`. |
+| TLS verification was disabled on every request, and unverified archives were extracted to the SD card root | `download.cpp:140-141`, `:198-199`, `:353-354`, `:472-473` set `CURLOPT_SSL_VERIFYPEER` and `CURLOPT_SSL_VERIFYHOST` to `0`; `utils.cpp:173` did `chdir("/")` before extracting | Any network attacker could replace the CFW pack, the firmware, or the application itself. The only check was a four-byte `PK\x03\x04` magic test.                           |
 
 Underneath those sat the shape that made them hard to see or fix: 38 `.cpp` files in one flat
 directory, an 822-line `utils.cpp` mixing networking, filesystem, UI dialogs and power
@@ -143,14 +143,14 @@ platform   thin libnx wrappers: fs, power, system, network, romfs, launch
 core       pure C++20. No libnx, no curl, no Borealis. Compiles on any host.
 ```
 
-| Layer | May depend on |
-|---|---|
-| `core` | the C++ standard library, and nothing else |
-| `platform` | `core` |
-| `infra` | `core`, `platform` |
-| `domain` | `core`, `infra` |
-| `ui` | `core`, `domain` |
-| `app` | everything |
+| Layer      | May depend on                              |
+| ---------- | ------------------------------------------ |
+| `core`     | the C++ standard library, and nothing else |
+| `platform` | `core`                                     |
+| `infra`    | `core`, `platform`                         |
+| `domain`   | `core`, `infra`                            |
+| `ui`       | `core`, `domain`                           |
+| `app`      | everything                                 |
 
 **Enforced by** [`tools/lint/check_layering.sh`](../tools/lint/check_layering.sh), which reads
 every `#include "nsx/..."` and fails on an upward or sideways edge. Compilers do not enforce
@@ -210,21 +210,21 @@ Full map: [`architecture/source-tree.md`](architecture/source-tree.md).
 
 ## 7. Naming conventions
 
-| Entity | Convention | Example |
-|---|---|---|
-| Directories | `snake_case`, singular | `src/nsx/core/update/` |
-| Files | `snake_case`, stem is the primary type in snake_case | `SemVer` -> `semver.hpp` / `semver.cpp` |
-| Namespaces | lowercase, `nsx::<layer>::<module>`; `detail` for private | `nsx::infra::http` |
-| Types (class, struct, enum, concept, alias) | `PascalCase` | `UpdateManifest`, `ContentKind` |
-| Enum constants | `PascalCase` | `UpdateAction::UpToDate` |
-| **Functions and methods** | **`camelCase`** | `parseSemVer()`, `createDownloadItems()` |
-| Locals and parameters | `camelCase` | `statusCode` |
-| Private and protected members | `m_camelCase` | `m_statusText` |
-| Constants and `constexpr` | `kPascalCase` | `kMaxFetchLinks` |
-| Macros | `UPPER_SNAKE_CASE` (avoid entirely) | `NSX_HANDOFF_PATH` |
-| Test files | `<module>_test.cpp` | `semver_test.cpp` |
-| i18n keys | `dotted.lower.case` | `update.progress.verifying` |
-| Branches | `<type>/<kebab-summary>[-#issue]` | `fix/tls-clock-skew-#42` |
+| Entity                                      | Convention                                                | Example                                  |
+| ------------------------------------------- | --------------------------------------------------------- | ---------------------------------------- |
+| Directories                                 | `snake_case`, singular                                    | `src/nsx/core/update/`                   |
+| Files                                       | `snake_case`, stem is the primary type in snake_case      | `SemVer` -> `semver.hpp` / `semver.cpp`  |
+| Namespaces                                  | lowercase, `nsx::<layer>::<module>`; `detail` for private | `nsx::infra::http`                       |
+| Types (class, struct, enum, concept, alias) | `PascalCase`                                              | `UpdateManifest`, `ContentKind`          |
+| Enum constants                              | `PascalCase`                                              | `UpdateAction::UpToDate`                 |
+| **Functions and methods**                   | **`camelCase`**                                           | `parseSemVer()`, `createDownloadItems()` |
+| Locals and parameters                       | `camelCase`                                               | `statusCode`                             |
+| Private and protected members               | `m_camelCase`                                             | `m_statusText`                           |
+| Constants and `constexpr`                   | `kPascalCase`                                             | `kMaxFetchLinks`                         |
+| Macros                                      | `UPPER_SNAKE_CASE` (avoid entirely)                       | `NSX_HANDOFF_PATH`                       |
+| Test files                                  | `<module>_test.cpp`                                       | `semver_test.cpp`                        |
+| i18n keys                                   | `dotted.lower.case`                                       | `update.progress.verifying`              |
+| Branches                                    | `<type>/<kebab-summary>[-#issue]`                         | `fix/tls-clock-skew-#42`                 |
 
 **Headers use `#pragma once`,** not include guards.
 
@@ -343,7 +343,7 @@ Install the hook with [`tools/hooks/install.sh`](../tools/hooks/install.sh).
   CMake option, not a long-lived branch.
 - Branch names: `<type>/<kebab-summary>[-#issue]`, using the commit type vocabulary.
 - **Squash-merge only.** `main` gets exactly one Conventional Commit per change, so
-  `git log --oneline main` *is* the changelog. This is why the PR **title** is linted too.
+  `git log --oneline main` _is_ the changelog. This is why the PR **title** is linted too.
 - `release/X.Y.x` maintenance branches are created only when an older minor needs a patch. They
   are not pre-created.
 
@@ -366,14 +366,14 @@ distribution channel.**
 
 ### Assets - a contract, not a convention
 
-| Asset | Purpose |
-|---|---|
-| `nsx-manager-<version>.nro` | **What the in-app updater downloads.** A bare file: no archive, no extraction, no path traversal, one hash-verified rename. |
-| `nsx-manager-<version>.zip` | **First-time human installation only.** Contains exactly `switch/nsx-manager/nsx-manager.nro` and nothing else, so extracting at the SD root can never clobber user configuration. |
-| `nsx-forwarder-<version>.nro` | Repair and recovery. Also embedded in romfs. |
-| `update.json` | **Stable filename** - `releases/latest/download/update.json` always resolves to the newest one. |
-| `SHA256SUMS` | Digests for every binary, for manual verification. |
-| `RELEASE_NOTES.md` | Generated from Conventional Commits by `git-cliff`; rendered in the in-app changelog. |
+| Asset                         | Purpose                                                                                                                                                                            |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `nsx-manager-<version>.nro`   | **What the in-app updater downloads.** A bare file: no archive, no extraction, no path traversal, one hash-verified rename.                                                        |
+| `nsx-manager-<version>.zip`   | **First-time human installation only.** Contains exactly `switch/nsx-manager/nsx-manager.nro` and nothing else, so extracting at the SD root can never clobber user configuration. |
+| `nsx-forwarder-<version>.nro` | Repair and recovery. Also embedded in romfs.                                                                                                                                       |
+| `update.json`                 | **Stable filename** - `releases/latest/download/update.json` always resolves to the newest one.                                                                                    |
+| `SHA256SUMS`                  | Digests for every binary, for manual verification.                                                                                                                                 |
+| `RELEASE_NOTES.md`            | Generated from Conventional Commits by `git-cliff`; rendered in the in-app changelog.                                                                                              |
 
 Asset names are parsed by [`gen_manifest.py`](../tools/release/gen_manifest.py) to assign the
 manifest `kind`. Renaming an asset is a breaking change to the update pipeline.
@@ -398,12 +398,12 @@ The validation step exists because you must never ship a manifest the applicatio
 
 **Everything NSX Manager depends on is owned by `mateussantoos`.**
 
-| What | Source |
-|---|---|
-| The application itself | `github.com/mateussantoos/nsx-manager` releases |
-| The update manifest | `releases/latest/download/update.json` |
-| Manifest fallback | the `release-metadata` orphan branch (raw.githubusercontent.com) |
-| The content catalogue | a manifest published from a repository under `mateussantoos` |
+| What                   | Source                                                           |
+| ---------------------- | ---------------------------------------------------------------- |
+| The application itself | `github.com/mateussantoos/nsx-manager` releases                  |
+| The update manifest    | `releases/latest/download/update.json`                           |
+| Manifest fallback      | the `release-metadata` orphan branch (raw.githubusercontent.com) |
+| The content catalogue  | a manifest published from a repository under `mateussantoos`     |
 
 The predecessor read its catalogue from `gamemod.com.br/nx-links/nx-links-v421.json` with
 hardcoded fallbacks to `CostelaCNX/CNX` and `CostelaCNX/NX-Firmwares`, plus a literal `"AMSNX"`
@@ -426,11 +426,11 @@ behind a user action, cached 24 hours, degrading to "unavailable" rather than to
 
 ### SD card paths
 
-| Path | Contents |
-|---|---|
-| `/switch/nsx-manager/nsx-manager.nro` | the application |
-| `/switch/nsx-manager/nsx-forwarder.nro` | the repair entry point, visible in hbmenu |
-| `/config/nsx-manager/` | settings, cache, logs, staging - created at first run |
+| Path                                    | Contents                                              |
+| --------------------------------------- | ----------------------------------------------------- |
+| `/switch/nsx-manager/nsx-manager.nro`   | the application                                       |
+| `/switch/nsx-manager/nsx-forwarder.nro` | the repair entry point, visible in hbmenu             |
+| `/config/nsx-manager/`                  | settings, cache, logs, staging - created at first run |
 
 Full inventory: [`reference/sd-layout.md`](reference/sd-layout.md).
 
@@ -448,7 +448,7 @@ requirements, not aspirations, and each one is checked.
    in and used automatically if a future curl accepts it - see
    [ADR-0016](adr/0016-verify-tls-against-the-firmware-trust-store.md), which corrects the
    mbedTLS assumption in ADR-0006.
-   *Enforced by* [`forbid_insecure_curl.sh`](../tools/lint/forbid_insecure_curl.sh).
+   _Enforced by_ [`forbid_insecure_curl.sh`](../tools/lint/forbid_insecure_curl.sh).
 
 2. **A console clock that is wrong produces a clear message, never a downgrade.** Switch RTC skew
    surfaces as `CURLE_PEER_FAILED_VERIFICATION`; the UI says "set your console clock".
@@ -478,21 +478,21 @@ requirements, not aspirations, and each one is checked.
 
 ## 14. Documentation standard
 
-| Audience | Lives in |
-|---|---|
-| Anyone | [`README.md`](../README.md) |
-| Users | [`docs/user/`](user/installation.md) |
-| Contributors | [`CONTRIBUTING.md`](../CONTRIBUTING.md) -> [`docs/contributing/`](contributing/local-setup.md) |
-| Maintainers and future readers | [`docs/architecture/`](architecture/overview.md), [`docs/adr/`](adr/README.md) |
-| Machines and integrators | [`docs/reference/`](reference/update-manifest.md) |
-| API | Doxygen, published to GitHub Pages |
+| Audience                       | Lives in                                                                                       |
+| ------------------------------ | ---------------------------------------------------------------------------------------------- |
+| Anyone                         | [`README.md`](../README.md)                                                                    |
+| Users                          | [`docs/user/`](user/installation.md)                                                           |
+| Contributors                   | [`CONTRIBUTING.md`](../CONTRIBUTING.md) -> [`docs/contributing/`](contributing/local-setup.md) |
+| Maintainers and future readers | [`docs/architecture/`](architecture/overview.md), [`docs/adr/`](adr/README.md)                 |
+| Machines and integrators       | [`docs/reference/`](reference/update-manifest.md)                                              |
+| API                            | Doxygen, published to GitHub Pages                                                             |
 
 **Rules:**
 
 - **Every architectural decision gets an ADR**, in trimmed [MADR 4.0](https://adr.github.io/madr/)
   format, numbered `NNNN-kebab-title.md`. Numbers are never reused or renumbered. A decision that
   changes **supersedes** the old ADR; the old one is never edited beyond its front-matter.
-  *Enforced by* [`check_adr_index.sh`](../tools/lint/check_adr_index.sh), which fails when the
+  _Enforced by_ [`check_adr_index.sh`](../tools/lint/check_adr_index.sh), which fails when the
   index and the files disagree, or when a `superseded-by` link is not reciprocal.
 
 - **MADR over Nygard** because every decision here has a real runner-up, and the rejected option
@@ -504,8 +504,8 @@ requirements, not aspirations, and each one is checked.
   public entity fails the build. `detail::` namespaces, `.cpp`-local statics, `third_party/` and
   `apps/rcm-payload/` are exempt.
 
-  This configuration is deliberate. The predecessor has a commit titled *"add comprehensive
-  Doxygen international documentation across all headers and source files"* that produced doc
+  This configuration is deliberate. The predecessor has a commit titled _"add comprehensive
+  Doxygen international documentation across all headers and source files"_ that produced doc
   comments, no Doxyfile, no build and no output - nothing was ever verified, and the comments
   have since rotted.
 
@@ -550,7 +550,7 @@ pressure to write worthless tests.
 
 **The application is GPL-3.0-only.** Borealis is GPL-3.0, so the application must be.
 
-**The RCM payload is GPL-2.0-*only*.** hekate/BDK carries a GPLv2 notice with **no** "or any
+**The RCM payload is GPL-2.0-_only_.** hekate/BDK carries a GPLv2 notice with **no** "or any
 later version" clause. GPL-2.0-only and GPL-3.0 cannot be combined into one program.
 
 **Resolution: hard isolation** - which is already how the code behaves. The payload is a separate
@@ -562,7 +562,7 @@ aggregation, which GPLv2 section 2 permits.
 Every first-party file carries `SPDX-License-Identifier: GPL-3.0-only`. Every payload file keeps
 its original GPL-2.0 header untouched.
 
-*Enforced by* [`check_license_isolation.sh`](../tools/lint/check_license_isolation.sh), which
+_Enforced by_ [`check_license_isolation.sh`](../tools/lint/check_license_isolation.sh), which
 fails on an include crossing the boundary in either direction, and on a missing SPDX line.
 
 [`architecture/licensing.md`](architecture/licensing.md) ·
@@ -581,12 +581,12 @@ in a `.cpp` file. `assets/i18n/en-US/` is the source of truth, authored and revi
 `pt-BR` is a first-class shipped translation, because that is who uses this software. A locale
 directory exists only if it is genuinely translated.
 
-*Enforced by* [`check_i18n.py`](../tools/lint/check_i18n.py), which fails on a missing key, an
+_Enforced by_ [`check_i18n.py`](../tools/lint/check_i18n.py), which fails on a missing key, an
 extra key, or a differing `{}` placeholder count between a locale and `en-US`.
 
 This is a direct response to what the predecessor shipped: twelve locale directories in which
 eight were byte-identical copies of each other, `en-US/menus.json` contained Portuguese, and
-`ja/menus.json` read *"O {} ({}) usa a licenca GPL-3.0"*. Meanwhile the real UI strings were
+`ja/menus.json` read _"O {} ({}) usa a licenca GPL-3.0"_. Meanwhile the real UI strings were
 hardcoded Portuguese literals in nine `.cpp` files that bypassed i18n entirely. The app claimed
 twelve languages and spoke one.
 
@@ -675,14 +675,14 @@ foundations that release did not have. Ordered by milestone, not by priority wit
 
 Tracked here so they are not silently decided. Each becomes an ADR when answered.
 
-| # | Question | Blocking |
-|---|---|---|
-| 1 | Do we sign releases with minisign, and where does the public key live so it can be rotated? | 1.0.0 |
-| 2 | Where is the content catalogue published - a release asset, an orphan branch, or its own repository? | 0.3.0 |
-| 3 | Do we keep Mega.nz download support at all, or drop it with the sources that needed it? | 0.3.0 |
-| 4 | Does the FTP server return, and if so with what authentication? The predecessor's accepted **any** password and served the whole SD card, while its changelog advertised a PIN that did not exist in the code. | 0.4.0 |
-| 5 | Do we offer a beta channel at 1.0.0, or keep `update-beta.json` unused until there is demand? | 1.0.0 |
-| 6 | Is Borealis 2.x worth migrating to after 1.0.0, or do we stay on the pinned fork? | post-1.0 |
+| #   | Question                                                                                                                                                                                                       | Blocking |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| 1   | Do we sign releases with minisign, and where does the public key live so it can be rotated?                                                                                                                    | 1.0.0    |
+| 2   | Where is the content catalogue published - a release asset, an orphan branch, or its own repository?                                                                                                           | 0.3.0    |
+| 3   | Do we keep Mega.nz download support at all, or drop it with the sources that needed it?                                                                                                                        | 0.3.0    |
+| 4   | Does the FTP server return, and if so with what authentication? The predecessor's accepted **any** password and served the whole SD card, while its changelog advertised a PIN that did not exist in the code. | 0.4.0    |
+| 5   | Do we offer a beta channel at 1.0.0, or keep `update-beta.json` unused until there is demand?                                                                                                                  | 1.0.0    |
+| 6   | Is Borealis 2.x worth migrating to after 1.0.0, or do we stay on the pinned fork?                                                                                                                              | post-1.0 |
 
 ---
 

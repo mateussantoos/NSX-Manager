@@ -38,6 +38,7 @@ set(NSX_TEST_MODULES_DOMAIN
     selfupdate
     cfw_install
     firmware_install
+    catalog_service
 )
 
 foreach(mod IN LISTS NSX_TEST_MODULES)

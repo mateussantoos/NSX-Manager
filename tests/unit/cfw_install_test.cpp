@@ -8,8 +8,6 @@
 // power cut. Each one must leave the card either fully updated or exactly as it
 // was, and never in between.
 
-#include "nsx/domain/cfw/cfw_install_service.hpp"
-
 #include <deque>
 #include <iterator>
 #include <map>
@@ -17,6 +15,8 @@
 #include <string>
 
 #include <doctest.h>
+
+#include "nsx/domain/cfw/cfw_install_service.hpp"
 
 using namespace nsx::domain;
 namespace core = nsx::core;
@@ -30,6 +30,7 @@ class FakeClock final : public Clock
 {
 public:
     std::int64_t now{kNow};
+
     [[nodiscard]] std::int64_t nowUnix() const override { return now; }
 };
 
@@ -129,8 +130,7 @@ public:
         return true;
     }
 
-    [[nodiscard]] std::vector<std::string> listFilesRecursive(
-        const std::string& dir) const override
+    [[nodiscard]] std::vector<std::string> listFilesRecursive(const std::string& dir) const override
     {
         const std::string prefix = dir.empty() || dir.back() == '/' ? dir : dir + "/";
         std::vector<std::string> out;
@@ -522,14 +522,13 @@ TEST_CASE("cancelling during the merge restores what was already moved")
 
     int seen = 0;
     CfwInstallService service = rig.service();
-    const InstallOutcome out =
-        service.install(rig.item, core::PreserveRules::defaults(),
-                        [&seen](const InstallProgress& p) {
-                            if (p.stage == InstallStage::Merging && ++seen >= 2) {
-                                return false;
-                            }
-                            return true;
-                        });
+    const InstallOutcome out = service.install(
+        rig.item, core::PreserveRules::defaults(), [&seen](const InstallProgress& p) {
+            if (p.stage == InstallStage::Merging && ++seen >= 2) {
+                return false;
+            }
+            return true;
+        });
 
     CHECK(isResult(out.result, InstallResult::Cancelled));
     CHECK(rig.at("/atmosphere/package3") == "old-package3");
@@ -546,14 +545,12 @@ TEST_CASE("the marker is written before the merge starts, not after")
 
     bool markerSeenDuringMerge = false;
     CfwInstallService service = rig.service();
-    (void)service.install(rig.item, core::PreserveRules::defaults(),
-                          [&](const InstallProgress& p) {
-                              if (p.stage == InstallStage::Merging &&
-                                  rig.files.exists(rig.config.markerPath())) {
-                                  markerSeenDuringMerge = true;
-                              }
-                              return true;
-                          });
+    (void)service.install(rig.item, core::PreserveRules::defaults(), [&](const InstallProgress& p) {
+        if (p.stage == InstallStage::Merging && rig.files.exists(rig.config.markerPath())) {
+            markerSeenDuringMerge = true;
+        }
+        return true;
+    });
 
     CHECK(markerSeenDuringMerge);
 }
@@ -608,8 +605,8 @@ TEST_CASE("a merge interrupted by a power cut is undone at next start")
     const InstallOutcome out = service.recoverInterruptedMerge();
 
     CHECK(isResult(out.result, InstallResult::RolledBack));
-    CHECK(rig.at("/atmosphere/package3") == "old-package3");  // displaced, restored
-    CHECK(rig.at("/switch/tool/tool.nro") == "<absent>");     // created, removed
+    CHECK(rig.at("/atmosphere/package3") == "old-package3");               // displaced, restored
+    CHECK(rig.at("/switch/tool/tool.nro") == "<absent>");                  // created, removed
     CHECK(rig.at("/bootloader/hekate_ipl.ini") == "MY OWN BOOT ENTRIES");  // preserved, untouched
     CHECK_FALSE(rig.files.exists(rig.config.markerPath()));
     CHECK(rig.stagingClean());
@@ -696,10 +693,10 @@ TEST_CASE("a non-root destination lands under that directory")
 TEST_CASE("every install result has a description")
 {
     for (const InstallResult r :
-         {InstallResult::Installed, InstallResult::InsufficientSpace,
-          InstallResult::DownloadFailed, InstallResult::VerifyFailed, InstallResult::UnsafeArchive,
-          InstallResult::ExtractFailed, InstallResult::MergeFailed, InstallResult::RolledBack,
-          InstallResult::Cancelled, InstallResult::Busy}) {
+         {InstallResult::Installed, InstallResult::InsufficientSpace, InstallResult::DownloadFailed,
+          InstallResult::VerifyFailed, InstallResult::UnsafeArchive, InstallResult::ExtractFailed,
+          InstallResult::MergeFailed, InstallResult::RolledBack, InstallResult::Cancelled,
+          InstallResult::Busy}) {
         CHECK_FALSE(describe(r).empty());
         CHECK(describe(r) != "unknown");
     }

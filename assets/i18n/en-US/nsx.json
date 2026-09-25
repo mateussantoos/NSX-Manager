@@ -26,8 +26,5 @@
         "cfw": "CFW packs",
         "firmware": "Firmware",
         "system": "System"
-    },
-    "pending": {
-        "catalog": "The installer for this is finished and tested, but nothing downloads the catalogue of available packages yet. This tab will list them once that lands."
     }
 }

@@ -9,9 +9,9 @@
 
 #include "nsx/core/update/manifest_cache.hpp"
 
-#include "nsx/core/hash/sha256.hpp"
-
 #include <doctest.h>
+
+#include "nsx/core/hash/sha256.hpp"
 
 using namespace nsx::core;
 
@@ -28,8 +28,9 @@ CacheMetadata metaFor(const std::string& document, std::int64_t fetchedAt,
     m.etag = etag;
     m.documentSha256 = Sha256::hexOf(document);
     m.documentSize = document.size();
-    m.sourceUrl = "https://github.com/mateussantoos/nsx-manager/releases/latest/download/"
-                  "update.json";
+    m.sourceUrl =
+        "https://github.com/mateussantoos/nsx-manager/releases/latest/download/"
+        "update.json";
     return m;
 }
 

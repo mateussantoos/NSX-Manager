@@ -5,6 +5,7 @@
 #include <string>
 #include <string_view>
 
+#include "nsx/domain/catalog/catalog_service.hpp"
 #include "nsx/domain/cfw/cfw_install_service.hpp"
 #include "nsx/domain/firmware/firmware_install_service.hpp"
 #include "nsx/domain/selfupdate/update_service.hpp"
@@ -36,6 +37,7 @@ enum class ShellError
 struct ShellServices
 {
     domain::UpdateService& update;             ///< The application's own updates.
+    domain::CatalogService& catalog;           ///< The content catalogue.
     domain::CfwInstallService& cfw;            ///< CFW pack installs.
     domain::FirmwareInstallService& firmware;  ///< Official firmware.
 };

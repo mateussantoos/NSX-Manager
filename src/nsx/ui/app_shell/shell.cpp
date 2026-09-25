@@ -16,6 +16,8 @@
 #include <borealis.hpp>
 
 #include "nsx/core/version/version.hpp"
+#include "nsx/ui/tabs/cfw_tab.hpp"
+#include "nsx/ui/tabs/firmware_tab.hpp"
 #include "nsx/ui/tabs/update_tab.hpp"
 
 namespace nsx::ui {
@@ -40,24 +42,6 @@ bool readable(const char* path)
     }
     std::fclose(f);
     return true;
-}
-
-/// A tab for a use-case whose data source does not exist yet.
-///
-/// The install services behind these are complete and tested; what is missing
-/// is the catalogue FETCH. `core/catalog` parses a catalogue and nothing
-/// downloads one. An empty list would say "there is nothing to install", which
-/// is a different claim and a false one.
-brls::View* pendingTab(const std::string& title, const std::string& because)
-{
-    auto* list = new brls::List();
-
-    auto* header = new brls::ListItem(title);
-    header->setValue("nsx/state/unavailable"_i18n);
-    list->addView(header);
-
-    list->addView(new brls::Label(brls::LabelStyle::DESCRIPTION, because, true));
-    return list;
 }
 
 brls::View* buildSystemTab()
@@ -142,9 +126,14 @@ ShellOutcome runShell(const ShellServices& services)
 
     root->addTab("update/title"_i18n, updates);
     root->addSeparator();
-    root->addTab("nsx/tabs/cfw"_i18n, pendingTab("nsx/tabs/cfw"_i18n, "nsx/pending/catalog"_i18n));
+    root->addTab("nsx/tabs/cfw"_i18n, new CfwTab(services.catalog, services.cfw));
     root->addTab("nsx/tabs/firmware"_i18n,
-                 pendingTab("nsx/tabs/firmware"_i18n, "nsx/pending/catalog"_i18n));
+                 new FirmwareTab(services.catalog, services.firmware,
+                                 [&outcome](const std::string& path, const std::string& args) {
+                                     outcome.chainloadPath = path;
+                                     outcome.chainloadArgs = args;
+                                     brls::Application::quit();
+                                 }));
     root->addSeparator();
     root->addTab("nsx/tabs/system"_i18n, buildSystemTab());
 
@@ -155,12 +144,6 @@ ShellOutcome runShell(const ShellServices& services)
     while (brls::Application::mainLoop()) {
         // Borealis drives everything from inside mainLoop.
     }
-
-    // Held for the tabs that are not wired yet. Naming them here keeps the
-    // composition root's shape final, so landing the catalogue fetch touches
-    // this file and nothing else.
-    (void)services.cfw;
-    (void)services.firmware;
 
     return outcome;
 }

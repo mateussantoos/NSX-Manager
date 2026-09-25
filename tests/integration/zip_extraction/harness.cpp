@@ -1,11 +1,16 @@
 // Host harness: run the real extractor against real archives. Not shipped.
-#include "nsx/core/paths/extraction_policy.hpp"
-#include "nsx/infra/archive/zip_extractor.hpp"
 #include <cstdio>
 #include <string>
+
+#include "nsx/core/paths/extraction_policy.hpp"
+#include "nsx/infra/archive/zip_extractor.hpp"
+
 int main(int argc, char** argv)
 {
-    if (argc < 3) { std::printf("usage: harness <zip> <dest>\n"); return 2; }
+    if (argc < 3) {
+        std::printf("usage: harness <zip> <dest>\n");
+        return 2;
+    }
     nsx::core::ExtractionPolicy policy(argv[2], nsx::core::PreserveRules::defaults());
     const auto r = nsx::infra::extractZip(argv[1], policy, 64ull * 1024 * 1024);
     if (r.hasValue()) {

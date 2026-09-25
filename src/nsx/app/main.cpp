@@ -18,6 +18,7 @@
 #include <switch.h>
 
 #include "nsx/core/version/version.hpp"
+#include "nsx/domain/catalog/catalog_service.hpp"
 #include "nsx/domain/cfw/cfw_install_service.hpp"
 #include "nsx/domain/cfw/zip_archive_gateway.hpp"
 #include "nsx/domain/firmware/firmware_install_service.hpp"
@@ -80,6 +81,7 @@ int main(int argc, char** argv)
     updateConfig.installed = installedVersion();
 
     nsx::domain::UpdateService update(http, files, clock, updateConfig);
+    nsx::domain::CatalogService catalog(http, files, clock, {});
     nsx::domain::CfwInstallService cfw(http, archives, files, clock, {});
     nsx::domain::FirmwareInstallService firmware(http, archives, files, {});
 
@@ -99,7 +101,7 @@ int main(int argc, char** argv)
         std::printf("%s\n", recovered.detail.c_str());
     }
 
-    const nsx::ui::ShellServices services{update, cfw, firmware};
+    const nsx::ui::ShellServices services{update, catalog, cfw, firmware};
     const nsx::ui::ShellOutcome outcome = nsx::ui::runShell(services);
 
     if (outcome.error != nsx::ui::ShellError::None) {
@@ -110,15 +112,10 @@ int main(int argc, char** argv)
     // The handoff, after the UI is fully torn down and its background worker
     // joined. Only ever to a path that exists: chainloading a missing one drops
     // the user back to hbmenu with no explanation.
-    if (outcome.chainloads() && forwarderReady) {
+    if (outcome.chainloads() && (forwarderReady || files.exists(outcome.chainloadPath))) {
         if (R_FAILED(
                 envSetNextLoad(outcome.chainloadPath.c_str(), outcome.chainloadArgs.c_str()))) {
-            // Almost always "not launched from hbmenu", where there is no next
-            // load to set. The update is staged and verified, so it will be
-            // applied whenever the repair entry next runs.
-            reportStartupFailure(
-                "Could not launch the updater. Run \"NSX Manager (Repair)\" "
-                "from hbmenu to finish installing.");
+            reportStartupFailure("Could not hand off execution to target. Run from hbmenu.");
             return 1;
         }
     }

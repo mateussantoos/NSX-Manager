@@ -11,7 +11,10 @@
 set(NSX_UI_SOURCES
     app_shell/shell.cpp
     tabs/update_tab.cpp
+    tabs/cfw_tab.cpp
+    tabs/firmware_tab.cpp
     widgets/background_job.cpp
+    widgets/progress_dialog.cpp
     # pages/...
 )
 

@@ -10,8 +10,6 @@
 //
 // See docs/architecture/update-pipeline.md.
 
-#include "nsx/domain/selfupdate/update_service.hpp"
-
 #include <deque>
 #include <iterator>
 #include <map>
@@ -19,6 +17,8 @@
 #include <string>
 
 #include <doctest.h>
+
+#include "nsx/domain/selfupdate/update_service.hpp"
 
 using namespace nsx::domain;
 namespace core = nsx::core;
@@ -37,6 +37,7 @@ class FakeClock final : public Clock
 {
 public:
     std::int64_t now{kNow};
+
     [[nodiscard]] std::int64_t nowUnix() const override { return now; }
 };
 
@@ -138,8 +139,7 @@ public:
         return true;
     }
 
-    [[nodiscard]] std::vector<std::string> listFilesRecursive(
-        const std::string& dir) const override
+    [[nodiscard]] std::vector<std::string> listFilesRecursive(const std::string& dir) const override
     {
         const std::string prefix = dir.empty() || dir.back() == '/' ? dir : dir + "/";
         std::vector<std::string> out;
@@ -179,7 +179,7 @@ public:
     explicit FakeGateway(FakeFileStore& files) : m_files(files) {}
 
     std::deque<core::Result<infra::Response, infra::HttpError>> fetchResults;
-    std::deque<std::string> downloadBodies;  // what the server will send, in order
+    std::deque<std::string> downloadBodies;         // what the server will send, in order
     std::optional<infra::HttpError> downloadError;  // when set, every download fails with it
     std::vector<FetchCall> fetches;
     std::vector<std::string> downloads;
@@ -189,8 +189,7 @@ public:
     {
         fetches.push_back({url, std::string(ifNoneMatch)});
         if (fetchResults.empty()) {
-            return core::Result<infra::Response, infra::HttpError>::err(
-                infra::HttpError::Internal);
+            return core::Result<infra::Response, infra::HttpError>::err(infra::HttpError::Internal);
         }
         auto result = fetchResults.front();
         fetchResults.pop_front();
@@ -244,22 +243,31 @@ std::string manifestFor(const std::string& version, const std::string& body,
     return std::string(R"({
   "schema_version": 1,
   "product": "nsx-manager",
-  "version": ")") + version + R"(",
-  "tag": "v)" + version + R"(",
+  "version": ")") +
+           version + R"(",
+  "tag": "v)" +
+           version + R"(",
   "published_at": "2026-10-01T12:00:00Z",
-  "channel": ")" + channel + R"(",
-  "mandatory": )" + (mandatory ? "true" : "false") + R"(,
-  "min_supported": ")" + minSupported + R"(",
-  "changelog_url": "https://github.com/mateussantoos/nsx-manager/releases/tag/v)" + version +
+  "channel": ")" +
+           channel + R"(",
+  "mandatory": )" +
+           (mandatory ? "true" : "false") + R"(,
+  "min_supported": ")" +
+           minSupported + R"(",
+  "changelog_url": "https://github.com/mateussantoos/nsx-manager/releases/tag/v)" +
+           version +
            R"(",
   "assets": [
     {
-      "name": "nsx-manager-)" + version + R"(.nro",
+      "name": "nsx-manager-)" +
+           version + R"(.nro",
       "kind": "app-nro",
-      "url": "https://github.com/mateussantoos/nsx-manager/releases/download/v)" + version +
-           R"(/nsx-manager-)" + version + R"(.nro",
-      "size": )" + std::to_string(body.size()) + R"(,
-      "sha256": ")" + core::Sha256::hexOf(body) + R"("
+      "url": "https://github.com/mateussantoos/nsx-manager/releases/download/v)" +
+           version + R"(/nsx-manager-)" + version + R"(.nro",
+      "size": )" +
+           std::to_string(body.size()) + R"(,
+      "sha256": ")" +
+           core::Sha256::hexOf(body) + R"("
     }
   ]
 })";
@@ -313,10 +321,7 @@ struct Rig
     void rateLimitDownloads() { http.downloadError = infra::HttpError::RateLimited; }
 
     /// Put a forwarder in romfs, which is where a real first run finds one.
-    void withForwarderInRomfs()
-    {
-        files.files[config.forwarderSource] = "forwarder binary";
-    }
+    void withForwarderInRomfs() { files.files[config.forwarderSource] = "forwarder binary"; }
 
     /// Seed a cache the service will accept: document and metadata agreeing.
     void withCache(const std::string& document, std::int64_t fetchedAt,
@@ -376,12 +381,11 @@ TEST_CASE("a stale cache revalidates with its etag")
 {
     Rig rig;
     rig.withCache(manifestFor("0.2.0", kAppBody), kNow - (7 * kHour), "\"etag-1\"");
-    rig.http.fetchResults.push_back(
-        core::Result<infra::Response, infra::HttpError>::ok([] {
-            infra::Response r;
-            r.status = 304;
-            return r;
-        }()));
+    rig.http.fetchResults.push_back(core::Result<infra::Response, infra::HttpError>::ok([] {
+        infra::Response r;
+        r.status = 304;
+        return r;
+    }()));
 
     UpdateService service = rig.service();
     const CheckOutcome outcome = service.check();
@@ -952,8 +956,8 @@ TEST_CASE("every staging result has a description")
 {
     for (const StageResult r :
          {StageResult::Staged, StageResult::NoAppAsset, StageResult::InsufficientSpace,
-          StageResult::DownloadFailed, StageResult::VerifyFailed,
-          StageResult::ForwarderUnavailable, StageResult::WriteFailed}) {
+          StageResult::DownloadFailed, StageResult::VerifyFailed, StageResult::ForwarderUnavailable,
+          StageResult::WriteFailed}) {
         CHECK_FALSE(describe(r).empty());
         CHECK(describe(r) != "unknown");
     }

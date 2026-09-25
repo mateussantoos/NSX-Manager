@@ -182,11 +182,12 @@ TEST_CASE("a zero or non-integer size is refused")
     // server may send.
     for (const char* bad : {"0", "-1", "\"big\"", "1.5"}) {
         CAPTURE(bad);
-        const std::string doc = std::string(R"({"schema_version":1,"items":[{
+        const std::string doc =
+            std::string(R"({"schema_version":1,"items":[{
             "id":"x","name":"X","kind":"tool","target":"switch-apps",
             "url":"https://example.invalid/x.zip","size":)") +
-                                bad +
-                                R"(,"sha256":"9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"}]})";
+            bad +
+            R"(,"sha256":"9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"}]})";
         CHECK(parseCatalog(doc).error() == CatalogError::InvalidSize);
     }
 }
@@ -291,8 +292,9 @@ TEST_CASE("every error, kind and target has a description")
         CHECK_FALSE(describe(e).empty());
         CHECK(describe(e) != "unknown catalogue error");
     }
-    for (const ContentKind k : {ContentKind::CfwPack, ContentKind::Firmware, ContentKind::Tool,
-                                ContentKind::Cheats, ContentKind::Translation, ContentKind::Theme}) {
+    for (const ContentKind k :
+         {ContentKind::CfwPack, ContentKind::Firmware, ContentKind::Tool, ContentKind::Cheats,
+          ContentKind::Translation, ContentKind::Theme}) {
         CHECK(std::string(toString(k)) != "unknown");
     }
     for (const InstallTarget t :
@@ -306,8 +308,9 @@ TEST_CASE("every wire spelling round-trips through the parser")
 {
     // toString and the parser must agree, or a catalogue generated from our own
     // vocabulary would be rejected by our own reader.
-    for (const ContentKind k : {ContentKind::CfwPack, ContentKind::Firmware, ContentKind::Tool,
-                                ContentKind::Cheats, ContentKind::Translation, ContentKind::Theme}) {
+    for (const ContentKind k :
+         {ContentKind::CfwPack, ContentKind::Firmware, ContentKind::Tool, ContentKind::Cheats,
+          ContentKind::Translation, ContentKind::Theme}) {
         for (const InstallTarget t :
              {InstallTarget::SdRoot, InstallTarget::AtmosphereContents, InstallTarget::Bootloader,
               InstallTarget::FirmwareStaging, InstallTarget::SwitchApps, InstallTarget::Themes}) {

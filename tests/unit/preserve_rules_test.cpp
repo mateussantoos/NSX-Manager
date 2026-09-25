@@ -7,12 +7,13 @@
 // their overlays. Getting this wrong does not crash anything - it quietly
 // replaces a working configuration, which the user discovers at the next boot.
 
-#include "nsx/core/paths/extraction_policy.hpp"
 #include "nsx/core/paths/preserve_rules.hpp"
 
 #include <string>
 
 #include <doctest.h>
+
+#include "nsx/core/paths/extraction_policy.hpp"
 
 using namespace nsx::core;
 
@@ -78,8 +79,8 @@ TEST_CASE("matching is case-insensitive, because the file system is")
 TEST_CASE("a pathological pattern does not hang")
 {
     // Naive recursive globbing goes exponential here. This must return.
-    CHECK_FALSE(globMatch("**/**/**/**/**/**/**/x",
-                          "a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/y"));
+    CHECK_FALSE(
+        globMatch("**/**/**/**/**/**/**/x", "a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/y"));
 }
 
 // ---------------------------------------------------------------------------
@@ -274,8 +275,8 @@ TEST_CASE("ORDER: traversal is decided before preserve, not after")
 TEST_CASE("every decision either rejects or lands inside the root")
 {
     const ExtractionPolicy policy(kRoot, PreserveRules::defaults());
-    for (const char* entry : {"a.txt", "a/b/c.txt", "dir/", "bootloader/hekate_ipl.ini",
-                              "../evil", "/abs", "sdmc:/x", "a\\b", "", "..", "foo."}) {
+    for (const char* entry : {"a.txt", "a/b/c.txt", "dir/", "bootloader/hekate_ipl.ini", "../evil",
+                              "/abs", "sdmc:/x", "a\\b", "", "..", "foo."}) {
         CAPTURE(entry);
         const EntryDecision d = policy.decide(entry);
         if (d.action != EntryAction::Reject) {
