@@ -1,24 +1,24 @@
 {
   "derivatives": {
     "assets/icon.jpg": {
-      "bytes": 19117,
+      "bytes": 19046,
       "format": "JPEG",
       "height": 256,
       "mode": "RGB",
-      "sha256": "b76f37d8a46e1094e6d9e7a42c876d17b9abd97f24e258f9c0e06817fdc4d05d",
+      "sha256": "862fb8b3b8a9e6d24ee4a5869d813780a0491e4802f0c2c5c55073bcc80a8362",
       "why": "NRO icon shown by hbmenu (nacptool requires 256x256 JPEG)",
       "width": 256
     },
     "assets/images/logo.png": {
-      "bytes": 40010,
+      "bytes": 40092,
       "format": "PNG",
       "height": 512,
       "mode": "RGBA",
-      "sha256": "935d372514886f729c8d87b7b1ab4816ef50f8376bd6477d0758cad966bc6f39",
+      "sha256": "76029e92aece2e4405abfa2018af99e5f4d965ce645bc8f1892832a79ee2ff55",
       "why": "in-app splash and about screen (romfs)",
       "width": 512
     }
   },
   "master": "assets/bootlogo.png",
-  "master_sha256": "cbb3de838098d2fb118ae38c2275043b924784b42ddb76d35a609e9215603c3e"
+  "master_sha256": "7a0c72662659a5c996f6ad50ba96853a596473359ff56f8b69903040ee7694f2"
 }

@@ -13,6 +13,18 @@ by `git-cliff` during the release workflow - do not hand-edit them. Add entries 
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-09-25
+
+### Changed
+
+- Updated visual identity and branding assets:
+  * Replaced master boot logo (`assets/bootlogo.png`) and splash banner (`assets/splash.png`).
+  * Re-generated baseline 256x256 RGB NRO icon (`assets/icon.jpg`) complying with Nintendo Switch homebrew menu specifications.
+  * Re-derived in-app raster assets (`assets/images/logo.png`) for RomFS staging.
+- Synchronized asset derivative pipeline:
+  * Updated lock metadata in `assets/derivatives.json` linking all outputs to master asset SHA-256 digests.
+  * Verified pipeline validation and asset linter parity across container and host environments.
+
 ## [0.2.1] - 2026-09-25
 
 ### Added
