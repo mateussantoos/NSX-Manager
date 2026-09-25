@@ -10,6 +10,7 @@
 
 set(NSX_UI_SOURCES
     app_shell/shell.cpp
+    app_shell/splash_screen.cpp
     theme/dark_theme.cpp
     tabs/home_tab.cpp
     tabs/update_tab.cpp

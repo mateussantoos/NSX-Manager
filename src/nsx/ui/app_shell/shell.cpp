@@ -14,8 +14,10 @@
 #include <cstdio>
 
 #include <borealis.hpp>
+#include <fmt/format.h>
 
 #include "nsx/core/version/version.hpp"
+#include "nsx/ui/app_shell/splash_screen.hpp"
 #include "nsx/ui/tabs/cfw_tab.hpp"
 #include "nsx/ui/tabs/firmware_tab.hpp"
 #include "nsx/ui/tabs/home_tab.hpp"
@@ -170,6 +172,47 @@ ShellOutcome runShell(const ShellServices& services)
     // Borealis owns these from here; they are freed when the application shuts
     // down or the view is popped.
     brls::Application::pushView(root);
+
+    auto* splash = new SplashScreen(
+        services, [onSelectTab](const std::optional<domain::CheckOutcome>& checkOutcome) {
+            brls::Application::popView(brls::ViewAnimation::FADE, [checkOutcome, onSelectTab]() {
+                if (checkOutcome && checkOutcome->offersUpdate() && checkOutcome->manifest) {
+                    auto* layout = new brls::BoxLayout(brls::BoxLayoutOrientation::VERTICAL);
+                    layout->setSpacing(14);
+                    layout->setResize(true);
+
+                    auto* titleLabel =
+                        new brls::Label(brls::LabelStyle::DIALOG, "update/dialog/title"_i18n, true);
+                    titleLabel->setHorizontalAlign(NVG_ALIGN_CENTER);
+                    layout->addView(titleLabel);
+
+                    auto* msgLabel = new brls::Label(brls::LabelStyle::REGULAR,
+                                                     "update/dialog/message"_i18n, true);
+                    msgLabel->setHorizontalAlign(NVG_ALIGN_CENTER);
+                    layout->addView(msgLabel);
+
+                    const std::string versionInfo =
+                        fmt::format("update/dialog/versions"_i18n, core::version::kString,
+                                    checkOutcome->manifest->version.toString());
+                    auto* verLabel =
+                        new brls::Label(brls::LabelStyle::DESCRIPTION, versionInfo, true);
+                    verLabel->setHorizontalAlign(NVG_ALIGN_CENTER);
+                    layout->addView(verLabel);
+
+                    auto* dialog = new brls::Dialog(layout);
+                    dialog->addButton("update/dialog/action_update"_i18n,
+                                      [dialog, onSelectTab](brls::View*) {
+                                          dialog->close();
+                                          onSelectTab(1);
+                                      });
+                    dialog->addButton("update/dialog/action_later"_i18n,
+                                      [dialog](brls::View*) { dialog->close(); });
+                    dialog->setCancelable(true);
+                    dialog->open();
+                }
+            });
+        });
+    brls::Application::pushView(splash);
 
     while (brls::Application::mainLoop()) {
         // Borealis drives everything from inside mainLoop.

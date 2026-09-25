@@ -29,5 +29,13 @@
         "tools": "Ferramentas",
         "settings": "Configurações",
         "system": "Sistema"
+    },
+    "splash": {
+        "init": "Inicializando...",
+        "system": "Verificando hardware e armazenamento...",
+        "network": "Verificando proteção de rede...",
+        "manifest": "Carregando manifesto de atualização...",
+        "ready": "Pronto"
     }
 }
+

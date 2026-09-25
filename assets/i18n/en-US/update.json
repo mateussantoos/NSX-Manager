@@ -42,5 +42,13 @@
     "check_now": "Check for updates",
     "install_now": "Install now",
     "idle": "Not checked yet",
-    "busy": "Something else is already running"
+    "busy": "Something else is already running",
+    "dialog": {
+        "title": "Update Available",
+        "message": "A new version of NSX Manager is ready to install.",
+        "versions": "Current: {}  -  Latest: {}",
+        "action_update": "Update",
+        "action_later": "Later"
+    }
 }
+

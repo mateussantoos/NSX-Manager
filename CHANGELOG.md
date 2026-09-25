@@ -13,6 +13,22 @@ by `git-cliff` during the release workflow - do not hand-edit them. Add entries 
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-09-25
+
+### Added
+
+- Animated Preload & Splash Screen (`SplashScreen`):
+  * Modern startup preloader with pure black background (#000000).
+  * Centered typography logo with smooth fade-in entrance animation (0.0 to 1.0 opacity).
+  * Shimmer / skeleton sweep effect using diagonal NanoVG linear gradients across the logo.
+  * Slim horizontal progress bar (#E60012 crimson fill on #1A1A1A track) indicating subsystem initialization stages.
+  * Non-blocking asynchronous initialization of system info, storage, network protection, and manifest cache during splash.
+- Startup Update Alert Modal Dialog:
+  * Automatic non-intrusive update detection following splash screen preloading.
+  * Informational modal dialog displaying current versus remote version comparison.
+  * One-touch redirect button taking user straight to `UpdateTab`.
+  * Fully localized dialog strings in both `en-US` and `pt-BR`.
+
 ## [0.2.0] - 2026-09-25
 
 ### Added
@@ -57,6 +73,7 @@ by `git-cliff` during the release workflow - do not hand-edit them. Add entries 
 - RCM payload ported from the predecessor with its GPL-2.0-only headers intact, built by its own
   devkitARM Makefile and staged into romfs as opaque data.
 
-[Unreleased]: https://github.com/mateussantoos/nsx-manager/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/mateussantoos/nsx-manager/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/mateussantoos/nsx-manager/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/mateussantoos/nsx-manager/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/mateussantoos/nsx-manager/releases/tag/v0.1.0

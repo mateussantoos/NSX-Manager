@@ -21,6 +21,13 @@ foreach(dir images sounds data i18n)
     endif()
 endforeach()
 
+if(EXISTS "${CMAKE_SOURCE_DIR}/assets/splash.png")
+    list(APPEND NSX_ROMFS_COPY_CMDS
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+                "${CMAKE_SOURCE_DIR}/assets/splash.png"
+                "${NSX_ROMFS_DIR}/splash.png")
+endif()
+
 # --- Borealis runtime resources -------------------------------------------
 # Fonts and framework strings, which Borealis loads by hard-coded path through
 # BOREALIS_ASSET() - the wrapper defines that as "romfs:/". Without them the UI

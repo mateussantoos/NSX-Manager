@@ -42,5 +42,13 @@
     "check_now": "Procurar atualizações",
     "install_now": "Instalar agora",
     "idle": "Ainda não verificado",
-    "busy": "Já existe outra operação em andamento"
+    "busy": "Já existe outra operação em andamento",
+    "dialog": {
+        "title": "Atualização Disponível",
+        "message": "Uma nova versão do NSX Manager está disponível para instalação.",
+        "versions": "Atual: {}  -  Recente: {}",
+        "action_update": "Atualizar",
+        "action_later": "Depois"
+    }
 }
+
