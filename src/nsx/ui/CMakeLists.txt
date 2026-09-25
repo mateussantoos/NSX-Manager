@@ -10,6 +10,8 @@
 
 set(NSX_UI_SOURCES
     app_shell/shell.cpp
+    theme/dark_theme.cpp
+    tabs/home_tab.cpp
     tabs/update_tab.cpp
     tabs/cfw_tab.cpp
     tabs/firmware_tab.cpp
@@ -17,7 +19,6 @@ set(NSX_UI_SOURCES
     tabs/settings_tab.cpp
     widgets/background_job.cpp
     widgets/progress_dialog.cpp
-    # pages/...
 )
 
 list(TRANSFORM NSX_UI_SOURCES PREPEND "${CMAKE_CURRENT_LIST_DIR}/")

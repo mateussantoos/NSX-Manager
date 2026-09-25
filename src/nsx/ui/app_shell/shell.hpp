@@ -10,8 +10,10 @@
 #include "nsx/domain/firmware/firmware_install_service.hpp"
 #include "nsx/domain/maintenance/cleanup_service.hpp"
 #include "nsx/domain/network/telemetry_service.hpp"
+#include "nsx/domain/ports/ports.hpp"
 #include "nsx/domain/selfupdate/update_service.hpp"
 #include "nsx/domain/sysmodule/sysmodule_service.hpp"
+#include "nsx/ui/tabs/home_tab.hpp"
 #include "nsx/ui/tabs/tools_tab.hpp"
 
 /// @brief Borealis views. The only layer allowed to know the UI framework exists.
@@ -40,15 +42,17 @@ enum class ShellError
 /// @since 0.3.0
 struct ShellServices
 {
-    domain::UpdateService& update;             ///< The application's own updates.
-    domain::CatalogService& catalog;           ///< The content catalogue.
-    domain::CfwInstallService& cfw;            ///< CFW pack installs.
-    domain::FirmwareInstallService& firmware;  ///< Official firmware.
-    domain::CleanupService& cleanup;           ///< Maintenance cleanup service.
-    domain::SysmoduleService& sysmodules;      ///< Sysmodule manager.
-    domain::TelemetryService& telemetry;       ///< Telemetry protection checker.
-    FixArchiveBitCallback fixArchiveBit{};     ///< Platform archive bit repair.
-    RebootCallback rebootToPayload{};          ///< Platform reboot to payload.
+    domain::UpdateService& update;              ///< The application's own updates.
+    domain::CatalogService& catalog;            ///< The content catalogue.
+    domain::CfwInstallService& cfw;             ///< CFW pack installs.
+    domain::FirmwareInstallService& firmware;   ///< Official firmware.
+    domain::CleanupService& cleanup;            ///< Maintenance cleanup service.
+    domain::SysmoduleService& sysmodules;       ///< Sysmodule manager.
+    domain::TelemetryService& telemetry;        ///< Telemetry protection checker.
+    domain::FileStore& files;                   ///< FileStore for storage queries.
+    SystemVersionsQuery querySystemVersions{};  ///< Horizon OS & Atmosphere version query.
+    FixArchiveBitCallback fixArchiveBit{};      ///< Platform archive bit repair.
+    RebootCallback rebootToPayload{};           ///< Platform reboot to payload.
 };
 
 /// @brief What the shell wants to happen after it closes.

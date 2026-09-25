@@ -23,7 +23,8 @@
         "date_label": "Built"
     },
     "tabs": {
-        "cfw": "CFW packs",
+        "home": "Home",
+        "cfw": "Atmosphere",
         "firmware": "Firmware",
         "tools": "Tools",
         "settings": "Settings",

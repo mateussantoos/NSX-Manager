@@ -1,0 +1,25 @@
+{
+    "system": {
+        "header": "Status do Sistema",
+        "hos_version": "Firmware Horizon OS",
+        "ams_version": "CFW Atmosphere"
+    },
+    "storage": {
+        "header": "Armazenamento do Cartão SD",
+        "capacity": "Capacidade de Armazenamento",
+        "free_of": "livres de",
+        "unavailable": "Espaço de armazenamento indisponível"
+    },
+    "telemetry": {
+        "header": "Segurança e Escudo DNS",
+        "status": "Bloqueador de Telemetria",
+        "offline": "Desconectado",
+        "offline_detail": "Nenhuma conexão de rede detectada"
+    },
+    "update": {
+        "header": "Atualizações do NSX Manager",
+        "label": "Status do Aplicativo",
+        "available": "Atualização Disponível",
+        "up_to_date": "Atualizado"
+    }
+}

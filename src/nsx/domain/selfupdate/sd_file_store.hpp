@@ -68,6 +68,12 @@ public:
     [[nodiscard]] std::optional<std::uint64_t> freeSpaceBytes(
         const std::string& dir) const override;
 
+    /// @brief Total space on the volume holding a directory.
+    /// @param dir Absolute directory path.
+    /// @return Total bytes, or `std::nullopt` when `statvfs` is unavailable or fails.
+    [[nodiscard]] std::optional<std::uint64_t> totalSpaceBytes(
+        const std::string& dir) const override;
+
     /// @brief Move a file, clearing the destination first.
     /// @param from Absolute source path.
     /// @param to Absolute destination path.

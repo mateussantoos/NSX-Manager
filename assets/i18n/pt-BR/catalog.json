@@ -4,7 +4,7 @@
     "empty": "Nenhum item disponível",
     "unavailable": "Catálogo indisponível",
     "fetch_failed": "Não foi possível buscar o catálogo",
-    "no_cfw": "Nenhum pacote de CFW listado no catálogo",
+    "no_cfw": "Nenhum pacote Atmosphere listado no catálogo",
     "no_firmware": "Nenhum pacote de firmware listado no catálogo",
     "confirm_install": "Baixar e instalar este pacote?",
     "confirm_firmware": "Baixar este firmware e repassar para o Daybreak?",

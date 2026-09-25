@@ -219,6 +219,28 @@ std::optional<std::uint64_t> SdFileStore::freeSpaceBytes(const std::string& dir)
 #endif
 }
 
+std::optional<std::uint64_t> SdFileStore::totalSpaceBytes(const std::string& dir) const
+{
+#if NSX_HAVE_STATVFS
+    struct statvfs st
+    {
+    };
+
+    if (::statvfs(dir.c_str(), &st) != 0) {
+        return std::nullopt;
+    }
+    const std::uint64_t unit = st.f_frsize != 0 ? static_cast<std::uint64_t>(st.f_frsize)
+                                                : static_cast<std::uint64_t>(st.f_bsize);
+    if (unit == 0) {
+        return std::nullopt;
+    }
+    return unit * static_cast<std::uint64_t>(st.f_blocks);
+#else
+    (void)dir;
+    return std::nullopt;
+#endif
+}
+
 bool SdFileStore::rename(const std::string& from, const std::string& to)
 {
     // FatFs cannot rename onto an existing file.

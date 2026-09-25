@@ -30,6 +30,7 @@
 #include "nsx/domain/sysmodule/sysmodule_service.hpp"
 #include "nsx/platform/fs/archive_bit.hpp"
 #include "nsx/platform/power/reboot.hpp"
+#include "nsx/platform/system/system_info.hpp"
 #include "nsx/ui/app_shell/shell.hpp"
 
 namespace {
@@ -101,6 +102,11 @@ int main(int argc, char** argv)
 
     auto rebootToPayload = []() -> bool { return nsx::platform::rebootToPayload().hasValue(); };
 
+    auto querySystemVersions = []() -> std::pair<std::string, std::string> {
+        const auto versions = nsx::platform::querySystemVersions();
+        return {versions.hosVersion, versions.amsVersion};
+    };
+
     // First run has no forwarder on the card, and staging an update refuses
     // without one. Done before the UI can offer an update, rather than
     // discovered after a download.
@@ -117,9 +123,10 @@ int main(int argc, char** argv)
         std::printf("%s\n", recovered.detail.c_str());
     }
 
-    const nsx::ui::ShellServices services{update,    catalog,       cfw,
-                                          firmware,  cleanup,       sysmodules,
-                                          telemetry, fixArchiveBit, rebootToPayload};
+    const nsx::ui::ShellServices services{update,        catalog,        cfw,
+                                          firmware,      cleanup,        sysmodules,
+                                          telemetry,     files,          querySystemVersions,
+                                          fixArchiveBit, rebootToPayload};
     const nsx::ui::ShellOutcome outcome = nsx::ui::runShell(services);
 
     if (outcome.error != nsx::ui::ShellError::None) {

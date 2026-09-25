@@ -18,9 +18,11 @@
 #include "nsx/core/version/version.hpp"
 #include "nsx/ui/tabs/cfw_tab.hpp"
 #include "nsx/ui/tabs/firmware_tab.hpp"
+#include "nsx/ui/tabs/home_tab.hpp"
 #include "nsx/ui/tabs/settings_tab.hpp"
 #include "nsx/ui/tabs/tools_tab.hpp"
 #include "nsx/ui/tabs/update_tab.hpp"
+#include "nsx/ui/theme/dark_theme.hpp"
 
 namespace nsx::ui {
 
@@ -86,7 +88,9 @@ ShellOutcome runShell(const ShellServices& services)
     brls::Logger::setLogLevel(brls::LogLevel::INFO);
     brls::i18n::loadTranslations();
 
-    if (!brls::Application::init("nsx/name"_i18n)) {
+    auto* themeWrapper = new brls::LibraryViewsThemeVariantsWrapper(new DarkMinimalistTheme(),
+                                                                    new DarkMinimalistTheme());
+    if (!brls::Application::init("nsx/name"_i18n, nullptr, themeWrapper)) {
         outcome.error = ShellError::BorealisInit;
         return outcome;
     }
@@ -106,8 +110,10 @@ ShellOutcome runShell(const ShellServices& services)
                                       brls::Application::quit();
                                   });
 
-    root->addTab("update/title"_i18n, updates);
+    root->addTab("nsx/tabs/home"_i18n, new HomeTab(services.update, services.telemetry,
+                                                   services.files, services.querySystemVersions));
     root->addSeparator();
+    root->addTab("update/title"_i18n, updates);
     root->addTab("nsx/tabs/cfw"_i18n, new CfwTab(services.catalog, services.cfw));
     root->addTab("nsx/tabs/firmware"_i18n,
                  new FirmwareTab(services.catalog, services.firmware,

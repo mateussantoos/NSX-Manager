@@ -7,6 +7,7 @@
 set(NSX_PLATFORM_SOURCES
     power/reboot.cpp
     fs/archive_bit.cpp
+    system/system_info.cpp
 )
 
 list(TRANSFORM NSX_PLATFORM_SOURCES PREPEND "${CMAKE_CURRENT_LIST_DIR}/")

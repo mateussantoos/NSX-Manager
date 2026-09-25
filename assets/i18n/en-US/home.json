@@ -1,0 +1,25 @@
+{
+    "system": {
+        "header": "System Status",
+        "hos_version": "Horizon OS Firmware",
+        "ams_version": "Atmosphere CFW"
+    },
+    "storage": {
+        "header": "SD Card Storage",
+        "capacity": "Storage Capacity",
+        "free_of": "free of",
+        "unavailable": "Storage space unavailable"
+    },
+    "telemetry": {
+        "header": "Security & DNS Shield",
+        "status": "Telemetry Blocker",
+        "offline": "Offline",
+        "offline_detail": "No network connection detected"
+    },
+    "update": {
+        "header": "NSX Manager Updates",
+        "label": "Application Status",
+        "available": "Update Available",
+        "up_to_date": "Up to Date"
+    }
+}

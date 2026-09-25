@@ -23,7 +23,8 @@
         "date_label": "Compilado em"
     },
     "tabs": {
-        "cfw": "Pacotes CFW",
+        "home": "Início",
+        "cfw": "Atmosphere",
         "firmware": "Firmware",
         "tools": "Ferramentas",
         "settings": "Configurações",

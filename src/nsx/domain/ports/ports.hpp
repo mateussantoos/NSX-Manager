@@ -122,6 +122,15 @@ public:
     [[nodiscard]] virtual std::optional<std::uint64_t> freeSpaceBytes(
         const std::string& dir) const = 0;
 
+    /// @brief Total space on the volume holding a directory.
+    /// @param dir Absolute directory path.
+    /// @return Total bytes, or `std::nullopt` when it could not be determined.
+    [[nodiscard]] virtual std::optional<std::uint64_t> totalSpaceBytes(const std::string& dir) const
+    {
+        (void)dir;
+        return std::nullopt;
+    }
+
     /// @brief Move a file, replacing whatever is at the destination.
     /// @param from Absolute source path.
     /// @param to Absolute destination path.
