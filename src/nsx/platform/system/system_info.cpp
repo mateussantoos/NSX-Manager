@@ -16,8 +16,9 @@ SystemVersions querySystemVersions()
 
 #ifdef __SWITCH__
     // 1. Current Horizon OS Firmware version
-    SetSysFirmwareVersion fw;
+    SetSysFirmwareVersion fw{};
     if (R_SUCCEEDED(setsysGetFirmwareVersion(&fw))) {
+        fw.display_version[sizeof(fw.display_version) - 1] = '\0';
         versions.hosVersion = fw.display_version;
     }
     else {

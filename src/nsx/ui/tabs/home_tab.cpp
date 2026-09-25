@@ -99,6 +99,7 @@ void HomeTab::setupStorageSection()
     addView(m_storageItem);
 
     m_storageGauge = new brls::ProgressDisplay(brls::ProgressDisplayFlags::PERCENTAGE);
+    m_storageGauge->setHeight(40);
     addView(m_storageGauge);
 }
 
