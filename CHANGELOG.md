@@ -13,6 +13,37 @@ by `git-cliff` during the release workflow - do not hand-edit them. Add entries 
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-25
+
+### Added
+
+- Modular Dashboard Grid (`HomeTab`):
+  * Hardware model detection (Switch V1/V2, OLED, Lite).
+  * Real-time Horizon OS Firmware and Atmosphere (AMS) version badges.
+  * SD Card storage bar gauge and filesystem detection (FAT32 vs exFAT warning).
+  * System status and protection cards with telemetry blocking check.
+  * Interactive quick action tiles with single-stroke crimson focus highlight.
+- Sidebar Overhaul:
+  * Compact width (~230px) allocating more horizontal space for dashboard content.
+  * Sleek minimalist selection with vertical crimson indicator bar (`|`) and highlighted text.
+  * Embedded vector glyph icons for all tabs (Início, Atualização, Atmosphere, Firmware, Ferramentas, Configurações).
+- Custom Dark Minimalist Theme with Nintendo Crimson Red (#E60012) accents and OLED true blacks.
+- Catalog & Package Installation Services:
+  * `CatalogService` integration for remote/cached manifest management.
+  * `CfwInstallService` and `FirmwareInstallService` wired with modal progress dialog and cooperative B-button cancellation.
+- Maintenance & Diagnostics Utilities (`ToolsTab`):
+  * Reboot to Atmosphere payload via `splSetConfig` / `bpcDoReboot`.
+  * Recursive FAT archive-bit directory attribute fixer.
+  * Atmosphere sysmodule toggle manager (`/atmosphere/contents/` and `boot2.flag`).
+  * Non-blocking DNS shield and telemetry connection diagnostic checker.
+  * Safe cleanup service for staging and temporary caches.
+- Streamlined Linear Settings (`SettingsTab`):
+  * Clean linear menu items replacing stock Nintendo settings lists.
+  * Application build information, changelog viewer, legal licenses, and update channel options.
+- Terminology alignment: Updated all references from legacy "CFW" to "AMS" (Atmosphere).
+
+## [0.1.0] - 2026-09-21
+
 ### Added
 
 - Repository foundation: layered source tree, CMake build skeleton, CI and release workflows,
@@ -26,4 +57,6 @@ by `git-cliff` during the release workflow - do not hand-edit them. Add entries 
 - RCM payload ported from the predecessor with its GPL-2.0-only headers intact, built by its own
   devkitARM Makefile and staged into romfs as opaque data.
 
-[Unreleased]: https://github.com/mateussantoos/nsx-manager/commits/main
+[Unreleased]: https://github.com/mateussantoos/nsx-manager/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/mateussantoos/nsx-manager/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/mateussantoos/nsx-manager/releases/tag/v0.1.0
