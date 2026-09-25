@@ -16,6 +16,7 @@ set(NSX_DOMAIN_HOST_SOURCES
     cfw/cfw_install_service.cpp
     firmware/firmware_install_service.cpp
     catalog/catalog_service.cpp
+    maintenance/cleanup_service.cpp
 )
 
 set(NSX_DOMAIN_DEVICE_SOURCES

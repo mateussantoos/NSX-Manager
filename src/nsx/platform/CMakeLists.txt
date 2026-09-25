@@ -5,6 +5,8 @@
 # SPDX-License-Identifier: GPL-3.0-only
 
 set(NSX_PLATFORM_SOURCES
+    power/reboot.cpp
+    fs/archive_bit.cpp
 )
 
 list(TRANSFORM NSX_PLATFORM_SOURCES PREPEND "${CMAKE_CURRENT_LIST_DIR}/")

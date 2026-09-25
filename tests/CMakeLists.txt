@@ -39,6 +39,7 @@ set(NSX_TEST_MODULES_DOMAIN
     cfw_install
     firmware_install
     catalog_service
+    cleanup_service
 )
 
 foreach(mod IN LISTS NSX_TEST_MODULES)
