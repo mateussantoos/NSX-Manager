@@ -19,8 +19,12 @@ jobs:
 
       - name: Update submodules to their upstream default branch
         run: |
-          git submodule update --remote --recursive || true
-          git submodule status
+          if [ -f .gitmodules ]; then
+            git submodule update --remote --recursive || true
+            git submodule status
+          else
+            echo "No submodules declared; third_party dependencies are vendored."
+          fi
 
       - name: Refresh the CA bundle
         run: tools/cacert/fetch.sh --update || true

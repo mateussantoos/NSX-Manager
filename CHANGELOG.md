@@ -13,6 +13,15 @@ by `git-cliff` during the release workflow - do not hand-edit them. Add entries 
 
 ## [Unreleased]
 
+## [0.2.3] - 2026-09-25
+
+### Fixed
+
+- Restored POSIX executable bit (`100755`) on all shell scripts and hooks in Git tree:
+  * Resolved `Permission denied` (exit code 126) on CI runners (`check_version.sh`, `verify_pins.sh`, `fetch.sh`, and `run_all.sh`).
+- Aligned CI dependency workflows with vendored repository structure:
+  * Handled absence of `.gitmodules` cleanly in `deps.yml` and `verify_pins.sh`.
+
 ## [0.2.2] - 2026-09-25
 
 ### Changed
