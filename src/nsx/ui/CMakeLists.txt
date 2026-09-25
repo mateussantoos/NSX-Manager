@@ -14,6 +14,7 @@ set(NSX_UI_SOURCES
     tabs/cfw_tab.cpp
     tabs/firmware_tab.cpp
     tabs/tools_tab.cpp
+    tabs/settings_tab.cpp
     widgets/background_job.cpp
     widgets/progress_dialog.cpp
     # pages/...

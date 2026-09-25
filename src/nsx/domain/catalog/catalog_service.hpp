@@ -119,6 +119,14 @@ public:
     /// @return A reference to the configuration.
     [[nodiscard]] const CatalogConfig& config() const { return m_config; }
 
+    /// @brief Whether to swap primary and fallback mirror URLs.
+    void setPreferMirror(bool prefer)
+    {
+        if (prefer && !m_config.mirrorUrl.empty() && m_config.catalogUrl != m_config.mirrorUrl) {
+            std::swap(m_config.catalogUrl, m_config.mirrorUrl);
+        }
+    }
+
 private:
     struct CachedDocument
     {

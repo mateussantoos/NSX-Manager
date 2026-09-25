@@ -1,0 +1,68 @@
+# Third-Party Notices & Licenses
+
+NSX Manager is licensed under the GNU General Public License v3.0 (GPL-3.0-only).
+This project incorporates and links against the following open source software:
+
+---
+
+### Borealis
+- Author: WerWolv and contributors
+- License: Apache License 2.0
+- URL: https://github.com/natinusala/borealis
+Licensed under the Apache License, Version 2.0.
+
+---
+
+### Inter Font
+- Author: Rasmus Andersson
+- License: SIL Open Font License 1.1 (OFL-1.1)
+- URL: https://rsms.me/inter/
+Copyright (c) 2016-2020 The Inter Project Authors.
+
+---
+
+### Material Icons
+- Author: Google LLC
+- License: Apache License 2.0
+- URL: https://github.com/google/material-design-icons
+Licensed under the Apache License, Version 2.0.
+
+---
+
+### libcurl
+- Author: Daniel Stenberg and contributors
+- License: curl License (MIT/X derivative)
+- URL: https://curl.se/
+Copyright (c) 1996 - 2026, Daniel Stenberg, <daniel@haxx.se>, and many contributors.
+
+---
+
+### mbedTLS
+- Author: Arm Limited
+- License: Apache License 2.0
+- URL: https://github.com/Mbed-TLS/mbedtls
+Copyright (c) 2006-2026 Arm Limited. All rights reserved.
+
+---
+
+### Zipper / minizip
+- Author: Damien Dejean, Gilles Vollant
+- License: GPL-3.0 / zlib License
+- URL: https://github.com/sebastiandev/zipper
+Copyright (c) 2015 Damien Dejean, Copyright (c) 1998-2010 Gilles Vollant.
+
+---
+
+### nlohmann/json
+- Author: Niels Lohmann
+- License: MIT License
+- URL: https://github.com/nlohmann/json
+Copyright (c) 2013-2026 Niels Lohmann.
+
+---
+
+### libnx
+- Author: libnx Authors
+- License: ISC License
+- URL: https://github.com/switchbrew/libnx
+Copyright (c) 2017-2026 libnx Authors.

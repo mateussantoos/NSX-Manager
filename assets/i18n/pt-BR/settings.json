@@ -1,0 +1,33 @@
+{
+    "title": "Configurações",
+    "about": {
+        "header": "Sobre o NSX Manager",
+        "version": "Versão",
+        "commit": "Commit",
+        "date": "Data de Compilação",
+        "toolchain": "Ambiente",
+        "licence": "Distribuído sob a GNU General Public License v3.0"
+    },
+    "network": {
+        "header": "Atualizações e Espelhos",
+        "preview_channel": "Versões de Pré-lançamento",
+        "preview_desc": "Receber compilações de teste e release candidates",
+        "mirror_raw": "Espelho Alternativo do GitHub",
+        "mirror_raw_desc": "Usar raw.githubusercontent.com como alternativa para metadados"
+    },
+    "preferences": {
+        "header": "Preferências",
+        "language": "Idioma",
+        "language_desc": "Selecionar idioma da interface",
+        "language_current": "Português (pt-BR)",
+        "language_changed": "Idioma alterado para Português (pt-BR).",
+        "language_switch_confirm": "Alterar o idioma da interface para Inglês (en-US)?"
+    },
+    "legal": {
+        "header": "Avisos Legais e Licenças",
+        "view_notices": "Avisos de Terceiros",
+        "view_notices_desc": "Licenças e atribuições de componentes de código aberto",
+        "notices_title": "Licenças de Terceiros",
+        "notices_summary": "Borealis (Apache 2.0), Inter (OFL 1.1), Material Icons (Apache 2.0), libcurl (MIT), mbedTLS (Apache 2.0), Zipper (GPL 3.0), libnx (ISC), nlohmann/json (MIT)"
+    }
+}

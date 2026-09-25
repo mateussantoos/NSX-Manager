@@ -18,6 +18,7 @@
 #include "nsx/core/version/version.hpp"
 #include "nsx/ui/tabs/cfw_tab.hpp"
 #include "nsx/ui/tabs/firmware_tab.hpp"
+#include "nsx/ui/tabs/settings_tab.hpp"
 #include "nsx/ui/tabs/tools_tab.hpp"
 #include "nsx/ui/tabs/update_tab.hpp"
 
@@ -43,26 +44,6 @@ bool readable(const char* path)
     }
     std::fclose(f);
     return true;
-}
-
-brls::View* buildSystemTab()
-{
-    auto* list = new brls::List();
-
-    auto* version = new brls::ListItem("nsx/about/version_label"_i18n);
-    version->setValue(std::string(core::version::kString));
-    list->addView(version);
-
-    auto* build = new brls::ListItem("nsx/about/build_label"_i18n);
-    build->setValue(std::string(core::version::kGitSha));
-    list->addView(build);
-
-    auto* built = new brls::ListItem("nsx/about/date_label"_i18n);
-    built->setValue(std::string(core::version::kBuildDate));
-    list->addView(built);
-
-    list->addView(new brls::Label(brls::LabelStyle::DESCRIPTION, "nsx/about/licence"_i18n, true));
-    return list;
 }
 
 }  // namespace
@@ -139,7 +120,7 @@ ShellOutcome runShell(const ShellServices& services)
                  new ToolsTab(services.cleanup, services.sysmodules, services.telemetry,
                               services.fixArchiveBit, services.rebootToPayload));
     root->addSeparator();
-    root->addTab("nsx/tabs/system"_i18n, buildSystemTab());
+    root->addTab("nsx/tabs/settings"_i18n, new SettingsTab(services.update, services.catalog));
 
     // Borealis owns these from here; they are freed when the application shuts
     // down or the view is popped.

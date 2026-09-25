@@ -235,6 +235,17 @@ public:
     /// @return A reference to the configuration.
     [[nodiscard]] const SelfUpdateConfig& config() const { return m_config; }
 
+    /// @brief Change update channel between Stable and Preview.
+    void setChannel(core::Channel channel) { m_config.channel = channel; }
+
+    /// @brief Whether to swap primary and fallback mirror URLs.
+    void setPreferMirror(bool prefer)
+    {
+        if (prefer && !m_config.mirrorUrl.empty() && m_config.manifestUrl != m_config.mirrorUrl) {
+            std::swap(m_config.manifestUrl, m_config.mirrorUrl);
+        }
+    }
+
 private:
     struct CachedDocument
     {
