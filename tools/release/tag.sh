@@ -37,7 +37,9 @@ printf '%s\n' "$NEW" > VERSION
 tools/release/check_version.sh "v$NEW"
 
 git add VERSION
-git commit -m "chore(release): bump version to $NEW"
+if ! git diff --cached --quiet; then
+    git commit -m "chore(release): bump version to $NEW"
+fi
 git tag -a "v$NEW" -m "NSX Manager $NEW"
 
 printf '\n  %s -> %s, tag v%s created locally.\n\n' "$OLD" "$NEW" "$NEW"
