@@ -145,6 +145,15 @@ public:
     /// @param dir Absolute directory path.
     /// @return True when the directory is gone afterwards.
     virtual bool removeTree(const std::string& dir) = 0;
+
+    /// @brief Enumerate immediate child directories within a directory.
+    /// @param dir Absolute directory path.
+    /// @return Names of child directories (not full paths).
+    [[nodiscard]] virtual std::vector<std::string> listDirectories(const std::string& dir) const
+    {
+        (void)dir;
+        return {};
+    }
 };
 
 /// @brief Extracting an archive, as the install flow needs it.

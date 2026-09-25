@@ -84,6 +84,11 @@ public:
     /// @param dir Absolute directory path.
     /// @return True when the directory is gone afterwards.
     bool removeTree(const std::string& dir) override;
+
+    /// @brief Enumerate immediate child directories within a directory.
+    /// @param dir Absolute directory path.
+    /// @return Names of child directories.
+    [[nodiscard]] std::vector<std::string> listDirectories(const std::string& dir) const override;
 };
 
 }  // namespace nsx::domain

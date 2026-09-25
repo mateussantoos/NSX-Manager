@@ -40,6 +40,8 @@ set(NSX_TEST_MODULES_DOMAIN
     firmware_install
     catalog_service
     cleanup_service
+    sysmodule_service
+    telemetry_service
 )
 
 foreach(mod IN LISTS NSX_TEST_MODULES)

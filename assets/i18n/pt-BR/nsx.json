@@ -25,6 +25,7 @@
     "tabs": {
         "cfw": "Pacotes CFW",
         "firmware": "Firmware",
+        "tools": "Ferramentas",
         "system": "Sistema"
     }
 }

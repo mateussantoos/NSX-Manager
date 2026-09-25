@@ -330,4 +330,32 @@ bool SdFileStore::removeTree(const std::string& dir)
     return ::stat(dir.c_str(), &st) != 0;
 }
 
+std::vector<std::string> SdFileStore::listDirectories(const std::string& dir) const
+{
+    std::vector<std::string> out;
+    DIR* handle = ::opendir(dir.c_str());
+    if (handle == nullptr) {
+        return out;
+    }
+
+    while (const dirent* entry = ::readdir(handle)) {
+        const std::string name = entry->d_name;
+        if (name == "." || name == "..") {
+            continue;
+        }
+
+        const std::string full = dir.empty() || dir.back() == '/' ? dir + name : dir + "/" + name;
+
+        struct stat st
+        {
+        };
+
+        if (::stat(full.c_str(), &st) == 0 && S_ISDIR(st.st_mode)) {
+            out.push_back(name);
+        }
+    }
+    ::closedir(handle);
+    return out;
+}
+
 }  // namespace nsx::domain

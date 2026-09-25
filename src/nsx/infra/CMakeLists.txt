@@ -14,6 +14,7 @@
 set(NSX_INFRA_HOST_SOURCES
     http/tls_config.cpp
     archive/archive_error.cpp
+    network/dns_block_checker.cpp
 )
 
 # Needs libcurl, zipper and the generated CA bundle header.

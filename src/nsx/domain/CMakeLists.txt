@@ -17,6 +17,8 @@ set(NSX_DOMAIN_HOST_SOURCES
     firmware/firmware_install_service.cpp
     catalog/catalog_service.cpp
     maintenance/cleanup_service.cpp
+    sysmodule/sysmodule_service.cpp
+    network/telemetry_service.cpp
 )
 
 set(NSX_DOMAIN_DEVICE_SOURCES

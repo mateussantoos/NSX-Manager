@@ -18,6 +18,7 @@
 #include "nsx/core/version/version.hpp"
 #include "nsx/ui/tabs/cfw_tab.hpp"
 #include "nsx/ui/tabs/firmware_tab.hpp"
+#include "nsx/ui/tabs/tools_tab.hpp"
 #include "nsx/ui/tabs/update_tab.hpp"
 
 namespace nsx::ui {
@@ -134,6 +135,9 @@ ShellOutcome runShell(const ShellServices& services)
                                      outcome.chainloadArgs = args;
                                      brls::Application::quit();
                                  }));
+    root->addTab("nsx/tabs/tools"_i18n,
+                 new ToolsTab(services.cleanup, services.sysmodules, services.telemetry,
+                              services.fixArchiveBit, services.rebootToPayload));
     root->addSeparator();
     root->addTab("nsx/tabs/system"_i18n, buildSystemTab());
 

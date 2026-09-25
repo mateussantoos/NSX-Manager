@@ -25,6 +25,7 @@
     "tabs": {
         "cfw": "CFW packs",
         "firmware": "Firmware",
+        "tools": "Tools",
         "system": "System"
     }
 }

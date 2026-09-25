@@ -1,0 +1,36 @@
+{
+    "title": "Tools",
+    "telemetry": {
+        "header": "Network Protection",
+        "label": "Telemetry & DNS",
+        "checking": "Checking...",
+        "protected": "Protected (Safe)",
+        "unshielded": "Unshielded (Warning)",
+        "protected_detail": "Nintendo telemetry endpoints are blocked by DNS (90DNS/Hosts).",
+        "unshielded_detail": "Warning: Nintendo telemetry endpoints are reachable. Telemetry is active!",
+        "check_button": "Test Protection"
+    },
+    "maintenance": {
+        "header": "Maintenance & System",
+        "archive_bit_label": "Fix Archive Bit",
+        "archive_bit_desc": "Recursively repair FAT directory attributes on /atmosphere and /switch",
+        "archive_bit_confirm": "Repair directory archive bits across /atmosphere and /switch? This may take a minute.",
+        "archive_bit_running": "Scanning and repairing directories...",
+        "archive_bit_done": "Archive bit repair complete: {} directory(ies) scanned, {} fixed.",
+        "reboot_rcm_label": "Reboot to Payload (RCM)",
+        "reboot_rcm_desc": "Reboot the console directly into payload (e.g. Hekate)",
+        "reboot_rcm_confirm": "Reboot console to RCM payload now?",
+        "reboot_failed": "Failed to reboot to payload.",
+        "cleanup_label": "Purge Staging Cache",
+        "cleanup_desc": "Safely remove temporary downloads and unzipped files in /config/nsx-manager/staging",
+        "cleanup_confirm": "Delete all leftover temporary files in staging?",
+        "cleanup_done": "Staging cleared: {} temporary file(s) deleted.",
+        "cleanup_failed": "Failed to clean staging directory: {}"
+    },
+    "sysmodules": {
+        "header": "Sysmodule Manager",
+        "no_sysmodules": "No sysmodules found in /atmosphere/contents",
+        "enabled": "Enabled on boot",
+        "disabled": "Disabled on boot"
+    }
+}

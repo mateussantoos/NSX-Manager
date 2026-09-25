@@ -1,0 +1,36 @@
+{
+    "title": "Ferramentas",
+    "telemetry": {
+        "header": "Proteção de Rede",
+        "label": "Telemetria e DNS",
+        "checking": "Verificando...",
+        "protected": "Protegido (Seguro)",
+        "unshielded": "Desprotegido (Aviso)",
+        "protected_detail": "Endpoints de telemetria da Nintendo estão bloqueados por DNS (90DNS/Hosts).",
+        "unshielded_detail": "Aviso: Endpoints de telemetria da Nintendo estão acessíveis. Telemetria ativa!",
+        "check_button": "Testar Proteção"
+    },
+    "maintenance": {
+        "header": "Manutenção e Sistema",
+        "archive_bit_label": "Corrigir Archive Bit",
+        "archive_bit_desc": "Repara atributos de diretório FAT em /atmosphere e /switch",
+        "archive_bit_confirm": "Deseja reparar os archive bits dos diretórios em /atmosphere e /switch? Isso pode levar um minuto.",
+        "archive_bit_running": "Varrendo e corrigindo diretórios...",
+        "archive_bit_done": "Reparo concluído: {} diretório(s) inspecionado(s), {} corrigido(s).",
+        "reboot_rcm_label": "Reiniciar para Payload (RCM)",
+        "reboot_rcm_desc": "Reinicia o console diretamente no payload (ex: Hekate)",
+        "reboot_rcm_confirm": "Reiniciar o console para o payload RCM agora?",
+        "reboot_failed": "Falha ao reiniciar para o payload.",
+        "cleanup_label": "Limpar Cache Temporário",
+        "cleanup_desc": "Remove downloads e arquivos descompactados temporários em staging",
+        "cleanup_confirm": "Excluir todos os arquivos temporários da área de transferência?",
+        "cleanup_done": "Área temporária limpa: {} arquivo(s) excluído(s).",
+        "cleanup_failed": "Falha ao limpar área temporária: {}"
+    },
+    "sysmodules": {
+        "header": "Gerenciador de Sysmodules",
+        "no_sysmodules": "Nenhum sysmodule encontrado em /atmosphere/contents",
+        "enabled": "Ativo na inicialização",
+        "disabled": "Desativado na inicialização"
+    }
+}

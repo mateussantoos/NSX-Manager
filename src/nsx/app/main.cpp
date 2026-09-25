@@ -22,9 +22,14 @@
 #include "nsx/domain/cfw/cfw_install_service.hpp"
 #include "nsx/domain/cfw/zip_archive_gateway.hpp"
 #include "nsx/domain/firmware/firmware_install_service.hpp"
+#include "nsx/domain/maintenance/cleanup_service.hpp"
+#include "nsx/domain/network/telemetry_service.hpp"
 #include "nsx/domain/selfupdate/curl_gateway.hpp"
 #include "nsx/domain/selfupdate/sd_file_store.hpp"
 #include "nsx/domain/selfupdate/update_service.hpp"
+#include "nsx/domain/sysmodule/sysmodule_service.hpp"
+#include "nsx/platform/fs/archive_bit.hpp"
+#include "nsx/platform/power/reboot.hpp"
 #include "nsx/ui/app_shell/shell.hpp"
 
 namespace {
@@ -84,6 +89,17 @@ int main(int argc, char** argv)
     nsx::domain::CatalogService catalog(http, files, clock, {});
     nsx::domain::CfwInstallService cfw(http, archives, files, clock, {});
     nsx::domain::FirmwareInstallService firmware(http, archives, files, {});
+    nsx::domain::CleanupService cleanup(files, {});
+    nsx::domain::SysmoduleService sysmodules(files);
+    nsx::domain::TelemetryService telemetry;
+
+    // Platform callbacks for hardware actions
+    auto fixArchiveBit = [](const std::function<bool(std::string_view)>& onProgress) {
+        const auto rep = nsx::platform::fixAllCommonDirectories(onProgress);
+        return std::make_pair(rep.directoriesScanned, rep.directoriesFixed);
+    };
+
+    auto rebootToPayload = []() -> bool { return nsx::platform::rebootToPayload().hasValue(); };
 
     // First run has no forwarder on the card, and staging an update refuses
     // without one. Done before the UI can offer an update, rather than
@@ -101,7 +117,9 @@ int main(int argc, char** argv)
         std::printf("%s\n", recovered.detail.c_str());
     }
 
-    const nsx::ui::ShellServices services{update, catalog, cfw, firmware};
+    const nsx::ui::ShellServices services{update,    catalog,       cfw,
+                                          firmware,  cleanup,       sysmodules,
+                                          telemetry, fixArchiveBit, rebootToPayload};
     const nsx::ui::ShellOutcome outcome = nsx::ui::runShell(services);
 
     if (outcome.error != nsx::ui::ShellError::None) {
