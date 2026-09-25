@@ -575,116 +575,125 @@ void DashboardActionButton::draw(NVGcontext* vg, int viewX, int viewY, unsigned 
     const NVGcolor iconColor = isFoc ? nvgRGB(230, 0, 18) : nvgRGBA(235, 238, 245, 240);
 
     if (m_iconType == 0) {
-        // Atmosphere: Package Download Tray & Arrow
+        // Atmosphere: Lucide package / 3D box isometric outline
         nvgBeginPath(vg);
-        nvgMoveTo(vg, badgeX - 7.5f, badgeY + 2.5f);
-        nvgLineTo(vg, badgeX - 7.5f, badgeY + 6.5f);
-        nvgLineTo(vg, badgeX + 7.5f, badgeY + 6.5f);
-        nvgLineTo(vg, badgeX + 7.5f, badgeY + 2.5f);
+        nvgMoveTo(vg, badgeX, badgeY - 7.5f);
+        nvgLineTo(vg, badgeX + 6.8f, badgeY - 3.5f);
+        nvgLineTo(vg, badgeX + 6.8f, badgeY + 4.0f);
+        nvgLineTo(vg, badgeX, badgeY + 7.8f);
+        nvgLineTo(vg, badgeX - 6.8f, badgeY + 4.0f);
+        nvgLineTo(vg, badgeX - 6.8f, badgeY - 3.5f);
+        nvgClosePath(vg);
         nvgStrokeColor(vg, iconColor);
-        nvgStrokeWidth(vg, 2.0f);
-        nvgLineCap(vg, NVG_ROUND);
+        nvgStrokeWidth(vg, 1.8f);
         nvgLineJoin(vg, NVG_ROUND);
         nvgStroke(vg);
 
+        // Inner Y edges meeting at center
         nvgBeginPath(vg);
-        nvgMoveTo(vg, badgeX, badgeY - 7.0f);
-        nvgLineTo(vg, badgeX, badgeY + 2.5f);
+        nvgMoveTo(vg, badgeX, badgeY);
+        nvgLineTo(vg, badgeX, badgeY + 7.8f);
+        nvgMoveTo(vg, badgeX, badgeY);
+        nvgLineTo(vg, badgeX - 6.8f, badgeY - 3.5f);
+        nvgMoveTo(vg, badgeX, badgeY);
+        nvgLineTo(vg, badgeX + 6.8f, badgeY - 3.5f);
         nvgStrokeColor(vg, iconColor);
-        nvgStrokeWidth(vg, 2.2f);
-        nvgStroke(vg);
-
-        nvgBeginPath(vg);
-        nvgMoveTo(vg, badgeX - 4.2f, badgeY - 1.2f);
-        nvgLineTo(vg, badgeX, badgeY + 3.0f);
-        nvgLineTo(vg, badgeX + 4.2f, badgeY - 1.2f);
-        nvgStrokeColor(vg, iconColor);
-        nvgStrokeWidth(vg, 2.2f);
+        nvgStrokeWidth(vg, 1.6f);
         nvgLineCap(vg, NVG_ROUND);
         nvgLineJoin(vg, NVG_ROUND);
         nvgStroke(vg);
     }
     else if (m_iconType == 1) {
-        // Firmware: Microchip CPU with Pins
+        // Firmware: Lucide cpu / microchip outline with crisp pins
         nvgBeginPath(vg);
-        nvgRoundedRect(vg, badgeX - 6.5f, badgeY - 6.5f, 13.0f, 13.0f, 2.5f);
+        nvgRoundedRect(vg, badgeX - 5.5f, badgeY - 5.5f, 11.0f, 11.0f, 2.0f);
         nvgStrokeColor(vg, iconColor);
         nvgStrokeWidth(vg, 2.0f);
         nvgStroke(vg);
 
+        // Inner core square
         nvgBeginPath(vg);
-        nvgRoundedRect(vg, badgeX - 2.5f, badgeY - 2.5f, 5.0f, 5.0f, 1.0f);
-        nvgFillColor(vg, iconColor);
-        nvgFill(vg);
+        nvgRoundedRect(vg, badgeX - 2.2f, badgeY - 2.2f, 4.4f, 4.4f, 1.0f);
+        nvgStrokeColor(vg, iconColor);
+        nvgStrokeWidth(vg, 1.4f);
+        nvgStroke(vg);
 
+        // 8 external pins
         nvgBeginPath(vg);
-        nvgMoveTo(vg, badgeX - 3.0f, badgeY - 6.5f);
-        nvgLineTo(vg, badgeX - 3.0f, badgeY - 9.0f);
-        nvgMoveTo(vg, badgeX + 3.0f, badgeY - 6.5f);
-        nvgLineTo(vg, badgeX + 3.0f, badgeY - 9.0f);
-        nvgMoveTo(vg, badgeX - 3.0f, badgeY + 6.5f);
-        nvgLineTo(vg, badgeX - 3.0f, badgeY + 9.0f);
-        nvgMoveTo(vg, badgeX + 3.0f, badgeY + 6.5f);
-        nvgLineTo(vg, badgeX + 3.0f, badgeY + 9.0f);
-
-        nvgMoveTo(vg, badgeX - 6.5f, badgeY - 3.0f);
-        nvgLineTo(vg, badgeX - 9.0f, badgeY - 3.0f);
-        nvgMoveTo(vg, badgeX - 6.5f, badgeY + 3.0f);
-        nvgLineTo(vg, badgeX - 9.0f, badgeY + 3.0f);
-        nvgMoveTo(vg, badgeX + 6.5f, badgeY - 3.0f);
-        nvgLineTo(vg, badgeX + 9.0f, badgeY - 3.0f);
-        nvgMoveTo(vg, badgeX + 6.5f, badgeY + 3.0f);
-        nvgLineTo(vg, badgeX + 9.0f, badgeY + 3.0f);
+        // Top pins
+        nvgMoveTo(vg, badgeX - 2.5f, badgeY - 5.5f);
+        nvgLineTo(vg, badgeX - 2.5f, badgeY - 8.0f);
+        nvgMoveTo(vg, badgeX + 2.5f, badgeY - 5.5f);
+        nvgLineTo(vg, badgeX + 2.5f, badgeY - 8.0f);
+        // Bottom pins
+        nvgMoveTo(vg, badgeX - 2.5f, badgeY + 5.5f);
+        nvgLineTo(vg, badgeX - 2.5f, badgeY + 8.0f);
+        nvgMoveTo(vg, badgeX + 2.5f, badgeY + 5.5f);
+        nvgLineTo(vg, badgeX + 2.5f, badgeY + 8.0f);
+        // Left pins
+        nvgMoveTo(vg, badgeX - 5.5f, badgeY - 2.5f);
+        nvgLineTo(vg, badgeX - 8.0f, badgeY - 2.5f);
+        nvgMoveTo(vg, badgeX - 5.5f, badgeY + 2.5f);
+        nvgLineTo(vg, badgeX - 8.0f, badgeY + 2.5f);
+        // Right pins
+        nvgMoveTo(vg, badgeX + 5.5f, badgeY - 2.5f);
+        nvgLineTo(vg, badgeX + 8.0f, badgeY - 2.5f);
+        nvgMoveTo(vg, badgeX + 5.5f, badgeY + 2.5f);
+        nvgLineTo(vg, badgeX + 8.0f, badgeY + 2.5f);
         nvgStrokeColor(vg, iconColor);
         nvgStrokeWidth(vg, 1.8f);
         nvgLineCap(vg, NVG_ROUND);
         nvgStroke(vg);
     }
     else if (m_iconType == 2) {
-        // Tools: Precision Screwdriver / Wrench
+        // Tools: Lucide wrench / 45-degree angle open-end spanner
+        // Handle: angled shaft extending to bottom-left
         nvgBeginPath(vg);
-        nvgMoveTo(vg, badgeX - 6.0f, badgeY + 6.0f);
-        nvgLineTo(vg, badgeX + 2.0f, badgeY - 2.0f);
+        nvgMoveTo(vg, badgeX - 6.5f, badgeY + 6.5f);
+        nvgLineTo(vg, badgeX + 0.8f, badgeY - 0.8f);
         nvgStrokeColor(vg, iconColor);
-        nvgStrokeWidth(vg, 2.5f);
+        nvgStrokeWidth(vg, 2.4f);
         nvgLineCap(vg, NVG_ROUND);
         nvgStroke(vg);
 
+        // Open-end wrench jaws pointing top-right at 45 degrees
         nvgBeginPath(vg);
-        nvgCircle(vg, badgeX + 4.0f, badgeY - 4.0f, 4.5f);
+        nvgMoveTo(vg, badgeX - 0.5f, badgeY - 1.8f);
+        nvgLineTo(vg, badgeX + 1.2f, badgeY - 6.8f);
+        nvgLineTo(vg, badgeX + 3.0f, badgeY - 5.0f);
+        nvgLineTo(vg, badgeX + 5.0f, badgeY - 3.0f);
+        nvgLineTo(vg, badgeX + 6.8f, badgeY - 1.2f);
+        nvgLineTo(vg, badgeX + 1.8f, badgeY + 0.5f);
         nvgStrokeColor(vg, iconColor);
         nvgStrokeWidth(vg, 2.0f);
-        nvgStroke(vg);
-
-        nvgBeginPath(vg);
-        nvgMoveTo(vg, badgeX + 2.5f, badgeY - 5.5f);
-        nvgLineTo(vg, badgeX + 5.5f, badgeY - 2.5f);
-        nvgStrokeColor(vg, nvgRGBA(20, 23, 27, 255));
-        nvgStrokeWidth(vg, 2.5f);
+        nvgLineCap(vg, NVG_ROUND);
+        nvgLineJoin(vg, NVG_ROUND);
         nvgStroke(vg);
     }
     else if (m_iconType == 3) {
-        // Settings: Gear / Cogwheel
+        // Settings: Lucide settings gear
         nvgBeginPath(vg);
-        nvgCircle(vg, badgeX, badgeY, 5.0f);
+        nvgCircle(vg, badgeX, badgeY, 2.8f);
         nvgStrokeColor(vg, iconColor);
-        nvgStrokeWidth(vg, 2.0f);
+        nvgStrokeWidth(vg, 1.8f);
         nvgStroke(vg);
 
         nvgBeginPath(vg);
-        nvgCircle(vg, badgeX, badgeY, 2.0f);
-        nvgFillColor(vg, iconColor);
-        nvgFill(vg);
+        nvgCircle(vg, badgeX, badgeY, 5.0f);
+        nvgStrokeColor(vg, iconColor);
+        nvgStrokeWidth(vg, 1.6f);
+        nvgStroke(vg);
 
         for (int t = 0; t < 6; ++t) {
             const float angle = static_cast<float>(t) * 3.14159265f / 3.0f;
-            const float cosA = cosf(angle);
-            const float sinA = sinf(angle);
+            const float cosA = std::cos(angle);
+            const float sinA = std::sin(angle);
             nvgBeginPath(vg);
-            nvgMoveTo(vg, badgeX + 5.0f * cosA, badgeY + 5.0f * sinA);
+            nvgMoveTo(vg, badgeX + 4.8f * cosA, badgeY + 4.8f * sinA);
             nvgLineTo(vg, badgeX + 7.5f * cosA, badgeY + 7.5f * sinA);
             nvgStrokeColor(vg, iconColor);
             nvgStrokeWidth(vg, 2.0f);
+            nvgLineCap(vg, NVG_ROUND);
             nvgStroke(vg);
         }
     }

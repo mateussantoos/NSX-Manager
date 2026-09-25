@@ -96,13 +96,13 @@ ShellOutcome runShell(const ShellServices& services)
     }
 
     auto* style = brls::Application::getStyle();
-    style->Sidebar.width = 230;
-    style->Sidebar.marginLeft = 24;
+    style->Sidebar.width = 280;
+    style->Sidebar.marginLeft = 16;
     style->Sidebar.marginRight = 16;
     style->Sidebar.marginTop = 30;
     style->Sidebar.marginBottom = 30;
-    style->Sidebar.Item.height = 54;
-    style->Sidebar.Item.textSize = 18;
+    style->Sidebar.Item.height = 50;
+    style->Sidebar.Item.textSize = 17;
     style->Sidebar.Item.textOffsetX = 44;
 
     auto* root = new brls::TabFrame();
@@ -110,8 +110,8 @@ ShellOutcome runShell(const ShellServices& services)
     root->setIcon(BOREALIS_ASSET("images/logo.png"));
     root->setFooterText(std::string(core::version::kString));
     if (root->sidebar) {
-        root->sidebar->setWidth(230);
-        root->sidebar->setMargins(30, 16, 30, 24);
+        root->sidebar->setWidth(280);
+        root->sidebar->setMargins(30, 16, 30, 16);
     }
 
     // Quit first, then chainload. Application::quit() ends mainLoop, and doing
