@@ -85,6 +85,11 @@ public:
 
     bool isHighlightBackgroundEnabled() override { return false; }
 
+    void drawHighlight(NVGcontext*, brls::Theme*, float, brls::Style*, bool) override
+    {
+        // Suppress Borealis default highlight outline to eliminate double border
+    }
+
     bool onClick() override;
 
 private:

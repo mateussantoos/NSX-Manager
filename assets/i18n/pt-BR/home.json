@@ -2,7 +2,7 @@
     "system": {
         "header": "Status do Sistema",
         "hos_version": "Firmware Horizon OS",
-        "ams_version": "CFW Atmosphere"
+        "ams_version": "Atmosphere (AMS)"
     },
     "storage": {
         "header": "Armazenamento do Cartão SD",

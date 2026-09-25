@@ -95,10 +95,24 @@ ShellOutcome runShell(const ShellServices& services)
         return outcome;
     }
 
+    auto* style = brls::Application::getStyle();
+    style->Sidebar.width = 230;
+    style->Sidebar.marginLeft = 24;
+    style->Sidebar.marginRight = 16;
+    style->Sidebar.marginTop = 30;
+    style->Sidebar.marginBottom = 30;
+    style->Sidebar.Item.height = 54;
+    style->Sidebar.Item.textSize = 18;
+    style->Sidebar.Item.textOffsetX = 44;
+
     auto* root = new brls::TabFrame();
     root->setTitle("nsx/name"_i18n);
     root->setIcon(BOREALIS_ASSET("images/logo.png"));
     root->setFooterText(std::string(core::version::kString));
+    if (root->sidebar) {
+        root->sidebar->setWidth(230);
+        root->sidebar->setMargins(30, 16, 30, 24);
+    }
 
     // Quit first, then chainload. Application::quit() ends mainLoop, and doing
     // the envSetNextLoad after it returns means the UI is fully torn down - and
@@ -131,22 +145,27 @@ ShellOutcome runShell(const ShellServices& services)
 
     root->addTab("nsx/tabs/home"_i18n,
                  new HomeTab(services.update, services.telemetry, services.files,
-                             services.querySystemOverview, onSelectTab));
+                             services.querySystemOverview, onSelectTab),
+                 brls::SidebarIcon::Home);
     root->addSeparator();
-    root->addTab("update/title"_i18n, updates);
-    root->addTab("nsx/tabs/cfw"_i18n, new CfwTab(services.catalog, services.cfw));
+    root->addTab("update/title"_i18n, updates, brls::SidebarIcon::Update);
+    root->addTab("nsx/tabs/cfw"_i18n, new CfwTab(services.catalog, services.cfw),
+                 brls::SidebarIcon::Atmosphere);
     root->addTab("nsx/tabs/firmware"_i18n,
                  new FirmwareTab(services.catalog, services.firmware,
                                  [&outcome](const std::string& path, const std::string& args) {
                                      outcome.chainloadPath = path;
                                      outcome.chainloadArgs = args;
                                      brls::Application::quit();
-                                 }));
+                                 }),
+                 brls::SidebarIcon::Firmware);
     root->addTab("nsx/tabs/tools"_i18n,
                  new ToolsTab(services.cleanup, services.sysmodules, services.telemetry,
-                              services.fixArchiveBit, services.rebootToPayload));
+                              services.fixArchiveBit, services.rebootToPayload),
+                 brls::SidebarIcon::Tools);
     root->addSeparator();
-    root->addTab("nsx/tabs/settings"_i18n, new SettingsTab(services.update, services.catalog));
+    root->addTab("nsx/tabs/settings"_i18n, new SettingsTab(services.update, services.catalog),
+                 brls::SidebarIcon::Settings);
 
     // Borealis owns these from here; they are freed when the application shuts
     // down or the view is popped.

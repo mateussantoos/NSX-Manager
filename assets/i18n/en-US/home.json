@@ -2,7 +2,7 @@
     "system": {
         "header": "System Status",
         "hos_version": "Horizon OS Firmware",
-        "ams_version": "Atmosphere CFW"
+        "ams_version": "Atmosphere (AMS)"
     },
     "storage": {
         "header": "SD Card Storage",

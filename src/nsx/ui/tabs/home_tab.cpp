@@ -249,7 +249,7 @@ void DashboardSummaryView::draw(NVGcontext* vg, int viewX, int viewY, unsigned v
             nvgFontSize(vg, 13.0f);
             nvgFillColor(vg, nvgRGB(142, 146, 152));
             nvgTextAlign(vg, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
-            nvgText(vg, cx + 56.0f, cardsY + 22.0f, "Atmosphere", nullptr);
+            nvgText(vg, cx + 56.0f, cardsY + 22.0f, "Atmosphere (AMS)", nullptr);
 
             nvgBeginPath(vg);
             nvgFontSize(vg, 19.0f);
@@ -373,7 +373,7 @@ void DashboardSummaryView::draw(NVGcontext* vg, int viewX, int viewY, unsigned v
     };
 
     std::vector<Bullet> bullets;
-    bullets.push_back({nvgRGB(46, 204, 113), "Atmosphere CFW ativo: " + m_overview.amsVersion});
+    bullets.push_back({nvgRGB(46, 204, 113), "Atmosphere (AMS) ativo: " + m_overview.amsVersion});
 
     {
         std::lock_guard lock(m_mutex);
@@ -449,7 +449,7 @@ void DashboardSummaryView::draw(NVGcontext* vg, int viewX, int viewY, unsigned v
     // Description text
     const std::string desc =
         "O NSX Manager e uma solucao moderna e segura em C++20 para gerenciamento de pacotes "
-        "Atmosphere, firmwares e manutencao avancada do Nintendo Switch.";
+        "Atmosphere (AMS), firmwares e manutencao avancada do Nintendo Switch.";
     nvgBeginPath(vg);
     nvgFontFaceId(vg, ctx->fontStash->regular);
     nvgFontSize(vg, 13.5f);
@@ -528,20 +528,7 @@ void DashboardActionButton::draw(NVGcontext* vg, int viewX, int viewY, unsigned 
     const auto fw = static_cast<float>(viewW);
     const auto fh = static_cast<float>(viewH);
 
-    // 1. Outer Neon Glow on Focus (Crimson Red #E60012)
-    if (m_focusAnim > 0.01f) {
-        const float pulseGlow = 0.85f + 0.15f * sinf(m_pulse);
-        const auto glowAlpha = static_cast<unsigned char>(130.0f * m_focusAnim * pulseGlow);
-        const NVGpaint glowPaint =
-            nvgBoxGradient(vg, fx, drawY, fw, fh, 10.0f, 16.0f, nvgRGBA(230, 0, 18, glowAlpha),
-                           nvgRGBA(0, 0, 0, 0));
-        nvgBeginPath(vg);
-        nvgRect(vg, fx - 14.0f, drawY - 12.0f, fw + 28.0f, fh + 26.0f);
-        nvgFillPaint(vg, glowPaint);
-        nvgFill(vg);
-    }
-
-    // 2. Card Background
+    // 1. Card Background
     nvgBeginPath(vg);
     nvgRoundedRect(vg, fx, drawY, fw, fh, 9.0f);
     const auto bgR = static_cast<unsigned char>(20 + 16 * m_focusAnim);
@@ -550,14 +537,17 @@ void DashboardActionButton::draw(NVGcontext* vg, int viewX, int viewY, unsigned 
     nvgFillColor(vg, nvgRGB(bgR, bgG, bgB));
     nvgFill(vg);
 
-    // 3. Dynamic Border
+    // 2. Single Crisp Border (Handles stroke cleanly without double focus border)
     nvgBeginPath(vg);
     nvgRoundedRect(vg, fx, drawY, fw, fh, 9.0f);
-    const auto strokeR = static_cast<unsigned char>(36 + (230 - 36) * m_focusAnim);
-    const auto strokeG = static_cast<unsigned char>(40 - 40 * m_focusAnim);
-    const auto strokeB = static_cast<unsigned char>(48 - (48 - 18) * m_focusAnim);
-    nvgStrokeColor(vg, nvgRGB(strokeR, strokeG, strokeB));
-    nvgStrokeWidth(vg, 1.0f + 1.2f * m_focusAnim);
+    if (m_focusAnim > 0.01f) {
+        nvgStrokeColor(vg, nvgRGB(230, 0, 18));
+        nvgStrokeWidth(vg, 2.0f);
+    }
+    else {
+        nvgStrokeColor(vg, nvgRGB(36, 40, 48));
+        nvgStrokeWidth(vg, 1.0f);
+    }
     nvgStroke(vg);
 
     // 4. Circular Icon Badge on Left
@@ -751,7 +741,7 @@ HomeTab::HomeTab(domain::UpdateService& update, domain::TelemetryService& teleme
     auto cb = m_onSelectTab;
 
     // Tile 1: Atmosphere (Index 2 in TabFrame)
-    auto* btnAms = new DashboardActionButton("Atmosphere", "Gerenciar CFW", 0, [cb]() {
+    auto* btnAms = new DashboardActionButton("Atmosphere", "Gerenciar AMS", 0, [cb]() {
         if (cb) {
             cb(2);
         }

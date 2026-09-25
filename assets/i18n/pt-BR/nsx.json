@@ -1,7 +1,7 @@
 {
     "name": "NSX Manager",
     "repair_name": "NSX Manager (Reparo)",
-    "tagline": "Custom firmware e homebrew, gerenciados no console",
+    "tagline": "AMS e homebrew, gerenciados no console",
     "actions": {
         "ok": "OK",
         "cancel": "Cancelar",
@@ -24,7 +24,7 @@
     },
     "tabs": {
         "home": "Início",
-        "cfw": "Atmosphere",
+        "cfw": "Atmosphere (AMS)",
         "firmware": "Firmware",
         "tools": "Ferramentas",
         "settings": "Configurações",

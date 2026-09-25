@@ -4,7 +4,7 @@
     "empty": "No items available",
     "unavailable": "Catalogue unavailable",
     "fetch_failed": "Could not fetch the catalogue",
-    "no_cfw": "No Atmosphere packages listed in the catalogue",
+    "no_cfw": "No Atmosphere (AMS) packages listed in the catalogue",
     "no_firmware": "No firmware sets listed in the catalogue",
     "confirm_install": "Download and install this pack?",
     "confirm_firmware": "Download this firmware set and hand off to Daybreak?",
