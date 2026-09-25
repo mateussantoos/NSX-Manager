@@ -27,30 +27,30 @@ All core domain logic—version negotiation, download staging, verification, and
 
 ## Key Features
 
-### 📊 Modular Dashboard Grid
+### Modular Dashboard Grid
 - **Hardware Model Detection:** Identifies console hardware revisions at runtime (Switch V1 / Erista, V2 / Mariko, OLED, or Lite).
 - **Real-Time Environment Badges:** Instant visual status of installed Horizon OS firmware version, Atmosphere (AMS) build, and active NAND mode (SysNAND vs. EmuNAND).
 - **SD Card Storage Gauge:** Real-time capacity bar gauge displaying free vs. total storage alongside filesystem format detection (FAT32 vs. exFAT corruption warning).
 - **Security & Telemetry Badge:** Automated connectivity probing against telemetry endpoints (`conntest.nintendowifi.net` and `ctest.cdn.nintendo.net`) confirming whether telemetry blocking / 90DNS shield protection is active.
 
-### 🎨 Clean Lucide Aesthetics & Dark Theme
+### Clean Lucide Aesthetics & Dark Theme
 - **True Black OLED Theme:** Deep black background (`#000000`) paired with distinctive Nintendo crimson red accents (`#E60012`).
 - **Minimalist Sidebar:** Compact 280px navigation rail offering expanded canvas width for dashboard cards and lists.
 - **Modern Vector Line Icons:** Bespoke geometric line-art glyphs inspired by the Lucide icon system (Home, Update, Atmosphere, Firmware, Tools wrench, Settings).
 - **Single-Stroke Focus Highlights:** Refined gamepad navigation with crisp single-border outlines avoiding nested focus artifacts.
 
-### 🛠️ Maintenance & System Utilities
+### Maintenance & System Utilities
 - **Archive-Bit Recursive Repair:** Scans and clears FAT32 archive-bit directory attributes across the SD card to resolve boot crashes, corrupted homebrew titles, and theme errors.
 - **Reboot to Payload (RCM):** Reboots directly into Atmosphere or custom payloads (`/bootloader/update.bin`, `payload.bin`) via hardware `splSetConfig` and `bpcDoReboot` without powering off the console.
 - **Sysmodules Toggle Manager:** Enumerates installed Atmosphere background modules under `/atmosphere/contents/` and toggles their startup presence via `flags/boot2.flag`.
 - **Temporary Cache Cleanup:** Safely purges leftover staging directories, temporary download archives, and update swap residue.
 
-### 🔄 Verified Remote Manifest Updates
+### Verified Remote Manifest Updates
 - **Self-Update Architecture:** Two-stage transactional update process backed by an independent repair forwarder (`nsx-forwarder.nro`), rollback safeguards, and SHA-256 integrity verification.
 - **Conditional HTTP (ETag) Caching:** Manifest requests query release CDNs using `If-None-Match` HTTP headers, preserving network bandwidth and avoiding unauthenticated GitHub API rate limits.
 - **Atmosphere & Firmware Management:** Streamlined downloading and staging of AMS packages and official firmware update sets for Daybreak installation.
 
-### ⚡ Startup Preloader & Update Alerts
+### Startup Preloader & Update Alerts
 - **Animated Splash Screen:** High-performance startup preloader rendering typography logo entrance animations and smooth diagonal NanoVG gradient shimmer sweeps.
 - **Subsystem Preloading:** Probes system hardware, storage capacity, and network shields asynchronously in the background.
 - **Automated Update Modal:** Non-intrusive startup dialog notifying the user immediately when a new NSX Manager version is available, with one-touch direct navigation to the Update tab.
