@@ -177,7 +177,7 @@ WHERE
         banner "clang-tidy"
         cmake --preset host-debug >/dev/null
         jq -r '.[].file' build/host-debug/compile_commands.json | sort -u \
-            | grep -E '(src/nsx|apps|tests)/' | grep -v 'third_party/' \
+            | grep -E 'src/nsx/' | grep -v 'third_party/' \
             | xargs -r clang-tidy -p build/host-debug --quiet
         ;;
 

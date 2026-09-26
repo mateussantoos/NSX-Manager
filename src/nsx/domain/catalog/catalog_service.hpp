@@ -139,9 +139,9 @@ private:
     void saveBackoff(const core::BackoffState& state);
     [[nodiscard]] bool storeCache(const std::string& document, const std::string& etag,
                                   const std::string& sourceUrl, std::int64_t nowUnix);
-    [[nodiscard]] CatalogOutcome fromDocument(const std::string& document, bool servedFromCache,
-                                              std::int64_t ageSeconds, core::FetchPlan plan,
-                                              std::string detail) const;
+    [[nodiscard]] static CatalogOutcome fromDocument(const std::string& document,
+                                                     bool servedFromCache, std::int64_t ageSeconds,
+                                                     core::FetchPlan plan, std::string detail);
 
     HttpGateway& m_http;
     FileStore& m_files;

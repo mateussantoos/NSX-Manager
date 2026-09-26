@@ -2,6 +2,7 @@
 
 #include "nsx/core/log/file_logger.hpp"
 
+#include <array>
 #include <chrono>
 #include <ctime>
 #include <filesystem>
@@ -53,7 +54,7 @@ void FileLogger::rotateIfNeededLocked()
 
 void FileLogger::log(LogLevel level, std::string_view message)
 {
-    std::lock_guard<std::mutex> lock(m_mutex);
+    const std::lock_guard<std::mutex> lock(m_mutex);
 
     const auto now = std::chrono::system_clock::now();
     const auto ms =
@@ -70,14 +71,15 @@ void FileLogger::log(LogLevel level, std::string_view message)
     tidStream << std::this_thread::get_id();
     const std::string tidStr = tidStream.str();
 
-    char lineHeader[128];
-    std::snprintf(lineHeader, sizeof(lineHeader),
-                  "[%04d-%02d-%02d %02d:%02d:%02d.%03lld] [%s] [%s] ", tmBuf.tm_year + 1900,
-                  tmBuf.tm_mon + 1, tmBuf.tm_mday, tmBuf.tm_hour, tmBuf.tm_min, tmBuf.tm_sec,
-                  static_cast<long long>(ms.count()), levelToString(level), tidStr.c_str());
+    std::array<char, 128> lineHeader{};
+    const int written = std::snprintf(
+        lineHeader.data(), lineHeader.size(), "[%04d-%02d-%02d %02d:%02d:%02d.%03lld] [%s] [%s] ",
+        tmBuf.tm_year + 1900, tmBuf.tm_mon + 1, tmBuf.tm_mday, tmBuf.tm_hour, tmBuf.tm_min,
+        tmBuf.tm_sec, static_cast<long long>(ms.count()), levelToString(level), tidStr.c_str());
+    (void)written;
 
     // 1. Output to console stdout
-    std::cout << lineHeader << message << "\n";
+    std::cout << lineHeader.data() << message << "\n";
     std::cout.flush();
 
     // 2. Check rotation and append to log file
@@ -85,7 +87,7 @@ void FileLogger::log(LogLevel level, std::string_view message)
 
     std::ofstream out(m_path, std::ios::app);
     if (out.is_open()) {
-        out << lineHeader << message << "\n";
+        out << lineHeader.data() << message << "\n";
         out.flush();
     }
 }

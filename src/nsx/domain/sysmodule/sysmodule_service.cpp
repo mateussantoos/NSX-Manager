@@ -32,7 +32,7 @@ std::string toLower(std::string_view s)
 {
     std::string res;
     res.reserve(s.size());
-    for (char c : s) {
+    for (const char c : s) {
         res.push_back(static_cast<char>(std::tolower(static_cast<unsigned char>(c))));
     }
     return res;

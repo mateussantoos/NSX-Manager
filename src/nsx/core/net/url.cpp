@@ -28,9 +28,13 @@ std::optional<ParsedUrl> parseUrl(std::string_view url)
     const std::size_t pathStart = remaining.find('/');
     const std::size_t queryStart = remaining.find('?');
 
-    const std::size_t hostEnd = (pathStart != std::string_view::npos)    ? pathStart
-                                : (queryStart != std::string_view::npos) ? queryStart
-                                                                         : remaining.size();
+    std::size_t hostEnd = remaining.size();
+    if (pathStart != std::string_view::npos) {
+        hostEnd = pathStart;
+    }
+    else if (queryStart != std::string_view::npos) {
+        hostEnd = queryStart;
+    }
 
     const std::string_view hostAndPort = remaining.substr(0, hostEnd);
     if (hostAndPort.empty()) {

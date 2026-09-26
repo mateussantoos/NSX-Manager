@@ -2,6 +2,7 @@
 
 #include "nsx/core/text/string_utils.hpp"
 
+#include <array>
 #include <cctype>
 #include <cstdio>
 #include <numeric>
@@ -15,32 +16,33 @@ std::string formatBytes(std::uint64_t bytes)
     constexpr std::uint64_t kGiB = kMiB * 1024ULL;
     constexpr std::uint64_t kTiB = kGiB * 1024ULL;
 
-    char buf[64];
+    std::array<char, 64> buf{};
     if (bytes >= kTiB) {
-        std::snprintf(buf, sizeof(buf), "%.2f TB",
-                      static_cast<double>(bytes) / static_cast<double>(kTiB));
+        (void)std::snprintf(buf.data(), buf.size(), "%.2f TB",
+                            static_cast<double>(bytes) / static_cast<double>(kTiB));
     }
     else if (bytes >= kGiB) {
-        std::snprintf(buf, sizeof(buf), "%.2f GB",
-                      static_cast<double>(bytes) / static_cast<double>(kGiB));
+        (void)std::snprintf(buf.data(), buf.size(), "%.2f GB",
+                            static_cast<double>(bytes) / static_cast<double>(kGiB));
     }
     else if (bytes >= kMiB) {
-        std::snprintf(buf, sizeof(buf), "%.2f MB",
-                      static_cast<double>(bytes) / static_cast<double>(kMiB));
+        (void)std::snprintf(buf.data(), buf.size(), "%.2f MB",
+                            static_cast<double>(bytes) / static_cast<double>(kMiB));
     }
     else if (bytes >= kKiB) {
-        std::snprintf(buf, sizeof(buf), "%.2f KB",
-                      static_cast<double>(bytes) / static_cast<double>(kKiB));
+        (void)std::snprintf(buf.data(), buf.size(), "%.2f KB",
+                            static_cast<double>(bytes) / static_cast<double>(kKiB));
     }
     else {
-        std::snprintf(buf, sizeof(buf), "%llu B", static_cast<unsigned long long>(bytes));
+        (void)std::snprintf(buf.data(), buf.size(), "%llu B",
+                            static_cast<unsigned long long>(bytes));
     }
-    return std::string(buf);
+    return {buf.data()};
 }
 
 std::string_view trimLeft(std::string_view str) noexcept
 {
-    while (!str.empty() && std::isspace(static_cast<unsigned char>(str.front()))) {
+    while (!str.empty() && std::isspace(static_cast<unsigned char>(str.front())) != 0) {
         str.remove_prefix(1);
     }
     return str;
@@ -48,7 +50,7 @@ std::string_view trimLeft(std::string_view str) noexcept
 
 std::string_view trimRight(std::string_view str) noexcept
 {
-    while (!str.empty() && std::isspace(static_cast<unsigned char>(str.back()))) {
+    while (!str.empty() && std::isspace(static_cast<unsigned char>(str.back())) != 0) {
         str.remove_suffix(1);
     }
     return str;
@@ -63,7 +65,7 @@ std::string sanitize(std::string_view str)
 {
     std::string out;
     out.reserve(str.size());
-    for (char c : str) {
+    for (const char c : str) {
         const auto uc = static_cast<unsigned char>(c);
         if (uc >= 32 && uc <= 126) {
             out.push_back(c);

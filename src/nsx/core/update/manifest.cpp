@@ -2,6 +2,8 @@
 
 #include "nsx/core/update/manifest.hpp"
 
+#include <algorithm>
+
 #include <nlohmann/json.hpp>
 
 namespace nsx::core {
@@ -29,14 +31,10 @@ bool isBareFilename(std::string_view name)
     if (name.find("..") != std::string_view::npos) {
         return false;
     }
-    for (const char c : name) {
-        const bool allowed = (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
-                             (c >= '0' && c <= '9') || c == '.' || c == '_' || c == '-' || c == '+';
-        if (!allowed) {
-            return false;
-        }
-    }
-    return true;
+    return std::ranges::all_of(name, [](char c) {
+        return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') ||
+               c == '.' || c == '_' || c == '-' || c == '+';
+    });
 }
 
 /// https, and specifically a GitHub release asset. A plaintext URL or a foreign

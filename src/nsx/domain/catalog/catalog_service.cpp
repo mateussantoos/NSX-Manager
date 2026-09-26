@@ -135,7 +135,7 @@ bool CatalogService::storeCache(const std::string& document, const std::string& 
 
 CatalogOutcome CatalogService::fromDocument(const std::string& document, bool servedFromCache,
                                             std::int64_t ageSeconds, FetchPlan plan,
-                                            std::string detail) const
+                                            std::string detail)
 {
     CatalogOutcome out;
     out.plan = plan;

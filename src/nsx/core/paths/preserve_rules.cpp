@@ -129,13 +129,13 @@ bool matchAll(const std::vector<std::string_view>& pattern,
             // Zero or more: once reachable, every longer prefix is too.
             char carry = 0;
             for (std::size_t j = 0; j <= path.size(); ++j) {
-                carry = static_cast<char>(carry || reachable[j]);
+                carry = static_cast<char>(((carry != 0) || (reachable[j] != 0)) ? 1 : 0);
                 next[j] = carry;
             }
         }
         else {
             for (std::size_t j = 1; j <= path.size(); ++j) {
-                if (reachable[j - 1] && matchComponent(component, path[j - 1])) {
+                if (reachable[j - 1] != 0 && matchComponent(component, path[j - 1])) {
                     next[j] = 1;
                 }
             }

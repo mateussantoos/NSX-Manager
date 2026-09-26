@@ -13,6 +13,23 @@ by `git-cliff` during the release workflow - do not hand-edit them. Add entries 
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-09-26
+
+### Fixed
+
+- **Static Analysis & Clang-Tidy (`cert-err33-c`)**:
+  - Explicitly handled or discarded `std::snprintf` return values in `FileLogger` and `StringUtils` byte formatting.
+  - Streamlined `.clang-tidy` rules by disabling cosmetic stylistic checks (`readability-uppercase-literal-suffix`, `readability-named-parameter`, `modernize-avoid-c-arrays`, `readability-avoid-nested-conditional-operator`).
+  - Restricted Clang-Tidy translation unit processing strictly to first-party production code (`src/nsx/`), isolating test harness noise.
+
+### Changed
+
+- **C++20 Idiomatic Code Cleanups**:
+  - Enforced `const` correctness on range-based loop variables across `path_utils`, `string_utils`, and `sysmodule_service`.
+  - Replaced `count(...) != 0` container lookups with `contains(...)` in CFW install service.
+  - Flattened nested ternary conditional operators into explicit branches in URL parsing and `std::clamp` in backoff jitter calculations.
+  - Refactored validation loops in manifest parsing to `std::ranges::all_of`.
+
 ## [0.3.0] - 2026-09-26
 
 ### Added
@@ -158,7 +175,9 @@ by `git-cliff` during the release workflow - do not hand-edit them. Add entries 
 - RCM payload ported from the predecessor with its GPL-2.0-only headers intact, built by its own
   devkitARM Makefile and staged into romfs as opaque data.
 
-[Unreleased]: https://github.com/mateussantoos/nsx-manager/compare/v0.2.5...HEAD
+[Unreleased]: https://github.com/mateussantoos/nsx-manager/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/mateussantoos/nsx-manager/compare/v0.3.0...v0.3.1
+[0.3.0]: https://github.com/mateussantoos/nsx-manager/compare/v0.2.5...v0.3.0
 [0.2.5]: https://github.com/mateussantoos/nsx-manager/compare/v0.2.4...v0.2.5
 [0.2.4]: https://github.com/mateussantoos/nsx-manager/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/mateussantoos/nsx-manager/compare/v0.2.2...v0.2.3

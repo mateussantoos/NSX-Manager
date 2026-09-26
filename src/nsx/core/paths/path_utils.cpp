@@ -18,8 +18,8 @@ std::string normalize(std::string_view path)
 
     // Replace backslashes with forward slashes and collapse duplicates
     bool lastWasSlash = false;
-    for (char c : path) {
-        char ch = (c == '\\') ? '/' : c;
+    for (const char c : path) {
+        const char ch = (c == '\\') ? '/' : c;
         if (ch == '/') {
             if (!lastWasSlash) {
                 out.push_back(ch);

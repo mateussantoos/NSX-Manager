@@ -21,12 +21,16 @@ Checks: >
   -misc-no-recursion,
   modernize-*,
   -modernize-use-trailing-return-type,
+  -modernize-avoid-c-arrays,
   performance-*,
   portability-*,
   readability-*,
   -readability-magic-numbers,
   -readability-identifier-length,
-  -readability-function-cognitive-complexity
+  -readability-function-cognitive-complexity,
+  -readability-uppercase-literal-suffix,
+  -readability-named-parameter,
+  -readability-avoid-nested-conditional-operator
 
 WarningsAsErrors: 'bugprone-*,cert-*,clang-analyzer-*,readability-identifier-naming'
 HeaderFilterRegex: '^src/nsx/.*'

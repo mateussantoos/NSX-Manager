@@ -444,7 +444,7 @@ bool CfwInstallService::rollBack(const MergeMarker& marker, const std::vector<st
     // whatever sits at the destination is the original. Deleting it would
     // destroy a file this rollback exists to protect.
     for (const std::string& relative : planned) {
-        if (displaced.count(relative) != 0) {
+        if (displaced.contains(relative)) {
             continue;  // restored above
         }
         if (m_files.exists(join(marker.stagingDir, relative))) {

@@ -2,6 +2,8 @@
 
 #include "nsx/core/update/backoff.hpp"
 
+#include <algorithm>
+
 #include <nlohmann/json.hpp>
 
 namespace nsx::core {
@@ -58,9 +60,7 @@ std::int64_t backoffDelaySeconds(int consecutiveFailures, const BackoffPolicy& p
     const int steps = consecutiveFailures > 40 ? 40 : consecutiveFailures - 1;
     const std::int64_t plain = detail::growCapped(base, steps, cap);
 
-    const int spread = policy.jitterPercent < 0     ? 0
-                       : policy.jitterPercent > 100 ? 100
-                                                    : policy.jitterPercent;
+    const int spread = std::clamp(policy.jitterPercent, 0, 100);
     if (spread == 0) {
         return plain;
     }

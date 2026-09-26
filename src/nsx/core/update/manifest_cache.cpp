@@ -2,6 +2,8 @@
 
 #include "nsx/core/update/manifest_cache.hpp"
 
+#include <algorithm>
+
 #include <nlohmann/json.hpp>
 
 #include "nsx/core/hash/sha256.hpp"
@@ -18,14 +20,8 @@ bool isLowercaseHexDigest(std::string_view text)
     if (text.size() != Sha256::kDigestSize * 2) {
         return false;
     }
-    for (const char c : text) {
-        const bool digit = c >= '0' && c <= '9';
-        const bool lower = c >= 'a' && c <= 'f';
-        if (!digit && !lower) {
-            return false;
-        }
-    }
-    return true;
+    return std::ranges::all_of(
+        text, [](char c) { return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f'); });
 }
 
 std::string humanDuration(std::int64_t seconds)
