@@ -28,6 +28,12 @@ using RebootCallback = std::function<bool()>;
 class ToolsTab : public brls::List
 {
 public:
+    /// @brief Construct the tools and maintenance tab.
+    /// @param cleanup Storage cleanup service.
+    /// @param sysmodules Sysmodules management service.
+    /// @param telemetry Telemetry diagnostics service.
+    /// @param fixArchiveBit Archive-bit recursive repair callback.
+    /// @param rebootToPayload Reboot to payload callback.
     ToolsTab(domain::CleanupService& cleanup, domain::SysmoduleService& sysmodules,
              domain::TelemetryService& telemetry, FixArchiveBitCallback fixArchiveBit,
              RebootCallback rebootToPayload);

@@ -22,14 +22,20 @@ namespace nsx::ui {
 class SplashScreen : public brls::View
 {
 public:
+    /// @brief Subsystem initialization completion callback.
     using CompletionCallback = std::function<void(const std::optional<domain::CheckOutcome>&)>;
 
+    /// @brief Construct the preload splash view.
+    /// @param services Injected shell services.
+    /// @param onFinished Callback invoked on preload completion.
     SplashScreen(const ShellServices& services, CompletionCallback onFinished);
     ~SplashScreen() override;
 
+    /// @brief Render splash screen animation and shimmer.
     void draw(NVGcontext* vg, int viewX, int viewY, unsigned viewW, unsigned viewH,
               brls::Style* style, brls::FrameContext* ctx) override;
 
+    /// @brief Return whether splash is translucent.
     bool isTranslucent() override { return false; }
 
 private:

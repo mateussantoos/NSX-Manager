@@ -17,6 +17,8 @@ namespace nsx::ui {
 class SpeedMeter
 {
 public:
+    /// @brief Update speed calculation with total bytes transferred.
+    /// @param bytes Total cumulative bytes transferred.
     void update(std::uint64_t bytes)
     {
         const auto now = std::chrono::steady_clock::now();
@@ -38,6 +40,8 @@ public:
         }
     }
 
+    /// @brief Format current transfer rate into human readable string.
+    /// @return Formatted rate string.
     [[nodiscard]] std::string format() const
     {
         if (m_currentSpeed <= 0.0) {
@@ -56,6 +60,7 @@ public:
         return std::string(buf);
     }
 
+    /// @brief Reset speed measurement state.
     void reset()
     {
         m_started = false;
@@ -107,6 +112,7 @@ public:
                             std::function<void()> onCancelCallback = nullptr);
 
     /// @brief Update the stage text (e.g., "Downloading...", "Extracting...").
+    /// @param stage Stage description string.
     void setStage(const std::string& stage);
 
     /// @brief Update progress bar and percentage.
@@ -115,12 +121,14 @@ public:
     void setProgress(int current, int total);
 
     /// @brief Update secondary detail (e.g., speed, file path).
+    /// @param detail Secondary detail string.
     void setDetail(const std::string& detail);
 
     /// @brief Mark the dialog as cancelling.
     void setCancelling();
 
     /// @brief Intercept B button cancellation.
+    /// @return True if cancel handled.
     bool onCancel() override;
 
 private:

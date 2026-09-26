@@ -26,9 +26,7 @@ set(NSX_TEST_MODULES
     preserve_rules
     catalog
     sha256
-    # text_format
-    # json_safe_get
-    # mega_link
+    file_logger
 )
 
 # Suites that drive a use-case rather than a pure rule, and therefore need the

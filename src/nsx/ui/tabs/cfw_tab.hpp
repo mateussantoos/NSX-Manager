@@ -18,7 +18,7 @@ namespace nsx::ui {
 ///
 /// @details The catalogue is fetched on a @ref BackgroundJob so the UI never
 ///          blocks on the network. Once a catalogue is available the tab
-///          rebuilds itself with one @ref brls::ListItem per
+///          rebuilds itself with one brls::ListItem per
 ///          @ref nsx::core::ContentKind::CfwPack entry.
 ///
 /// @since 0.3.0

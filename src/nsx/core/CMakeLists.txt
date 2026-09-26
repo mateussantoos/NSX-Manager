@@ -26,9 +26,7 @@ set(NSX_CORE_SOURCES
     # text/format.cpp
     # json/safe_get.cpp
     hash/sha256.cpp
-    # net/url.cpp
-    # net/mega_link.cpp
-    # log/logger.cpp
+    log/file_logger.cpp
 )
 
 # nsx_add_layer() is invoked from the ROOT CMakeLists, so relative paths would

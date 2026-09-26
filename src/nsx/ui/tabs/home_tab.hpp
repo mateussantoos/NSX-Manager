@@ -20,11 +20,17 @@ namespace nsx::ui {
 /// @brief System overview snapshot for dashboard display.
 struct SystemOverview
 {
+    /// @brief Detected hardware model string.
     std::string model{"Nintendo Switch"};
+    /// @brief Horizon OS firmware version.
     std::string hosVersion{"Unknown"};
+    /// @brief Atmosphere version string.
     std::string amsVersion{"Not detected"};
+    /// @brief Active NAND mode.
     std::string nandType{"SysNAND"};
+    /// @brief Filesystem format string.
     std::string fsType{"FAT32"};
+    /// @brief True if exFAT is detected.
     bool isExFAT{false};
 };
 
@@ -38,12 +44,23 @@ public:
     DashboardSummaryView(domain::FileStore& files, SystemOverviewQuery query);
     ~DashboardSummaryView() override;
 
+    /// @brief Update telemetry diagnostic state.
+    /// @param report Completed telemetry probe report.
     void updateTelemetry(const infra::TelemetryReport& report);
+
+    /// @brief Update update check outcome state.
+    /// @param outcome Update check outcome.
     void updateUpdateOutcome(const domain::CheckOutcome& outcome);
+
+    /// @brief Refresh storage and overview metrics.
     void refresh();
 
+    /// @brief Render dashboard view.
     void draw(NVGcontext* vg, int viewX, int viewY, unsigned viewW, unsigned viewH,
               brls::Style* viewStyle, brls::FrameContext* ctx) override;
+
+    /// @brief Invoked before view appears.
+    /// @param resetState Reset animation state.
     void willAppear(bool resetState = false) override;
 
 private:
@@ -105,12 +122,19 @@ private:
 class HomeTab : public brls::BoxLayout
 {
 public:
+    /// @brief Construct the dashboard home tab.
+    /// @param update Self-update service.
+    /// @param telemetry Telemetry diagnostics service.
+    /// @param files File store service.
+    /// @param queryOverview Overview metrics supplier.
+    /// @param onSelectTab Tab change callback.
     HomeTab(domain::UpdateService& update, domain::TelemetryService& telemetry,
             domain::FileStore& files, SystemOverviewQuery queryOverview = {},
             TabSelectCallback onSelectTab = {});
 
     ~HomeTab() override;
 
+    /// @brief Return default focus view.
     brls::View* getDefaultFocus() override;
 
 private:

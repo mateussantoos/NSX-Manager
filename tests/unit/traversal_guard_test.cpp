@@ -357,7 +357,7 @@ TEST_CASE("fuzz: nothing accepted can escape, and nothing accepted holds a paren
     };
 
     const std::string root = kRoot;
-    std::size_t accepted_count = 0;
+    std::size_t acceptedCount = 0;
 
     for (int iteration = 0; iteration < 200000; ++iteration) {
         const std::size_t length = 1 + (next() % 24u);
@@ -371,7 +371,7 @@ TEST_CASE("fuzz: nothing accepted can escape, and nothing accepted holds a paren
         if (!resolved.hasValue()) {
             continue;
         }
-        ++accepted_count;
+        ++acceptedCount;
 
         const std::string& out = resolved.value();
 
@@ -404,8 +404,8 @@ TEST_CASE("fuzz: nothing accepted can escape, and nothing accepted holds a paren
     }
 
     // A fuzz run that accepted nothing would pass while testing nothing.
-    CHECK(accepted_count > 1000);
-    MESSAGE("fuzz accepted " << accepted_count << " of 200000 generated names");
+    CHECK(acceptedCount > 1000);
+    MESSAGE("fuzz accepted " << acceptedCount << " of 200000 generated names");
 }
 
 TEST_CASE("every path error has a description")

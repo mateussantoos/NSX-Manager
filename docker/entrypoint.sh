@@ -176,12 +176,14 @@ WHERE
     tidy)
         banner "clang-tidy"
         cmake --preset host-debug >/dev/null
-        find src -name '*.cpp' -print0 2>/dev/null \
-            | xargs -0 -r clang-tidy -p build/host-debug --quiet
+        jq -r '.[].file' build/host-debug/compile_commands.json | sort -u \
+            | grep -E '(src/nsx|apps|tests)/' | grep -v 'third_party/' \
+            | xargs -r clang-tidy -p build/host-debug --quiet
         ;;
 
     docs)
         banner "Doxygen (warnings are errors)"
+        mkdir -p build/docs
         cd docs && doxygen Doxyfile
         ;;
 

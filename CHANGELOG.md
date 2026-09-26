@@ -13,6 +13,24 @@ by `git-cliff` during the release workflow - do not hand-edit them. Add entries 
 
 ## [Unreleased]
 
+## [0.2.4] - 2026-09-25
+
+### Fixed
+
+- Synchronized upstream Mozilla CA certificate bundle hash in `third_party/cacert/cacert.pem.sha256`.
+- Resolved Doxygen build directory creation failure in documentation pipeline (`mkdir -p build/docs`).
+- Isolated `clang-tidy` checks strictly to first-party sources (`src/nsx/`, `apps/`, `tests/`), completely excluding `third_party/`.
+
+### Changed
+
+- Purged non-essential vendor test and doc directories and legacy CI configurations from `third_party/borealis/library/lib/extern/fmt/`.
+- Deduplicated JSON library headers to use `third_party/nlohmann/json.hpp` exclusively, removing redundant copy from Borealis.
+- Standardized RomFS branding assets on `assets/splash.png` and pruned duplicate `assets/images/splash.png`.
+- Pruned obsolete infrastructure stubs (`mega`, `github`).
+- Implemented minimal thread-safe file logger in `src/nsx/core/log/` writing to `sdmc:/switch/nsx-manager/nsx.log`.
+- Retained clean placeholder exports in `src/nsx/platform/network/` and `src/nsx/domain/motd/`.
+- Optimized RCM payload LVGL configuration by excluding heavy unreferenced widgets (`lv_calendar`, `lv_chart`, `lv_gauge`, `lv_table`, `lv_tileview`).
+
 ## [0.2.3] - 2026-09-25
 
 ### Fixed
@@ -94,7 +112,10 @@ by `git-cliff` during the release workflow - do not hand-edit them. Add entries 
 - RCM payload ported from the predecessor with its GPL-2.0-only headers intact, built by its own
   devkitARM Makefile and staged into romfs as opaque data.
 
-[Unreleased]: https://github.com/mateussantoos/nsx-manager/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/mateussantoos/nsx-manager/compare/v0.2.4...HEAD
+[0.2.4]: https://github.com/mateussantoos/nsx-manager/compare/v0.2.3...v0.2.4
+[0.2.3]: https://github.com/mateussantoos/nsx-manager/compare/v0.2.2...v0.2.3
+[0.2.2]: https://github.com/mateussantoos/nsx-manager/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/mateussantoos/nsx-manager/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/mateussantoos/nsx-manager/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/mateussantoos/nsx-manager/releases/tag/v0.1.0

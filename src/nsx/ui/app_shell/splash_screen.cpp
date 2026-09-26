@@ -11,20 +11,6 @@ namespace nsx::ui {
 
 using namespace brls::i18n::literals;
 
-namespace {
-
-bool fileReadable(const char* path)
-{
-    std::FILE* f = std::fopen(path, "rb");
-    if (f == nullptr) {
-        return false;
-    }
-    std::fclose(f);
-    return true;
-}
-
-}  // namespace
-
 SplashScreen::SplashScreen(const ShellServices& services, CompletionCallback onFinished)
     : m_services(services),
       m_onFinished(std::move(onFinished)),
@@ -98,10 +84,7 @@ void SplashScreen::draw(NVGcontext* vg, int viewX, int viewY, unsigned viewW, un
 
     // 2. Centered splash logo with smooth entrance fade-in
     if (m_logoTexture <= 0) {
-        const char* splashPath = fileReadable(BOREALIS_ASSET("images/splash.png"))
-                                     ? BOREALIS_ASSET("images/splash.png")
-                                     : BOREALIS_ASSET("splash.png");
-        m_logoTexture = nvgCreateImage(vg, splashPath, 0);
+        m_logoTexture = nvgCreateImage(vg, BOREALIS_ASSET("splash.png"), 0);
     }
 
     const float logoW = 412.0f;

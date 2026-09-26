@@ -22,6 +22,7 @@ services:
     working_dir: /workspace
     volumes:
       - .:/workspace
+      - ./docker/entrypoint.sh:/usr/local/bin/nsx-entrypoint
       # Build trees live in named volumes rather than the bind mount. On Docker
       # Desktop for Windows a bind mount crosses a filesystem boundary, and
       # compiling tens of thousands of objects across it is many times slower.

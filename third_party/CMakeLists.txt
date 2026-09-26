@@ -134,7 +134,7 @@ target_compile_definitions(nsx_borealis PUBLIC BOREALIS_RESOURCES="romfs:/")
 
 # glad, glfw3, EGL, glapi and drm_nouveau come from devkitPro portlibs - they
 # are NOT vendored in the Borealis tree.
-target_link_libraries(nsx_borealis PUBLIC nsx::portlibs glfw3 EGL glad glapi drm_nouveau m)
+target_link_libraries(nsx_borealis PUBLIC nsx::portlibs nsx::json glfw3 EGL glad glapi drm_nouveau m)
 
 target_compile_features(nsx_borealis PUBLIC cxx_std_20)
 target_compile_options(nsx_borealis PRIVATE -w ${NSX_VENDORED_C_RELAXATIONS})

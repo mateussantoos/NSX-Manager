@@ -69,9 +69,11 @@ jobs:
 
       - name: ${{ matrix.task }}
         run: |
+          mkdir -p build/docs
           docker run --rm \
             -v "${{ github.workspace }}:/workspace" \
             -w /workspace \
+            --entrypoint /workspace/docker/entrypoint.sh \
             nsx-manager-build:ci ${{ matrix.task }}
 
       - name: Upload Switch artefacts

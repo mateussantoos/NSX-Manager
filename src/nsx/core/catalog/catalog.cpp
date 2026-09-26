@@ -252,9 +252,13 @@ Result<Catalog, CatalogError> parseCatalog(std::string_view json)
             return R::err(CatalogError::WrongType);
         }
 
+        if (!kind.has_value() || !target.has_value()) {
+            continue;
+        }
+
         CatalogItem item;
-        item.kind = *kind;
-        item.target = *target;
+        item.kind = kind.value();
+        item.target = target.value();
 
         item.id = entry["id"].get<std::string>();
         if (!detail::isValidId(item.id)) {
@@ -331,7 +335,7 @@ Result<Catalog, CatalogError> parseCatalog(std::string_view json)
             // A CFW pack extracts over the user's whole card, so their
             // preserve.txt applies unless the catalogue says otherwise.
             // Everything else lands somewhere self-contained.
-            item.honourPreserveRules = *kind == ContentKind::CfwPack;
+            item.honourPreserveRules = (kind.has_value() && kind.value() == ContentKind::CfwPack);
         }
 
         out.items.push_back(std::move(item));

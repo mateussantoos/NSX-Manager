@@ -286,7 +286,7 @@
 #define USE_LV_CHART    0
 
 /*Table (dependencies: lv_label)*/
-#define USE_LV_TABLE    1
+#define USE_LV_TABLE    0
 #if USE_LV_TABLE
 #  define LV_TABLE_COL_MAX    12
 #endif

@@ -14,6 +14,9 @@ namespace nsx::ui {
 class SettingsTab : public brls::List
 {
 public:
+    /// @brief Construct the settings and about tab.
+    /// @param update Update service.
+    /// @param catalog Catalog service.
     SettingsTab(domain::UpdateService& update, domain::CatalogService& catalog);
 
 private:
