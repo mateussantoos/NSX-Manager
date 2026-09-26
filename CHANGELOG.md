@@ -13,6 +13,25 @@ by `git-cliff` during the release workflow - do not hand-edit them. Add entries 
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-09-26
+
+### Added
+
+- **Dedicated Support & Donation Tab (`DonateTab`)**:
+  - High-resolution QR code view rendered against an OLED true black (#000000) background.
+  - Integrated quiet-zone contrast plate ensuring instant optical scanning on portable and docked displays.
+  - Bilingual typography support (en-US and pt-BR) with project support descriptions and contribution badge.
+  - Added custom vector Lucide Heart icon to Borealis sidebar navigation.
+- **RomFS Asset Packaging & Documentation**:
+  - Embedded `assets/qr.png` into RomFS (`romfs:/images/qr.png` and `romfs:/qr.png`) via `cmake/NsxRomfs.cmake`.
+  - Added dedicated Donations section to `README.md`.
+
+### Fixed
+
+- **Release Workflow Permissions & Asset Staging**:
+  - Explicitly configured `permissions: contents: write` on GitHub Actions release jobs.
+  - Automated staging of `nsx_rcm.bin` payload into release distributions and SHA-256 checksums.
+
 ## [0.3.1] - 2026-09-26
 
 ### Fixed
@@ -175,7 +194,8 @@ by `git-cliff` during the release workflow - do not hand-edit them. Add entries 
 - RCM payload ported from the predecessor with its GPL-2.0-only headers intact, built by its own
   devkitARM Makefile and staged into romfs as opaque data.
 
-[Unreleased]: https://github.com/mateussantoos/nsx-manager/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/mateussantoos/nsx-manager/compare/v0.3.2...HEAD
+[0.3.2]: https://github.com/mateussantoos/nsx-manager/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/mateussantoos/nsx-manager/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/mateussantoos/nsx-manager/compare/v0.2.5...v0.3.0
 [0.2.5]: https://github.com/mateussantoos/nsx-manager/compare/v0.2.4...v0.2.5

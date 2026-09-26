@@ -34,7 +34,8 @@ enum class SidebarIcon
     Atmosphere,
     Firmware,
     Tools,
-    Settings
+    Settings,
+    Heart
 };
 
 // A sidebar with multiple tabs

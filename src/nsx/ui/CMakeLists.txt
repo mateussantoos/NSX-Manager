@@ -18,6 +18,7 @@ set(NSX_UI_SOURCES
     tabs/firmware_tab.cpp
     tabs/tools_tab.cpp
     tabs/settings_tab.cpp
+    tabs/donate_tab.cpp
     widgets/background_job.cpp
     widgets/linear_list_item.cpp
     widgets/progress_dialog.cpp

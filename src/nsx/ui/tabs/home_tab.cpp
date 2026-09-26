@@ -958,10 +958,10 @@ HomeTab::HomeTab(domain::UpdateService& update, domain::TelemetryService& teleme
     });
     m_buttonsRow->addView(btnTools, true, false);
 
-    // Tile 4: Settings (Index 5 in TabFrame)
+    // Tile 4: Settings (Index 6 in TabFrame)
     auto* btnSettings = new DashboardActionButton("Configuracoes", "Ajustes", 3, [cb]() {
         if (cb) {
-            cb(5);
+            cb(6);
         }
     });
     m_buttonsRow->addView(btnSettings, true, false);

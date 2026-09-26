@@ -268,6 +268,25 @@ static void drawSidebarIcon(NVGcontext* vg, SidebarIcon icon, float iconX, float
             }
             break;
         }
+        case SidebarIcon::Heart:
+        {
+            // Lucide heart: smooth heart outline with 1.8px stroke
+            nvgBeginPath(vg);
+            nvgMoveTo(vg, iconX, centerY + 6.0f);
+            // Left lobe
+            nvgBezierTo(vg, iconX - 6.5f, centerY + 2.0f, iconX - 7.5f, centerY - 3.5f, iconX - 3.5f, centerY - 5.5f);
+            nvgBezierTo(vg, iconX - 1.5f, centerY - 6.5f, iconX, centerY - 4.5f, iconX, centerY - 3.0f);
+            // Right lobe
+            nvgBezierTo(vg, iconX, centerY - 4.5f, iconX + 1.5f, centerY - 6.5f, iconX + 3.5f, centerY - 5.5f);
+            nvgBezierTo(vg, iconX + 7.5f, centerY - 3.5f, iconX + 6.5f, centerY + 2.0f, iconX, centerY + 6.0f);
+            nvgClosePath(vg);
+            nvgStrokeColor(vg, iconColor);
+            nvgStrokeWidth(vg, 1.8f);
+            nvgLineCap(vg, NVG_ROUND);
+            nvgLineJoin(vg, NVG_ROUND);
+            nvgStroke(vg);
+            break;
+        }
         case SidebarIcon::None:
         default:
             break;

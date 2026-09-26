@@ -121,6 +121,16 @@ For native local building without Docker, consult [`docs/contributing/local-setu
 
 ---
 
+## Donations
+
+If you find NSX Manager helpful and wish to support its ongoing development, maintenance, and infrastructure, contributions of any amount are welcome:
+
+<p align="center">
+  <img src="assets/qr.png" alt="Donation QR Code" width="220">
+</p>
+
+---
+
 ## Legal & Licensing
 
 - **License:** Released under the [GNU General Public License v3.0](LICENSE) (`GPL-3.0-only`).

@@ -19,6 +19,7 @@
 #include "nsx/core/version/version.hpp"
 #include "nsx/ui/app_shell/splash_screen.hpp"
 #include "nsx/ui/tabs/cfw_tab.hpp"
+#include "nsx/ui/tabs/donate_tab.hpp"
 #include "nsx/ui/tabs/firmware_tab.hpp"
 #include "nsx/ui/tabs/home_tab.hpp"
 #include "nsx/ui/tabs/settings_tab.hpp"
@@ -167,6 +168,7 @@ ShellOutcome runShell(const ShellServices& services)
                               services.listPayloads, services.rebootSpecificPayload),
                  brls::SidebarIcon::Tools);
     root->addSeparator();
+    root->addTab("nsx/tabs/donate"_i18n, new DonateTab(), brls::SidebarIcon::Heart);
     root->addTab("nsx/tabs/settings"_i18n, new SettingsTab(services.update, services.catalog),
                  brls::SidebarIcon::Settings);
 
