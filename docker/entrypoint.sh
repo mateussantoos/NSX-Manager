@@ -214,6 +214,9 @@ WHERE
            "dist/nsx-manager-${version}.nro"
         cp "$(find build/switch-release -name 'nsx-forwarder.nro' | head -1)" \
            "dist/nsx-forwarder-${version}.nro"
+        if [ -f "build/switch-release/romfs/nsx_rcm.bin" ]; then
+            cp "build/switch-release/romfs/nsx_rcm.bin" "dist/nsx_rcm.bin"
+        fi
         cp "dist/nsx-manager-${version}.nro" staging/switch/nsx-manager/nsx-manager.nro
         (cd staging && zip -qr "../dist/nsx-manager-${version}.zip" switch)
         rm -rf staging
@@ -232,7 +235,7 @@ notes = match.group(1).strip() if match else f'Release v{version}'
 with open('dist/RELEASE_NOTES.md', 'w') as out:
     out.write(notes + '\n')
 " "$version"
-        (cd dist && sha256sum ./*.nro ./*.zip > SHA256SUMS && cat SHA256SUMS)
+        (cd dist && sha256sum ./*.nro ./*.zip ./*.bin 2>/dev/null > SHA256SUMS || sha256sum ./*.nro ./*.zip > SHA256SUMS; cat SHA256SUMS)
         ;;
 
     verify)
