@@ -1,36 +1,36 @@
 {
   "schema_version": 1,
   "product": "nsx-manager",
-  "version": "0.3.2",
-  "tag": "v0.3.2",
-  "published_at": "2026-09-26T17:30:09Z",
+  "version": "0.3.3",
+  "tag": "v0.3.3",
+  "published_at": "2026-09-26T21:19:02Z",
   "channel": "stable",
   "mandatory": false,
-  "min_supported": "0.3.2",
+  "min_supported": "0.3.3",
   "min_atmosphere": "1.7.0",
-  "changelog_url": "https://github.com/mateussantoos/nsx-manager/releases/tag/v0.3.2",
-  "release_notes_url": "https://github.com/mateussantoos/nsx-manager/releases/download/v0.3.2/RELEASE_NOTES.md",
+  "changelog_url": "https://github.com/mateussantoos/nsx-manager/releases/tag/v0.3.3",
+  "release_notes_url": "https://github.com/mateussantoos/nsx-manager/releases/download/v0.3.3/RELEASE_NOTES.md",
   "assets": [
     {
-      "name": "nsx-forwarder-0.3.2.nro",
+      "name": "nsx-forwarder-0.3.3.nro",
       "kind": "forwarder-nro",
-      "url": "https://github.com/mateussantoos/nsx-manager/releases/download/v0.3.2/nsx-forwarder-0.3.2.nro",
+      "url": "https://github.com/mateussantoos/nsx-manager/releases/download/v0.3.3/nsx-forwarder-0.3.3.nro",
       "size": 408222,
-      "sha256": "a3b3f513be9c6e402a352a60903049403b934241fb71453929da31317909001a"
+      "sha256": "1fc63aa8c8de64d22a7a5058c133065873264e60e15c90e6db3a02186026d983"
     },
     {
-      "name": "nsx-manager-0.3.2.nro",
+      "name": "nsx-manager-0.3.3.nro",
       "kind": "app-nro",
-      "url": "https://github.com/mateussantoos/nsx-manager/releases/download/v0.3.2/nsx-manager-0.3.2.nro",
-      "size": 9372474,
-      "sha256": "5f000a902b0176ea289352f82afa56da288b8581e993e580fd297073c353b677"
+      "url": "https://github.com/mateussantoos/nsx-manager/releases/download/v0.3.3/nsx-manager-0.3.3.nro",
+      "size": 9372954,
+      "sha256": "edb6de56e231e5664823ad57ca1d871f8b9ca6a8cb77b973a3bd5d771fd36872"
     },
     {
-      "name": "nsx-manager-0.3.2.zip",
+      "name": "nsx-manager-0.3.3.zip",
       "kind": "sd-overlay-zip",
-      "url": "https://github.com/mateussantoos/nsx-manager/releases/download/v0.3.2/nsx-manager-0.3.2.zip",
-      "size": 4147844,
-      "sha256": "3b8c89988573600fe11bd5a901adbe7063e50d7cafc984dddfd91d13b94d7a9b"
+      "url": "https://github.com/mateussantoos/nsx-manager/releases/download/v0.3.3/nsx-manager-0.3.3.zip",
+      "size": 4148075,
+      "sha256": "26ca32e3d9877e80b8f3764ee7199ae3c8a7bd7186cd353abd53d4065cb9f53e"
     }
   ]
 }
