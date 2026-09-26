@@ -255,7 +255,7 @@
 #define USE_LV_PAGE     1
 
 /*Window (dependencies: lv_cont, lv_btn, lv_label, lv_img, lv_page)*/
-#define USE_LV_WIN      1
+#define USE_LV_WIN      0
 
 /*Tab (dependencies: lv_page, lv_btnm)*/
 #define USE_LV_TABVIEW      1
@@ -358,10 +358,7 @@
 #endif
 
 /*Roller (dependencies: lv_ddlist)*/
-#define USE_LV_ROLLER    1
-#if USE_LV_ROLLER != 0
-#  define LV_ROLLER_ANIM_TIME     200     /*Focus animation time [ms] (0: no animation)*/
-#endif
+#define USE_LV_ROLLER    0
 
 /*Slider (dependencies: lv_bar)*/
 #define USE_LV_SLIDER    1

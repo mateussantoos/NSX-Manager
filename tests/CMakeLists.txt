@@ -27,6 +27,10 @@ set(NSX_TEST_MODULES
     catalog
     sha256
     file_logger
+    string_utils
+    path_utils
+    url
+    network_service
 )
 
 # Suites that drive a use-case rather than a pure rule, and therefore need the
@@ -40,6 +44,7 @@ set(NSX_TEST_MODULES_DOMAIN
     cleanup_service
     sysmodule_service
     telemetry_service
+    motd_service
 )
 
 foreach(mod IN LISTS NSX_TEST_MODULES)

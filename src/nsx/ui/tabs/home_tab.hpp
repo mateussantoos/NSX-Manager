@@ -10,6 +10,7 @@
 
 #include <borealis.hpp>
 
+#include "nsx/domain/motd/motd_service.hpp"
 #include "nsx/domain/network/telemetry_service.hpp"
 #include "nsx/domain/ports/ports.hpp"
 #include "nsx/domain/selfupdate/update_service.hpp"
@@ -22,6 +23,8 @@ struct SystemOverview
 {
     /// @brief Detected hardware model string.
     std::string model{"Nintendo Switch"};
+    /// @brief Detected SoC stepping string.
+    std::string socStepping{"T210 (Erista)"};
     /// @brief Horizon OS firmware version.
     std::string hosVersion{"Unknown"};
     /// @brief Atmosphere version string.
@@ -32,12 +35,29 @@ struct SystemOverview
     std::string fsType{"FAT32"};
     /// @brief True if exFAT is detected.
     bool isExFAT{false};
+
+    /// @brief Active network connection status.
+    bool isConnected{false};
+    /// @brief Active connection medium ("Wi-Fi", "Ethernet", "Offline").
+    std::string networkMedium{"Offline"};
+    /// @brief Assigned local IPv4 address.
+    std::string ipAddress{};
+    /// @brief Subnet mask.
+    std::string subnetMask{};
+    /// @brief Gateway IPv4 address.
+    std::string gateway{};
+    /// @brief Wi-Fi SSID if connected wirelessly.
+    std::string ssid{};
+    /// @brief Wi-Fi signal level in bars (0 to 3).
+    int wifiSignalBars{0};
+    /// @brief Wi-Fi signal strength in percent (0 to 100).
+    int wifiSignalPercent{0};
 };
 
 using SystemOverviewQuery = std::function<SystemOverview()>;
 using TabSelectCallback = std::function<void(int tabIndex)>;
 
-/// @brief Rich custom dashboard view displaying top 4 cards and status cards.
+/// @brief Rich custom dashboard view displaying top 4 cards, MOTD banner, and status cards.
 class DashboardSummaryView : public brls::View
 {
 public:
@@ -51,6 +71,10 @@ public:
     /// @brief Update update check outcome state.
     /// @param outcome Update check outcome.
     void updateUpdateOutcome(const domain::CheckOutcome& outcome);
+
+    /// @brief Update MOTD community bulletin state.
+    /// @param bulletin Optional community bulletin.
+    void updateMotd(const std::optional<domain::motd::MessageOfTheDay>& bulletin);
 
     /// @brief Refresh storage and overview metrics.
     void refresh();
@@ -68,6 +92,7 @@ private:
     void drawImageSafe(NVGcontext* vg, int& textureId, const std::string& path, float imgX,
                        float imgY, float imgW, float imgH);
     void drawChipIcon(NVGcontext* vg, float cx, float cy, float size);
+    void drawWifiSignal(NVGcontext* vg, float cx, float cy, int bars);
 
     domain::FileStore& m_files;
     SystemOverviewQuery m_queryOverview;
@@ -87,6 +112,8 @@ private:
 
     std::string m_updateStatusStr{"NSX Manager: Atualizado"};
     bool m_hasUpdate{false};
+
+    std::optional<domain::motd::MessageOfTheDay> m_motd;
 };
 
 /// @brief Interactive action button with neon red glow on focus.
@@ -126,11 +153,12 @@ public:
     /// @param update Self-update service.
     /// @param telemetry Telemetry diagnostics service.
     /// @param files File store service.
+    /// @param motd Optional community bulletins service.
     /// @param queryOverview Overview metrics supplier.
     /// @param onSelectTab Tab change callback.
     HomeTab(domain::UpdateService& update, domain::TelemetryService& telemetry,
-            domain::FileStore& files, SystemOverviewQuery queryOverview = {},
-            TabSelectCallback onSelectTab = {});
+            domain::FileStore& files, domain::motd::MotdService* motd = nullptr,
+            SystemOverviewQuery queryOverview = {}, TabSelectCallback onSelectTab = {});
 
     ~HomeTab() override;
 
@@ -144,6 +172,7 @@ private:
     domain::UpdateService& m_update;
     domain::TelemetryService& m_telemetry;
     domain::FileStore& m_files;
+    domain::motd::MotdService* m_motd{nullptr};
     SystemOverviewQuery m_queryOverview;
     TabSelectCallback m_onSelectTab;
 

@@ -19,6 +19,7 @@ set(NSX_DOMAIN_HOST_SOURCES
     maintenance/cleanup_service.cpp
     sysmodule/sysmodule_service.cpp
     network/telemetry_service.cpp
+    motd/motd_service.cpp
 )
 
 set(NSX_DOMAIN_DEVICE_SOURCES

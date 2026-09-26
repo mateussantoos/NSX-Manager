@@ -1,9 +1,9 @@
 ---
-status: "accepted"
+status: "superseded"
 date: 2026-09-23
 deciders: ["@mateussantoos"]
 supersedes: []
-superseded-by: []
+superseded-by: ["ADR-0019"]
 tags: ["build", "deps"]
 ---
 

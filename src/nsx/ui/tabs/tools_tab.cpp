@@ -41,12 +41,15 @@ private:
 
 ToolsTab::ToolsTab(domain::CleanupService& cleanup, domain::SysmoduleService& sysmodules,
                    domain::TelemetryService& telemetry, FixArchiveBitCallback fixArchiveBit,
-                   RebootCallback rebootToPayload)
+                   RebootCallback rebootToPayload, ListPayloadsCallback listPayloads,
+                   RebootSpecificPayloadCallback rebootSpecificPayload)
     : m_cleanup(cleanup),
       m_sysmodules(sysmodules),
       m_telemetry(telemetry),
       m_fixArchiveBit(std::move(fixArchiveBit)),
-      m_rebootToPayload(std::move(rebootToPayload))
+      m_rebootToPayload(std::move(rebootToPayload)),
+      m_listPayloads(std::move(listPayloads)),
+      m_rebootSpecificPayload(std::move(rebootSpecificPayload))
 {
     setupTelemetrySection();
     setupMaintenanceSection();
@@ -212,6 +215,39 @@ void ToolsTab::runFixArchiveBit()
 
 void ToolsTab::runRebootToPayload()
 {
+    if (m_listPayloads && m_rebootSpecificPayload) {
+        const auto payloads = m_listPayloads();
+        if (payloads.size() > 1) {
+            auto* dialog = new brls::Dialog("tools/maintenance/reboot_rcm_confirm"_i18n);
+            for (const auto& [name, path] : payloads) {
+                const std::string payloadPath = path;
+                dialog->addButton(name, [this, dialog, payloadPath](brls::View*) {
+                    dialog->close([this, payloadPath]() {
+                        if (!m_rebootSpecificPayload(payloadPath)) {
+                            auto* failDialog =
+                                new brls::Dialog("tools/maintenance/reboot_failed"_i18n);
+                            failDialog->addButton("nsx/actions/ok"_i18n, [failDialog](brls::View*) {
+                                failDialog->close();
+                            });
+                            failDialog->setCancelable(true);
+                            failDialog->open();
+                        }
+                    });
+                });
+            }
+            dialog->addButton("nsx/actions/cancel"_i18n,
+                              [dialog](brls::View*) { dialog->close(); });
+            dialog->setCancelable(true);
+            dialog->open();
+            return;
+        }
+        if (payloads.size() == 1) {
+            if (m_rebootSpecificPayload(payloads[0].second)) {
+                return;
+            }
+        }
+    }
+
     if (m_rebootToPayload) {
         const bool ok = m_rebootToPayload();
         if (!ok) {

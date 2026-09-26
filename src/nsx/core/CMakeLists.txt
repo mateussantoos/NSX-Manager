@@ -20,10 +20,12 @@ set(NSX_CORE_SOURCES
     paths/traversal_guard.cpp
     paths/preserve_rules.cpp
     paths/extraction_policy.cpp
+    paths/path_utils.cpp
     catalog/catalog.cpp
     cfw/merge_marker.cpp
     firmware/firmware_set.cpp
-    # text/format.cpp
+    text/string_utils.cpp
+    net/url.cpp
     # json/safe_get.cpp
     hash/sha256.cpp
     log/file_logger.cpp

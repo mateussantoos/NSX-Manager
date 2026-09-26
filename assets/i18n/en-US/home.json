@@ -21,5 +21,14 @@
         "label": "Application Status",
         "available": "Update Available",
         "up_to_date": "Up to Date"
+    },
+    "motd": {
+        "header": "Community Bulletin",
+        "dismiss": "Dismiss"
+    },
+    "network": {
+        "header": "Live Network",
+        "connected": "Connected",
+        "offline": "Offline"
     }
 }

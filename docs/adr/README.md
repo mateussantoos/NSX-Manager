@@ -20,7 +20,7 @@ and add your row to the table below in the same pull request.
 | [0006](0006-verify-tls-with-an-embedded-ca-bundle-and-mandate-sha-256.md) | Verify TLS with an embedded CA bundle and mandate SHA-256 | superseded | 2026-09-23 |
 | [0007](0007-self-update-by-staging-an-nro-and-chainloading-a-forwarder.md) | Self-update by staging an NRO and chainloading a forwarder | accepted | 2026-09-23 |
 | [0008](0008-ship-a-bare-nro-for-in-app-updates-and-a-zip-for-first-install.md) | Ship a bare NRO for in-app updates and a zip for first install | accepted | 2026-09-23 |
-| [0009](0009-vendor-dependencies-as-pinned-git-submodules.md) | Vendor dependencies as pinned git submodules | accepted | 2026-09-23 |
+| [0009](0009-vendor-dependencies-as-pinned-git-submodules.md) | Vendor dependencies as pinned git submodules | superseded | 2026-09-23 |
 | [0010](0010-use-the-borealis-fork-as-the-ui-framework.md) | Use the Borealis fork as the UI framework | accepted | 2026-09-23 |
 | [0011](0011-license-gplv3-and-isolate-the-gplv2-only-rcm-payload.md) | License GPLv3 and isolate the GPL-2.0-only RCM payload | accepted | 2026-09-23 |
 | [0012](0012-use-borealis-i18n-with-en-us-as-the-source-of-truth.md) | Use Borealis i18n with en-US as the source of truth | accepted | 2026-09-23 |
@@ -30,6 +30,11 @@ and add your row to the table below in the same pull request.
 | [0016](0016-verify-tls-against-the-firmware-trust-store.md) | Verify TLS against the firmware trust store | accepted | 2026-09-23 |
 | [0017](0017-drive-the-update-flow-through-ports-so-it-is-host-testable.md) | Drive the update flow through ports so it is host-testable | accepted | 2026-09-24 |
 | [0018](0018-install-content-by-displacing-rather-than-overwriting.md) | Install content by displacing rather than overwriting | accepted | 2026-09-24 |
+| [0019](0019-consolidate-vendored-dependencies-in-root-repository.md) | Consolidate vendored dependencies in root repository | accepted | 2026-09-26 |
+| [0020](0020-structured-file-and-console-logging.md) | Structured file and console logging | accepted | 2026-09-26 |
+| [0021](0021-native-horizon-network-telemetry-integration.md) | Native Horizon network telemetry integration | accepted | 2026-09-26 |
+| [0022](0022-dynamic-motd-community-bulletin-protocol.md) | Dynamic MOTD community bulletin protocol | accepted | 2026-09-26 |
+| [0023](0023-tegra-rcm-payload-lvgl-widget-stripping.md) | Tegra RCM payload LVGL widget stripping | accepted | 2026-09-26 |
 
 ## Reading order
 

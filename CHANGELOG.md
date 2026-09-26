@@ -13,6 +13,45 @@ by `git-cliff` during the release workflow - do not hand-edit them. Add entries 
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-09-26
+
+### Added
+
+- **Structured Disk and Console Logging (`core/log`)**:
+  - Implemented thread-safe, non-blocking `FileLogger` with automatic size capping (1 MB) and log rotation.
+  - Dual output: simultaneous console stdout and persistent append-only storage in `sdmc:/switch/nsx-manager/nsx.log`.
+  - Comprehensive unit test coverage verifying formatting, buffer flush, and rotation boundaries.
+- **Native Horizon Network Telemetry (`platform/network`)**:
+  - Implemented `NetworkInterfaceService` wrapping Horizon OS `nifm` services.
+  - Real-time queries for connection medium (Wi-Fi, Ethernet, Offline), assigned local IPv4 address, subnet mask, gateway, SSID, and RSSI signal level.
+  - Mock implementation and full host test coverage.
+- **Dynamic Community Bulletins and MOTD Protocol (`domain/motd`)**:
+  - Implemented `MotdService` parsing optional community bulletin payloads from remote manifests (`update.json`).
+  - Gated by application version (`min_app_version`) with persistent dismissal tracking and local caching.
+  - Unit test suite verifying severity parsing, dismissal state, and version boundaries.
+- **Payload Scanner and RCM Launcher (`platform/launch`)**:
+  - Implemented `PayloadLauncher` scanning `.bin` payloads across `/bootloader/payloads/` and `/switch/nsx-manager/payloads/`.
+  - Added safe reboot to payload execution and target chainloading via `envSetNextLoad`.
+- **Modernized Dashboard Grid and Live Telemetry UI**:
+  - Hardware card with runtime SoC stepping detection (`T210B01 Mariko` vs. `T210 Erista`).
+  - System version card displaying real-time Horizon OS, Atmosphere (AMS) versions, and NAND mode badge (`SysNAND` / `EmuNAND`).
+  - Live network card with connection status, IP address, SSID, multi-bar Wi-Fi signal gauge, and 90DNS telemetry protection shield indicator.
+  - Storage gauge card displaying free vs. total storage and FAT32/exFAT cluster health indicator.
+  - Prominent MOTD alert card rendered dynamically at the top of the dashboard when active bulletins are present.
+- **Architecture Decision Records (ADRs)**:
+  - Documented ADR-0019 (vendored dependency consolidation), ADR-0020 (file logging), ADR-0021 (network telemetry), ADR-0022 (MOTD protocol), and ADR-0023 (Tegra RCM LVGL optimization).
+
+### Changed
+
+- **Vendor Dependency Consolidation**:
+  - Permanently consolidated all third-party dependencies (`borealis`, `zipper`, `nlohmann/json`, `doctest`) into the primary repository index.
+  - Purged submodule metadata (`.gitmodules`) and nested `.git` references for offline, atomic repository clones.
+  - Deduplicated `json.hpp` across Borealis and NSX Manager onto `third_party/nlohmann/json.hpp`.
+  - Purged legacy desktop tests, documentation, and external CI files from vendored libraries.
+- **Tegra RCM Payload Optimization**:
+  - Disabled and excluded non-essential LVGL widgets (`lv_calendar`, `lv_chart`, `lv_gauge`, `lv_spinbox`, `lv_table`, `lv_tileview`, `lv_win`, `lv_roller`, `lv_preload`).
+  - Reduced payload footprint to 75,809 bytes (over 50 KB safety margin below the 126,296-byte Tegra IRAM hardware limit).
+
 ## [0.2.5] - 2026-09-25
 
 ### Fixed

@@ -23,12 +23,15 @@
 #include "nsx/domain/cfw/zip_archive_gateway.hpp"
 #include "nsx/domain/firmware/firmware_install_service.hpp"
 #include "nsx/domain/maintenance/cleanup_service.hpp"
+#include "nsx/domain/motd/motd_service.hpp"
 #include "nsx/domain/network/telemetry_service.hpp"
 #include "nsx/domain/selfupdate/curl_gateway.hpp"
 #include "nsx/domain/selfupdate/sd_file_store.hpp"
 #include "nsx/domain/selfupdate/update_service.hpp"
 #include "nsx/domain/sysmodule/sysmodule_service.hpp"
 #include "nsx/platform/fs/archive_bit.hpp"
+#include "nsx/platform/launch/payload_launcher.hpp"
+#include "nsx/platform/network/network_service.hpp"
 #include "nsx/platform/power/reboot.hpp"
 #include "nsx/platform/system/system_info.hpp"
 #include "nsx/ui/app_shell/shell.hpp"
@@ -93,6 +96,8 @@ int main(int argc, char** argv)
     nsx::domain::CleanupService cleanup(files, {});
     nsx::domain::SysmoduleService sysmodules(files);
     nsx::domain::TelemetryService telemetry;
+    nsx::domain::motd::MotdService motd(installedVersion().toString());
+    nsx::platform::network::DefaultNetworkService network;
 
     // Platform callbacks for hardware actions
     auto fixArchiveBit = [](const std::function<bool(std::string_view)>& onProgress) {
@@ -102,15 +107,47 @@ int main(int argc, char** argv)
 
     auto rebootToPayload = []() -> bool { return nsx::platform::rebootToPayload().hasValue(); };
 
-    auto querySystemOverview = []() -> nsx::ui::SystemOverview {
+    auto listPayloads = []() -> std::vector<std::pair<std::string, std::string>> {
+        const auto payloads = nsx::platform::launch::PayloadLauncher::listAvailablePayloads();
+        std::vector<std::pair<std::string, std::string>> result;
+        result.reserve(payloads.size());
+        for (const auto& p : payloads) {
+            result.emplace_back(p.filename, p.path);
+        }
+        return result;
+    };
+
+    auto rebootSpecificPayload = [](std::string_view path) -> bool {
+        return nsx::platform::launch::PayloadLauncher::rebootToPayload(path).hasValue();
+    };
+
+    auto querySystemOverview = [&network]() -> nsx::ui::SystemOverview {
         const auto info = nsx::platform::querySystemInfo();
+        const auto net = network.queryConnectionInfo();
+        std::string medium = "Offline";
+        if (net.medium == nsx::platform::network::ConnectionMedium::Wifi) {
+            medium = "Wi-Fi";
+        }
+        else if (net.medium == nsx::platform::network::ConnectionMedium::Ethernet) {
+            medium = "Ethernet";
+        }
+
         return {
             .model = info.model,
+            .socStepping = info.socStepping,
             .hosVersion = info.hosVersion,
             .amsVersion = info.amsVersion,
             .nandType = info.nandType,
             .fsType = info.fsType,
             .isExFAT = info.isExFAT,
+            .isConnected = net.isConnected,
+            .networkMedium = std::move(medium),
+            .ipAddress = net.ipAddress,
+            .subnetMask = net.subnetMask,
+            .gateway = net.gateway,
+            .ssid = net.ssid,
+            .wifiSignalBars = net.wifiSignalBars,
+            .wifiSignalPercent = net.wifiSignalPercent,
         };
     };
 
@@ -130,10 +167,15 @@ int main(int argc, char** argv)
         std::printf("%s\n", recovered.detail.c_str());
     }
 
-    const nsx::ui::ShellServices services{update,        catalog,        cfw,
-                                          firmware,      cleanup,        sysmodules,
-                                          telemetry,     files,          querySystemOverview,
-                                          fixArchiveBit, rebootToPayload};
+    const nsx::ui::ShellServices services{
+        update,        catalog,
+        cfw,           firmware,
+        cleanup,       sysmodules,
+        telemetry,     files,
+        &motd,         querySystemOverview,
+        fixArchiveBit, rebootToPayload,
+        listPayloads,  rebootSpecificPayload,
+    };
     const nsx::ui::ShellOutcome outcome = nsx::ui::runShell(services);
 
     if (outcome.error != nsx::ui::ShellError::None) {

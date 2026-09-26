@@ -6,7 +6,15 @@
 
 namespace nsx::platform::network {
 
-/// @brief Network interface status placeholder for connectivity extensions.
+/// @brief Physical connection medium.
+enum class ConnectionMedium
+{
+    None,
+    Ethernet,
+    Wifi
+};
+
+/// @brief Network interface status.
 enum class InterfaceStatus
 {
     Disconnected,
@@ -14,11 +22,17 @@ enum class InterfaceStatus
     Connected
 };
 
-/// @brief Connection details representation.
+/// @brief Comprehensive network telemetry and interface information.
 struct ConnectionInfo
 {
-    bool isConnected{false};  ///< Whether an active interface is up.
-    std::string ipAddress{};  ///< Local IP address string.
+    bool isConnected{false};
+    ConnectionMedium medium{ConnectionMedium::None};
+    std::string ipAddress{};
+    std::string subnetMask{};
+    std::string gateway{};
+    std::string ssid{};
+    int wifiSignalBars{0};     // 0 to 3 bars
+    int wifiSignalPercent{0};  // 0 to 100%
 };
 
 }  // namespace nsx::platform::network

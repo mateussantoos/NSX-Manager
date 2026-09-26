@@ -20,6 +20,7 @@ SystemInfo querySystemInfo()
 {
     SystemInfo info;
     info.model = "Nintendo Switch";
+    info.socStepping = "T210 (Erista)";
     info.hosVersion = "Unknown";
     info.amsVersion = "Not detected";
     info.nandType = "SysNAND";
@@ -33,22 +34,28 @@ SystemInfo querySystemInfo()
         switch (model) {
             case SetSysProductModel_Aula:
                 info.model = "Switch OLED";
+                info.socStepping = "T210B01 (Mariko)";
                 break;
             case SetSysProductModel_Hoag:
                 info.model = "Switch Lite";
+                info.socStepping = "T210B01 (Mariko)";
                 break;
             case SetSysProductModel_Iowa:
                 info.model = "Switch V2";
+                info.socStepping = "T210B01 (Mariko)";
                 break;
             case SetSysProductModel_Nx:
                 info.model = "Switch V1";
+                info.socStepping = "T210 (Erista)";
                 break;
             case SetSysProductModel_Copper:
             case SetSysProductModel_Calcio:
                 info.model = "Switch DevKit";
+                info.socStepping = "T210 (Dev)";
                 break;
             default:
                 info.model = "Nintendo Switch";
+                info.socStepping = "T210";
                 break;
         }
     }

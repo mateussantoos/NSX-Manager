@@ -50,9 +50,12 @@ struct ShellServices
     domain::SysmoduleService& sysmodules;       ///< Sysmodule manager.
     domain::TelemetryService& telemetry;        ///< Telemetry protection checker.
     domain::FileStore& files;                   ///< FileStore for storage queries.
+    domain::motd::MotdService* motd{nullptr};   ///< Optional MOTD service.
     SystemOverviewQuery querySystemOverview{};  ///< System information query for dashboard.
     FixArchiveBitCallback fixArchiveBit{};      ///< Platform archive bit repair.
     RebootCallback rebootToPayload{};           ///< Platform reboot to payload.
+    ListPayloadsCallback listPayloads{};        ///< Scan payloads callback.
+    RebootSpecificPayloadCallback rebootSpecificPayload{};  ///< Reboot to specific payload.
 };
 
 /// @brief What the shell wants to happen after it closes.

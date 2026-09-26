@@ -109,6 +109,18 @@ void DashboardSummaryView::updateUpdateOutcome(const domain::CheckOutcome& outco
     }
 }
 
+void DashboardSummaryView::updateMotd(const std::optional<domain::motd::MessageOfTheDay>& bulletin)
+{
+    std::lock_guard lock(m_mutex);
+    m_motd = bulletin;
+    if (m_motd.has_value()) {
+        this->setHeight(376);
+    }
+    else {
+        this->setHeight(320);
+    }
+}
+
 void DashboardSummaryView::drawImageSafe(NVGcontext* vg, int& textureId, const std::string& path,
                                          float imgX, float imgY, float imgW, float imgH)
 {
@@ -162,6 +174,31 @@ void DashboardSummaryView::drawChipIcon(NVGcontext* vg, float cx, float cy, floa
     }
 }
 
+void DashboardSummaryView::drawWifiSignal(NVGcontext* vg, float cx, float cy, int bars)
+{
+    constexpr float barW = 3.5f;
+    constexpr float barSpacing = 2.5f;
+    constexpr float heights[3] = {6.0f, 10.0f, 15.0f};
+    const float startX = cx - (3.0f * barW + 2.0f * barSpacing) * 0.5f;
+    const float baseY = cy + 7.5f;
+
+    for (int i = 0; i < 3; ++i) {
+        const float bx = startX + static_cast<float>(i) * (barW + barSpacing);
+        const float bh = heights[i];
+        const float by = baseY - bh;
+
+        nvgBeginPath(vg);
+        nvgRoundedRect(vg, bx, by, barW, bh, 1.0f);
+        if (i < bars) {
+            nvgFillColor(vg, nvgRGB(46, 204, 113));
+        }
+        else {
+            nvgFillColor(vg, nvgRGBA(255, 255, 255, 40));
+        }
+        nvgFill(vg);
+    }
+}
+
 void DashboardSummaryView::draw(NVGcontext* vg, int viewX, int viewY, unsigned viewW,
                                 unsigned viewH, brls::Style*, brls::FrameContext* ctx)
 {
@@ -171,12 +208,75 @@ void DashboardSummaryView::draw(NVGcontext* vg, int viewX, int viewY, unsigned v
     const auto curY = static_cast<float>(viewY);
 
     // ==========================================
+    // 0. MOTD BANNER (IF ACTIVE)
+    // ==========================================
+    float motdOffset = 0.0f;
+    std::optional<domain::motd::MessageOfTheDay> activeMotd;
+    {
+        std::lock_guard lock(m_mutex);
+        activeMotd = m_motd;
+    }
+
+    if (activeMotd.has_value()) {
+        const float bannerY = curY;
+        constexpr float bannerH = 44.0f;
+        motdOffset = bannerH + 12.0f;
+
+        NVGcolor borderColor;
+        NVGcolor bgColor;
+        if (activeMotd->severity == "error") {
+            borderColor = nvgRGB(231, 76, 60);
+            bgColor = nvgRGBA(231, 76, 60, 30);
+        }
+        else if (activeMotd->severity == "warning") {
+            borderColor = nvgRGB(243, 156, 18);
+            bgColor = nvgRGBA(243, 156, 18, 30);
+        }
+        else {
+            borderColor = nvgRGB(52, 152, 219);
+            bgColor = nvgRGBA(52, 152, 219, 30);
+        }
+
+        nvgBeginPath(vg);
+        nvgRoundedRect(vg, curX, bannerY, totalW, bannerH, 8.0f);
+        nvgFillColor(vg, bgColor);
+        nvgFill(vg);
+        nvgStrokeColor(vg, borderColor);
+        nvgStrokeWidth(vg, 1.2f);
+        nvgStroke(vg);
+
+        // Alert Tag Badge
+        nvgBeginPath(vg);
+        nvgRoundedRect(vg, curX + 12.0f, bannerY + 11.0f, 56.0f, 22.0f, 4.0f);
+        nvgFillColor(vg, borderColor);
+        nvgFill(vg);
+
+        nvgBeginPath(vg);
+        nvgFontFaceId(vg, ctx->fontStash->regular);
+        nvgFontSize(vg, 11.0f);
+        nvgFillColor(vg, nvgRGB(255, 255, 255));
+        nvgTextAlign(vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+        nvgText(vg, curX + 40.0f, bannerY + 22.0f, "AVISO", nullptr);
+
+        // Title and Message
+        nvgBeginPath(vg);
+        nvgFontSize(vg, 13.5f);
+        nvgFillColor(vg, nvgRGB(255, 255, 255));
+        nvgTextAlign(vg, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
+        std::string bannerText = activeMotd->title;
+        if (!activeMotd->message.empty()) {
+            bannerText += " - " + activeMotd->message;
+        }
+        nvgText(vg, curX + 78.0f, bannerY + 22.0f, bannerText.c_str(), nullptr);
+    }
+
+    // ==========================================
     // 1. SECTION 1 HEADER: Resumo do sistema
     // ==========================================
-    // Crimson Red Accent Bar (#E60012)
+    const float sec1Y = curY + motdOffset;
     nvgBeginPath(vg);
     nvgFillColor(vg, nvgRGB(230, 0, 18));
-    nvgRect(vg, curX, curY + 2.0f, 4.0f, 18.0f);
+    nvgRect(vg, curX, sec1Y + 2.0f, 4.0f, 18.0f);
     nvgFill(vg);
 
     nvgBeginPath(vg);
@@ -184,7 +284,7 @@ void DashboardSummaryView::draw(NVGcontext* vg, int viewX, int viewY, unsigned v
     nvgFontSize(vg, 18.0f);
     nvgFillColor(vg, nvgRGB(240, 240, 240));
     nvgTextAlign(vg, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
-    nvgText(vg, curX + 12.0f, curY + 11.0f, "Resumo do Sistema", nullptr);
+    nvgText(vg, curX + 12.0f, sec1Y + 11.0f, "Resumo do Sistema", nullptr);
 
     // ==========================================
     // 2. BLOCK 1: TOP 4 CARDS
@@ -192,7 +292,7 @@ void DashboardSummaryView::draw(NVGcontext* vg, int viewX, int viewY, unsigned v
     constexpr float gap = 12.0f;
     const float cardW = (totalW - gap * 3.0f) / 4.0f;
     constexpr float cardH = 68.0f;
-    const float cardsY = curY + 26.0f;
+    const float cardsY = sec1Y + 26.0f;
 
     for (int i = 0; i < 4; ++i) {
         const float cx = curX + static_cast<float>(i) * (cardW + gap);
@@ -207,54 +307,131 @@ void DashboardSummaryView::draw(NVGcontext* vg, int viewX, int viewY, unsigned v
         nvgStroke(vg);
 
         if (i == 0) {
-            // Model Detection Card
+            // Hardware Card (Switch model + SoC stepping)
             drawImageSafe(vg, m_joyconsImg, BOREALIS_ASSET("images/joycons.png"), cx + 10.0f,
                           cardsY + 16.0f, 38.0f, 36.0f);
 
             nvgBeginPath(vg);
             nvgFontFaceId(vg, ctx->fontStash->regular);
-            nvgFontSize(vg, 13.0f);
+            nvgFontSize(vg, 12.0f);
             nvgFillColor(vg, nvgRGB(142, 146, 152));
             nvgTextAlign(vg, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
-            nvgText(vg, cx + 56.0f, cardsY + 22.0f, "Modelo", nullptr);
+            nvgText(vg, cx + 54.0f, cardsY + 18.0f, "Hardware", nullptr);
 
             nvgBeginPath(vg);
-            nvgFontSize(vg, 18.0f);
+            nvgFontSize(vg, 16.0f);
             nvgFillColor(vg, nvgRGB(255, 255, 255));
-            nvgText(vg, cx + 56.0f, cardsY + 44.0f, m_overview.model.c_str(), nullptr);
+            nvgText(vg, cx + 54.0f, cardsY + 36.0f, m_overview.model.c_str(), nullptr);
+
+            nvgBeginPath(vg);
+            nvgFontSize(vg, 11.5f);
+            nvgFillColor(vg, nvgRGB(52, 152, 219));
+            nvgText(vg, cx + 54.0f, cardsY + 52.0f, m_overview.socStepping.c_str(), nullptr);
         }
         else if (i == 1) {
-            // Horizon OS Firmware Version Card
-            drawChipIcon(vg, cx + 28.0f, cardsY + 34.0f, 34.0f);
+            // System Version Card (HOS version + Atmosphere version + NAND mode badge)
+            drawChipIcon(vg, cx + 24.0f, cardsY + 34.0f, 32.0f);
 
             nvgBeginPath(vg);
             nvgFontFaceId(vg, ctx->fontStash->regular);
-            nvgFontSize(vg, 13.0f);
+            nvgFontSize(vg, 12.0f);
             nvgFillColor(vg, nvgRGB(142, 146, 152));
             nvgTextAlign(vg, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
-            nvgText(vg, cx + 56.0f, cardsY + 22.0f, "Firmware", nullptr);
+            nvgText(vg, cx + 46.0f, cardsY + 18.0f, "Sistema / AMS", nullptr);
+
+            // NAND Mode badge
+            const float nandBadgeW = 54.0f;
+            const float nandBadgeX = cx + cardW - nandBadgeW - 8.0f;
+            const float nandBadgeY = cardsY + 10.0f;
+            const bool isEmu = (m_overview.nandType.find("Emu") != std::string::npos);
 
             nvgBeginPath(vg);
-            nvgFontSize(vg, 19.0f);
+            nvgRoundedRect(vg, nandBadgeX, nandBadgeY, nandBadgeW, 15.0f, 3.5f);
+            nvgFillColor(vg, isEmu ? nvgRGBA(155, 89, 182, 40) : nvgRGBA(52, 152, 219, 40));
+            nvgFill(vg);
+            nvgStrokeColor(vg, isEmu ? nvgRGB(155, 89, 182) : nvgRGB(52, 152, 219));
+            nvgStrokeWidth(vg, 1.0f);
+            nvgStroke(vg);
+
+            nvgBeginPath(vg);
+            nvgFontSize(vg, 9.5f);
+            nvgFillColor(vg, isEmu ? nvgRGB(180, 130, 220) : nvgRGB(90, 180, 240));
+            nvgTextAlign(vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+            nvgText(vg, nandBadgeX + nandBadgeW * 0.5f, nandBadgeY + 7.5f,
+                    m_overview.nandType.c_str(), nullptr);
+
+            // Horizon OS
+            nvgBeginPath(vg);
+            nvgFontSize(vg, 14.0f);
             nvgFillColor(vg, nvgRGB(255, 255, 255));
-            nvgText(vg, cx + 56.0f, cardsY + 44.0f, m_overview.hosVersion.c_str(), nullptr);
+            nvgTextAlign(vg, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
+            const std::string hosText = "HOS: " + m_overview.hosVersion;
+            nvgText(vg, cx + 46.0f, cardsY + 36.0f, hosText.c_str(), nullptr);
+
+            // Atmosphere
+            nvgBeginPath(vg);
+            nvgFontSize(vg, 12.0f);
+            nvgFillColor(vg, nvgRGB(46, 204, 113));
+            const std::string amsText = "AMS: " + m_overview.amsVersion;
+            nvgText(vg, cx + 46.0f, cardsY + 52.0f, amsText.c_str(), nullptr);
         }
         else if (i == 2) {
-            // Atmosphere CFW Version Card
-            drawImageSafe(vg, m_amsImg, BOREALIS_ASSET("images/atmosphere_icon.png"), cx + 12.0f,
-                          cardsY + 16.0f, 36.0f, 36.0f);
+            // Live Network Card
+            if (m_overview.networkMedium == "Wi-Fi") {
+                drawWifiSignal(vg, cx + 22.0f, cardsY + 34.0f, m_overview.wifiSignalBars);
+            }
+            else {
+                nvgBeginPath(vg);
+                nvgCircle(vg, cx + 22.0f, cardsY + 34.0f, 10.0f);
+                nvgFillColor(vg,
+                             m_overview.isConnected ? nvgRGB(46, 204, 113) : nvgRGB(142, 146, 152));
+                nvgFill(vg);
+            }
 
             nvgBeginPath(vg);
             nvgFontFaceId(vg, ctx->fontStash->regular);
-            nvgFontSize(vg, 13.0f);
+            nvgFontSize(vg, 12.0f);
             nvgFillColor(vg, nvgRGB(142, 146, 152));
             nvgTextAlign(vg, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
-            nvgText(vg, cx + 56.0f, cardsY + 22.0f, "Atmosphere (AMS)", nullptr);
+            nvgText(vg, cx + 44.0f, cardsY + 18.0f, m_overview.networkMedium.c_str(), nullptr);
+
+            // 90DNS Shield badge
+            const float shieldBadgeW = 50.0f;
+            const float shieldBadgeX = cx + cardW - shieldBadgeW - 8.0f;
+            const float shieldBadgeY = cardsY + 10.0f;
+            const bool isShielded = (m_telemetryStatus == infra::TelemetryStatus::Protected);
 
             nvgBeginPath(vg);
-            nvgFontSize(vg, 19.0f);
+            nvgRoundedRect(vg, shieldBadgeX, shieldBadgeY, shieldBadgeW, 15.0f, 3.5f);
+            nvgFillColor(vg, isShielded ? nvgRGBA(46, 204, 113, 40) : nvgRGBA(231, 76, 60, 40));
+            nvgFill(vg);
+            nvgStrokeColor(vg, isShielded ? nvgRGB(46, 204, 113) : nvgRGB(231, 76, 60));
+            nvgStrokeWidth(vg, 1.0f);
+            nvgStroke(vg);
+
+            nvgBeginPath(vg);
+            nvgFontSize(vg, 9.5f);
+            nvgFillColor(vg, isShielded ? nvgRGB(46, 204, 113) : nvgRGB(231, 76, 60));
+            nvgTextAlign(vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+            nvgText(vg, shieldBadgeX + shieldBadgeW * 0.5f, shieldBadgeY + 7.5f,
+                    isShielded ? "90DNS" : "ALERTA", nullptr);
+
+            // Middle: SSID or Connection status
+            nvgBeginPath(vg);
+            nvgFontSize(vg, 14.0f);
             nvgFillColor(vg, nvgRGB(255, 255, 255));
-            nvgText(vg, cx + 56.0f, cardsY + 44.0f, m_overview.amsVersion.c_str(), nullptr);
+            nvgTextAlign(vg, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
+            const std::string netTitle =
+                m_overview.isConnected ? (!m_overview.ssid.empty() ? m_overview.ssid : "Conectado")
+                                       : "Desconectado";
+            nvgText(vg, cx + 44.0f, cardsY + 36.0f, netTitle.c_str(), nullptr);
+
+            // Bottom: IP address
+            nvgBeginPath(vg);
+            nvgFontSize(vg, 11.5f);
+            nvgFillColor(vg, nvgRGB(142, 146, 152));
+            const std::string ipStr = m_overview.ipAddress.empty() ? "--" : m_overview.ipAddress;
+            nvgText(vg, cx + 44.0f, cardsY + 52.0f, ipStr.c_str(), nullptr);
         }
         else if (i == 3) {
             // SD Storage & Gauge Card
@@ -263,18 +440,18 @@ void DashboardSummaryView::draw(NVGcontext* vg, int viewX, int viewY, unsigned v
 
             nvgBeginPath(vg);
             nvgFontFaceId(vg, ctx->fontStash->regular);
-            nvgFontSize(vg, 13.0f);
+            nvgFontSize(vg, 12.0f);
             nvgFillColor(vg, nvgRGB(142, 146, 152));
             nvgTextAlign(vg, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
-            nvgText(vg, cx + 48.0f, cardsY + 20.0f, "Espaco livre", nullptr);
+            nvgText(vg, cx + 48.0f, cardsY + 18.0f, "MicroSD", nullptr);
 
             // Filesystem Badge (FAT32 green / exFAT orange)
             const float badgeW = m_overview.isExFAT ? 58.0f : 50.0f;
             const float badgeX = cx + cardW - badgeW - 8.0f;
-            const float badgeY = cardsY + 12.0f;
+            const float badgeY = cardsY + 10.0f;
 
             nvgBeginPath(vg);
-            nvgRoundedRect(vg, badgeX, badgeY, badgeW, 16.0f, 4.0f);
+            nvgRoundedRect(vg, badgeX, badgeY, badgeW, 15.0f, 3.5f);
             if (m_overview.isExFAT) {
                 nvgFillColor(vg, nvgRGBA(230, 126, 34, 40));
                 nvgFill(vg);
@@ -289,22 +466,22 @@ void DashboardSummaryView::draw(NVGcontext* vg, int viewX, int viewY, unsigned v
             nvgStroke(vg);
 
             nvgBeginPath(vg);
-            nvgFontSize(vg, 10.5f);
+            nvgFontSize(vg, 9.5f);
             nvgFillColor(vg, m_overview.isExFAT ? nvgRGB(230, 126, 34) : nvgRGB(46, 204, 113));
             nvgTextAlign(vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
-            nvgText(vg, badgeX + badgeW * 0.5f, badgeY + 8.5f, m_overview.fsType.c_str(), nullptr);
+            nvgText(vg, badgeX + badgeW * 0.5f, badgeY + 7.5f, m_overview.fsType.c_str(), nullptr);
 
             // Free space number
             nvgBeginPath(vg);
-            nvgFontSize(vg, 18.0f);
+            nvgFontSize(vg, 16.0f);
             nvgFillColor(vg, nvgRGB(255, 255, 255));
             nvgTextAlign(vg, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
-            nvgText(vg, cx + 48.0f, cardsY + 38.0f, m_storageFreeStr.c_str(), nullptr);
+            nvgText(vg, cx + 48.0f, cardsY + 36.0f, m_storageFreeStr.c_str(), nullptr);
 
             // Capacity bar gauge
             const float barW = cardW - 58.0f;
             const float barX = cx + 48.0f;
-            const float barY = cardsY + 50.0f;
+            const float barY = cardsY + 48.0f;
 
             nvgBeginPath(vg);
             nvgRoundedRect(vg, barX, barY, barW, 4.0f, 2.0f);
@@ -726,12 +903,13 @@ void DashboardActionButton::draw(NVGcontext* vg, int viewX, int viewY, unsigned 
 // ============================================================================
 
 HomeTab::HomeTab(domain::UpdateService& update, domain::TelemetryService& telemetry,
-                 domain::FileStore& files, SystemOverviewQuery queryOverview,
-                 TabSelectCallback onSelectTab)
+                 domain::FileStore& files, domain::motd::MotdService* motd,
+                 SystemOverviewQuery queryOverview, TabSelectCallback onSelectTab)
     : brls::BoxLayout(brls::BoxLayoutOrientation::VERTICAL),
       m_update(update),
       m_telemetry(telemetry),
       m_files(files),
+      m_motd(motd),
       m_queryOverview(std::move(queryOverview)),
       m_onSelectTab(std::move(onSelectTab))
 {
@@ -741,6 +919,13 @@ HomeTab::HomeTab(domain::UpdateService& update, domain::TelemetryService& teleme
     // 1. Modular Dashboard Grid (Top 4 Cards & Middle Panels)
     m_summaryView = new DashboardSummaryView(m_files, m_queryOverview);
     this->addView(m_summaryView);
+
+    if (m_motd) {
+        const auto cached = m_motd->currentBulletin();
+        if (cached.has_value()) {
+            m_summaryView->updateMotd(cached);
+        }
+    }
 
     // 2. Quick Actions Toolbar (Interactive horizontal tiles)
     m_buttonsRow = new brls::BoxLayout(brls::BoxLayoutOrientation::HORIZONTAL);
@@ -827,6 +1012,26 @@ void HomeTab::runUpdateCheck()
         }
         if (m_summaryView) {
             m_summaryView->updateUpdateOutcome(outcome);
+        }
+
+        if (m_motd) {
+            auto manifestText =
+                m_files.readText("/config/nsx-manager/cache/manifest.json", 64 * 1024);
+            if (!manifestText.has_value()) {
+                manifestText =
+                    m_files.readText("/switch/nsx-manager/staging/update.json", 64 * 1024);
+            }
+            if (manifestText.has_value()) {
+                if (m_motd->parseAndCache(*manifestText) && m_summaryView) {
+                    m_summaryView->updateMotd(m_motd->currentBulletin());
+                }
+            }
+            else {
+                const auto cached = m_motd->currentBulletin();
+                if (cached.has_value() && m_summaryView) {
+                    m_summaryView->updateMotd(cached);
+                }
+            }
         }
     });
 }

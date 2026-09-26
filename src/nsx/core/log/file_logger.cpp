@@ -4,8 +4,11 @@
 
 #include <chrono>
 #include <ctime>
+#include <filesystem>
 #include <fstream>
-#include <iomanip>
+#include <iostream>
+#include <sstream>
+#include <thread>
 #include <utility>
 
 namespace nsx::core::log {
@@ -16,31 +19,45 @@ const char* levelToString(LogLevel level) noexcept
 {
     switch (level) {
         case LogLevel::Debug:
-            return "[DEBUG]";
+            return "DEBUG";
         case LogLevel::Info:
-            return "[INFO] ";
+            return "INFO";
         case LogLevel::Warn:
-            return "[WARN] ";
+            return "WARN";
         case LogLevel::Error:
-            return "[ERROR]";
+            return "ERROR";
     }
-    return "[INFO] ";
+    return "INFO";
 }
 
 }  // namespace
 
-FileLogger::FileLogger(std::string path) : m_path(std::move(path)) {}
+FileLogger::FileLogger(std::string path, std::size_t maxSizeBytes)
+    : m_path(std::move(path)), m_maxSizeBytes(maxSizeBytes)
+{
+}
+
+void FileLogger::rotateIfNeededLocked()
+{
+    namespace fs = std::filesystem;
+    std::error_code ec;
+    if (m_maxSizeBytes > 0 && fs::exists(m_path, ec)) {
+        const auto size = fs::file_size(m_path, ec);
+        if (!ec && size >= m_maxSizeBytes) {
+            const fs::path backup = m_path + ".1";
+            fs::remove(backup, ec);
+            fs::rename(m_path, backup, ec);
+        }
+    }
+}
 
 void FileLogger::log(LogLevel level, std::string_view message)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
 
-    std::ofstream out(m_path, std::ios::app);
-    if (!out.is_open()) {
-        return;
-    }
-
     const auto now = std::chrono::system_clock::now();
+    const auto ms =
+        std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
     const auto timeT = std::chrono::system_clock::to_time_t(now);
     std::tm tmBuf{};
 #if defined(_WIN32)
@@ -49,8 +66,28 @@ void FileLogger::log(LogLevel level, std::string_view message)
     localtime_r(&timeT, &tmBuf);
 #endif
 
-    out << std::put_time(&tmBuf, "%Y-%m-%d %H:%M:%S") << " " << levelToString(level) << " "
-        << message << "\n";
+    std::stringstream tidStream;
+    tidStream << std::this_thread::get_id();
+    const std::string tidStr = tidStream.str();
+
+    char lineHeader[128];
+    std::snprintf(lineHeader, sizeof(lineHeader),
+                  "[%04d-%02d-%02d %02d:%02d:%02d.%03lld] [%s] [%s] ", tmBuf.tm_year + 1900,
+                  tmBuf.tm_mon + 1, tmBuf.tm_mday, tmBuf.tm_hour, tmBuf.tm_min, tmBuf.tm_sec,
+                  static_cast<long long>(ms.count()), levelToString(level), tidStr.c_str());
+
+    // 1. Output to console stdout
+    std::cout << lineHeader << message << "\n";
+    std::cout.flush();
+
+    // 2. Check rotation and append to log file
+    rotateIfNeededLocked();
+
+    std::ofstream out(m_path, std::ios::app);
+    if (out.is_open()) {
+        out << lineHeader << message << "\n";
+        out.flush();
+    }
 }
 
 void FileLogger::info(std::string_view message)
@@ -76,6 +113,11 @@ void FileLogger::debug(std::string_view message)
 const std::string& FileLogger::path() const noexcept
 {
     return m_path;
+}
+
+std::size_t FileLogger::maxSizeBytes() const noexcept
+{
+    return m_maxSizeBytes;
 }
 
 }  // namespace nsx::core::log

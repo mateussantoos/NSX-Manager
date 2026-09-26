@@ -146,7 +146,7 @@ ShellOutcome runShell(const ShellServices& services)
     };
 
     root->addTab("nsx/tabs/home"_i18n,
-                 new HomeTab(services.update, services.telemetry, services.files,
+                 new HomeTab(services.update, services.telemetry, services.files, services.motd,
                              services.querySystemOverview, onSelectTab),
                  brls::SidebarIcon::Home);
     root->addSeparator();
@@ -163,7 +163,8 @@ ShellOutcome runShell(const ShellServices& services)
                  brls::SidebarIcon::Firmware);
     root->addTab("nsx/tabs/tools"_i18n,
                  new ToolsTab(services.cleanup, services.sysmodules, services.telemetry,
-                              services.fixArchiveBit, services.rebootToPayload),
+                              services.fixArchiveBit, services.rebootToPayload,
+                              services.listPayloads, services.rebootSpecificPayload),
                  brls::SidebarIcon::Tools);
     root->addSeparator();
     root->addTab("nsx/tabs/settings"_i18n, new SettingsTab(services.update, services.catalog),

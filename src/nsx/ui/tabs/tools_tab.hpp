@@ -2,13 +2,14 @@
 
 #pragma once
 
-#include <cstddef>
 #include <functional>
 #include <memory>
 #include <mutex>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <utility>
+#include <vector>
 
 #include <borealis.hpp>
 
@@ -22,8 +23,10 @@ namespace nsx::ui {
 using FixArchiveBitCallback = std::function<std::pair<std::size_t, std::size_t>(
     const std::function<bool(std::string_view)>&)>;
 using RebootCallback = std::function<bool()>;
+using ListPayloadsCallback = std::function<std::vector<std::pair<std::string, std::string>>()>;
+using RebootSpecificPayloadCallback = std::function<bool(std::string_view)>;
 
-/// @brief Maintenance, power controls, sysmodule manager, and telemetry status.
+/// @brief Maintenance, power controls, payload rebooter, sysmodule manager, and telemetry status.
 /// @since 0.4.0
 class ToolsTab : public brls::List
 {
@@ -34,9 +37,12 @@ public:
     /// @param telemetry Telemetry diagnostics service.
     /// @param fixArchiveBit Archive-bit recursive repair callback.
     /// @param rebootToPayload Reboot to payload callback.
+    /// @param listPayloads Callback to scan available payloads.
+    /// @param rebootSpecificPayload Callback to reboot into a specific payload path.
     ToolsTab(domain::CleanupService& cleanup, domain::SysmoduleService& sysmodules,
              domain::TelemetryService& telemetry, FixArchiveBitCallback fixArchiveBit,
-             RebootCallback rebootToPayload);
+             RebootCallback rebootToPayload, ListPayloadsCallback listPayloads = {},
+             RebootSpecificPayloadCallback rebootSpecificPayload = {});
     ~ToolsTab() override;
 
 private:
@@ -55,6 +61,8 @@ private:
     domain::TelemetryService& m_telemetry;
     FixArchiveBitCallback m_fixArchiveBit;
     RebootCallback m_rebootToPayload;
+    ListPayloadsCallback m_listPayloads;
+    RebootSpecificPayloadCallback m_rebootSpecificPayload;
 
     brls::ListItem* m_telemetryItem{nullptr};
     brls::Label* m_telemetryDetail{nullptr};
@@ -63,9 +71,9 @@ private:
     BackgroundJob m_telemetryJob;
     BackgroundJob m_archiveJob;
 
+    std::mutex m_resultMutex;
     std::optional<infra::TelemetryReport> m_pendingTelemetry;
     std::optional<std::pair<std::size_t, std::size_t>> m_pendingArchiveBit;
-    std::mutex m_resultMutex;
 };
 
 }  // namespace nsx::ui

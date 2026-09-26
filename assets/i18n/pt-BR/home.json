@@ -21,5 +21,14 @@
         "label": "Status do Aplicativo",
         "available": "Atualização Disponível",
         "up_to_date": "Atualizado"
+    },
+    "motd": {
+        "header": "Aviso da Comunidade",
+        "dismiss": "Ignorar"
+    },
+    "network": {
+        "header": "Rede em Tempo Real",
+        "connected": "Conectado",
+        "offline": "Desconectado"
     }
 }

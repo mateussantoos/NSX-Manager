@@ -28,10 +28,11 @@ All core domain logic—version negotiation, download staging, verification, and
 ## Key Features
 
 ### Modular Dashboard Grid
-- **Hardware Model Detection:** Identifies console hardware revisions at runtime (Switch V1 / Erista, V2 / Mariko, OLED, or Lite).
+- **Hardware & SoC Detection:** Identifies console hardware revisions and SoC stepping at runtime (Switch V1 / Erista T210, V2 / Mariko T210B01, OLED, or Lite).
 - **Real-Time Environment Badges:** Instant visual status of installed Horizon OS firmware version, Atmosphere (AMS) build, and active NAND mode (SysNAND vs. EmuNAND).
+- **Live Network Telemetry:** Real-time connection medium (Wi-Fi or Ethernet), assigned local IPv4 address, Wi-Fi SSID, multi-bar signal strength gauge, and 90DNS telemetry shield protection.
+- **Dynamic Community Bulletins (MOTD):** Non-intrusive dashboard alert banner displaying critical firmware advisories and community compatibility warnings parsed from remote manifests.
 - **SD Card Storage Gauge:** Real-time capacity bar gauge displaying free vs. total storage alongside filesystem format detection (FAT32 vs. exFAT corruption warning).
-- **Security & Telemetry Badge:** Automated connectivity probing against telemetry endpoints (`conntest.nintendowifi.net` and `ctest.cdn.nintendo.net`) confirming whether telemetry blocking / 90DNS shield protection is active.
 
 ### Clean Lucide Aesthetics & Dark Theme
 - **True Black OLED Theme:** Deep black background (`#000000`) paired with distinctive Nintendo crimson red accents (`#E60012`).
@@ -40,8 +41,9 @@ All core domain logic—version negotiation, download staging, verification, and
 - **Single-Stroke Focus Highlights:** Refined gamepad navigation with crisp single-border outlines avoiding nested focus artifacts.
 
 ### Maintenance & System Utilities
+- **Payload Scanner & Rebooter:** Automatically scans and enumerates `.bin` payloads across `/bootloader/payloads/` and `/switch/nsx-manager/payloads/` with interactive selection dialog.
 - **Archive-Bit Recursive Repair:** Scans and clears FAT32 archive-bit directory attributes across the SD card to resolve boot crashes, corrupted homebrew titles, and theme errors.
-- **Reboot to Payload (RCM):** Reboots directly into Atmosphere or custom payloads (`/bootloader/update.bin`, `payload.bin`) via hardware `splSetConfig` and `bpcDoReboot` without powering off the console.
+- **Structured File & Console Logging:** Thread-safe, non-blocking diagnostic logging to console stdout and persistent append-only storage in `sdmc:/switch/nsx-manager/nsx.log` with automated file size capping.
 - **Sysmodules Toggle Manager:** Enumerates installed Atmosphere background modules under `/atmosphere/contents/` and toggles their startup presence via `flags/boot2.flag`.
 - **Temporary Cache Cleanup:** Safely purges leftover staging directories, temporary download archives, and update swap residue.
 

@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <mutex>
 #include <string>
 #include <string_view>
@@ -17,17 +18,21 @@ enum class LogLevel
     Error
 };
 
-/// @brief Minimal thread-safe file logger.
-/// @details Appends log records with timestamps and severity to a target file.
-///          Default path: "sdmc:/switch/nsx-manager/nsx.log".
+/// @brief Thread-safe structured disk and console logger.
+/// @details Formats output as `[YYYY-MM-DD HH:MM:SS.mmm] [LEVEL] [ThreadID] Message`,
+///          printing to stdout and appending to the target path.
+///          Supports rotation/size capping and gracefully handles missing/unmounted storage.
 class FileLogger
 {
 public:
     static constexpr const char* kDefaultPath = "sdmc:/switch/nsx-manager/nsx.log";
+    static constexpr std::size_t kDefaultMaxSize = 1024 * 1024;  // 1 MB
 
     /// @brief Construct a logger pointing to target path.
     /// @param path The log file destination path.
-    explicit FileLogger(std::string path = kDefaultPath);
+    /// @param maxSizeBytes Maximum log file size before rotation/capping.
+    explicit FileLogger(std::string path = kDefaultPath,
+                        std::size_t maxSizeBytes = kDefaultMaxSize);
 
     ~FileLogger() = default;
 
@@ -61,9 +66,15 @@ public:
     /// @return Configured path string reference.
     [[nodiscard]] const std::string& path() const noexcept;
 
+    /// @brief Retrieve configured maximum file size in bytes.
+    [[nodiscard]] std::size_t maxSizeBytes() const noexcept;
+
 private:
     std::string m_path;
+    std::size_t m_maxSizeBytes;
     std::mutex m_mutex;
+
+    void rotateIfNeededLocked();
 };
 
 }  // namespace nsx::core::log
