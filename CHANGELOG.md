@@ -13,6 +13,13 @@ by `git-cliff` during the release workflow - do not hand-edit them. Add entries 
 
 ## [Unreleased]
 
+## [0.2.5] - 2026-09-25
+
+### Fixed
+
+- Automated `dist/RELEASE_NOTES.md` extraction from `CHANGELOG.md` in release packaging to prevent missing artifact errors in GitHub Releases publication.
+- Added resilience handling to GitHub Pages deployment pipeline (`enablement: true` and `continue-on-error: true`), guarding against unprovisioned Pages environments.
+
 ## [0.2.4] - 2026-09-25
 
 ### Fixed
@@ -112,7 +119,8 @@ by `git-cliff` during the release workflow - do not hand-edit them. Add entries 
 - RCM payload ported from the predecessor with its GPL-2.0-only headers intact, built by its own
   devkitARM Makefile and staged into romfs as opaque data.
 
-[Unreleased]: https://github.com/mateussantoos/nsx-manager/compare/v0.2.4...HEAD
+[Unreleased]: https://github.com/mateussantoos/nsx-manager/compare/v0.2.5...HEAD
+[0.2.5]: https://github.com/mateussantoos/nsx-manager/compare/v0.2.4...v0.2.5
 [0.2.4]: https://github.com/mateussantoos/nsx-manager/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/mateussantoos/nsx-manager/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/mateussantoos/nsx-manager/compare/v0.2.1...v0.2.2

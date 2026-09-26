@@ -220,6 +220,18 @@ WHERE
         banner "Manifest and checksums"
         python3 tools/release/gen_manifest.py --tag "$tag" --dist dist --out dist/update.json
         python3 tools/release/validate_manifest.py dist/update.json
+        banner "Release notes"
+        python3 -c "
+import sys, re
+version = sys.argv[1].lstrip('v')
+with open('CHANGELOG.md', 'r') as f:
+    content = f.read()
+pattern = rf'## \[{re.escape(version)}\][^\n]*\n(.*?)(?=\n## \[|\Z)'
+match = re.search(pattern, content, re.DOTALL)
+notes = match.group(1).strip() if match else f'Release v{version}'
+with open('dist/RELEASE_NOTES.md', 'w') as out:
+    out.write(notes + '\n')
+" "$version"
         (cd dist && sha256sum ./*.nro ./*.zip > SHA256SUMS && cat SHA256SUMS)
         ;;
 
