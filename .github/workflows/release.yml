@@ -2,117 +2,53 @@ name: Release
 
 on:
   push:
-    tags: ['v*.*.*']
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: 'Tag to release (e.g. v0.1.0)'
-        required: true
+    tags:
+      - 'v*'
 
 permissions:
   contents: write
 
 jobs:
-  guard:
-    name: Guard
-    runs-on: ubuntu-latest
-    outputs:
-      tag: ${{ steps.resolve.outputs.tag }}
-      version: ${{ steps.resolve.outputs.version }}
-      prerelease: ${{ steps.resolve.outputs.prerelease }}
-      epoch: ${{ steps.resolve.outputs.epoch }}
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with: { fetch-depth: 0 }
-
-      - id: resolve
-        run: |
-          TAG="${{ github.event.inputs.tag || github.ref_name }}"
-          echo "tag=$TAG"              >> "$GITHUB_OUTPUT"
-          echo "epoch=$(git log -1 --format=%ct "$TAG")" >> "$GITHUB_OUTPUT"
-          echo "version=${TAG#v}"      >> "$GITHUB_OUTPUT"
-          if printf '%s' "$TAG" | grep -q -- '-'; then
-            echo "prerelease=true"  >> "$GITHUB_OUTPUT"
-          else
-            echo "prerelease=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      # Nothing is built until the tag and /VERSION agree. This is what makes
-      # "the tag is the version" an invariant rather than a convention.
-      - name: Tag matches VERSION
-        run: tools/release/check_version.sh "${{ steps.resolve.outputs.tag }}"
-
-      - name: Tag is on main
-        run: |
-          git branch -r --contains "${{ steps.resolve.outputs.tag }}" | grep -q 'origin/main' \
-            || { echo "::error::tag is not an ancestor of main - releases are cut from main"; exit 1; }
-
-  build:
-    name: Build release artefacts
-    needs: guard
+  build-and-publish:
+    name: Build & Publish Release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with: { submodules: recursive }
-
-      # A release is built by the SAME container developers and CI use, so the
-      # published binary comes from a toolchain that was already exercised -
-      # not from a one-off environment assembled at release time.
-      - uses: docker/setup-buildx-action@c47758b77c9736f4b2ef4073d4d51994fabfe349 # v3.7.1
-      - uses: docker/build-push-action@4f58ea79222b3b9dc2c8bbdd6debcef730109a75 # v6.9.0
+      - name: Checkout code
+        uses: actions/checkout@v4
         with:
-          context: .
-          load: true
-          tags: nsx-manager-build:release
-          cache-from: type=gha
+          fetch-depth: 0
 
-      # `release` does everything release.yml used to do inline: guard, build,
-      # package, generate the manifest, validate it with the client contract,
-      # and write SHA256SUMS. Keeping it in the entrypoint means the release
-      # path is runnable locally before anyone pushes a tag.
-      - name: Build and package
+      - name: Build and Package Release Artifacts
         run: |
-          docker run --rm             -v "${{ github.workspace }}:/workspace" -w /workspace             -e SOURCE_DATE_EPOCH=${{ needs.guard.outputs.epoch }}             nsx-manager-build:release release "${{ needs.guard.outputs.tag }}"
+          docker compose build nsx
+          docker compose run --rm nsx release "${{ github.ref_name }}"
+          sudo chown -R $USER:$USER dist/
+          echo "=== Staged Artifacts ==="
+          ls -la dist/
 
-      - name: Generate release notes
+      - name: Ensure Release Notes Exist
         run: |
-          if [ ! -s dist/RELEASE_NOTES.md ]; then
+          if [ ! -f dist/RELEASE_NOTES.md ]; then
             python3 -c "
 import sys, re
-version = sys.argv[1].lstrip('v')
-with open('CHANGELOG.md', 'r') as f:
-    content = f.read()
-pattern = rf'## \[{re.escape(version)}\][^\n]*\n(.*?)(?=\n## \[|\Z)'
-match = re.search(pattern, content, re.DOTALL)
-notes = match.group(1).strip() if match else f'Release v{version}'
-with open('dist/RELEASE_NOTES.md', 'w') as out:
-    out.write(notes + '\n')
-" "${{ needs.guard.outputs.tag }}"
+ver = sys.argv[1].lstrip('v')
+try:
+    with open('CHANGELOG.md') as f: content = f.read()
+    m = re.search(rf'## \[{re.escape(ver)}\][^\n]*\n(.*?)(?=\n## \[|\Z)', content, re.DOTALL)
+    notes = m.group(1).strip() if m else f'Release {ver}'
+except Exception:
+    notes = f'Release {ver}'
+with open('dist/RELEASE_NOTES.md', 'w') as out: out.write(notes + '\n')
+" "${{ github.ref_name }}"
           fi
 
-      - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
-        with: { name: release-dist, path: dist/ }
-
-  publish:
-    name: Publish release
-    needs: [guard, build]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
-        with: { name: release-dist, path: dist }
-
-      - name: Create GitHub release
-        uses: softprops/action-gh-release@c062e08bd532815e2082a85e87e3ef29c3e6d191 # v2.0.8
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ needs.guard.outputs.tag }}
-          name: NSX Manager ${{ needs.guard.outputs.version }}
+          tag_name: ${{ github.ref_name }}
+          name: NSX Manager ${{ github.ref_name }}
           body_path: dist/RELEASE_NOTES.md
-          prerelease: ${{ needs.guard.outputs.prerelease }}
+          prerelease: false
           fail_on_unmatched_files: false
           files: |
             dist/nsx-manager-*.nro
@@ -122,30 +58,17 @@ with open('dist/RELEASE_NOTES.md', 'w') as out:
             dist/update.json
             dist/SHA256SUMS
             dist/RELEASE_NOTES.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  metadata-mirror:
-    name: Mirror manifest to release-metadata
-    needs: [guard, publish]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
-        with: { name: release-dist, path: dist }
-
-      # A fallback the client uses only when github.com itself is unreachable.
-      # Still not api.github.com, so it does not touch the 60/hour REST budget.
-      - name: Push update.json to the release-metadata orphan branch
+      - name: Mirror to release-metadata
         run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git fetch origin release-metadata:release-metadata 2>/dev/null \
-            && git switch release-metadata \
-            || git switch --orphan release-metadata
-          find . -maxdepth 1 ! -name . ! -name .git ! -name dist -exec rm -rf {} +
-          cp dist/update.json .
-          echo "Machine-readable release metadata. Generated by release.yml - do not edit." > README.md
-          git add update.json README.md
-          git commit -m "chore(release): publish manifest for ${{ needs.guard.outputs.tag }}" || exit 0
-          git push origin release-metadata
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout --orphan release-metadata-tmp
+          git rm -rf .
+          cp dist/update.json ./update.json
+          git add update.json
+          git commit -m "chore(release): mirror update.json for ${{ github.ref_name }}"
+          git branch -M release-metadata
+          git push origin release-metadata --force

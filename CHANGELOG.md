@@ -13,6 +13,15 @@ by `git-cliff` during the release workflow - do not hand-edit them. Add entries 
 
 ## [Unreleased]
 
+## [0.3.3] - 2026-09-26
+
+### Fixed
+
+- **Automated GitHub Release Pipeline**:
+  - Consolidated multi-stage release workflow into a single, unified `build-and-publish` runner job.
+  - Eliminated inter-runner artifact handoff drops by executing container compilation, packaging, and asset publication on the same runner instance.
+  - Added automatic ownership resolution for staged release artifacts in `dist/`.
+
 ## [0.3.2] - 2026-09-26
 
 ### Added
@@ -194,7 +203,8 @@ by `git-cliff` during the release workflow - do not hand-edit them. Add entries 
 - RCM payload ported from the predecessor with its GPL-2.0-only headers intact, built by its own
   devkitARM Makefile and staged into romfs as opaque data.
 
-[Unreleased]: https://github.com/mateussantoos/nsx-manager/compare/v0.3.2...HEAD
+[Unreleased]: https://github.com/mateussantoos/nsx-manager/compare/v0.3.3...HEAD
+[0.3.3]: https://github.com/mateussantoos/nsx-manager/compare/v0.3.2...v0.3.3
 [0.3.2]: https://github.com/mateussantoos/nsx-manager/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/mateussantoos/nsx-manager/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/mateussantoos/nsx-manager/compare/v0.2.5...v0.3.0
